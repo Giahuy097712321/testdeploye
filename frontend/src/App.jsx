@@ -1,12 +1,12 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AliveScope, KeepAlive } from "react-activation"; // 1. Import thư viện
+import { AliveScope, KeepAlive } from "react-activation";
 
 import MainLayout from "./components/MainLayout";
 
 /* === IMPORT CÁC COMPONENTS === */
 import UAVLandingPage from "./app/page";
-import AboutPage from "./components/about/Aboutpage.JSX";
+import AboutPage from "./components/about/Aboutpage.jsx";  // ✅ ĐÃ SỬA
 import Admin from "./components/admin/Admin";
 import ExamPage from "./components/exam/ExamPage";
 import LookupPage from "./components/lookup/LookupPage";
