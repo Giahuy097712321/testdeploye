@@ -1,6 +1,62 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../config/db');
+const verifyToken = require('../middleware/verifyToken');
+
+// --- GET: Lấy danh sách khóa học liên quan theo LEVEL ---
+router.get("/related/level/:id", async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const { page = 1, limit } = req.query;
+
+    // 1. Lấy thông tin level của khóa học hiện tại
+    const [currentCourse] = await db.query(
+      "SELECT level FROM courses WHERE id = ?", 
+      [courseId]
+    );
+
+    if (currentCourse.length === 0) {
+      return res.status(404).json({ error: "Không tìm thấy khóa học" });
+    }
+
+    const courseLevel = currentCourse[0].level;
+
+    // 2. Lấy khóa học cùng level (loại trừ khóa học hiện tại)
+    let query = `SELECT * FROM courses 
+       WHERE level = ? AND id != ? 
+       ORDER BY created_at DESC`;
+    
+    let queryParams = [courseLevel, courseId];
+
+    if (limit) {
+      const offset = (page - 1) * limit;
+      query += ` LIMIT ? OFFSET ?`;
+      queryParams.push(parseInt(limit), offset);
+    }
+
+    const [relatedCourses] = await db.query(query, queryParams);
+
+    // Lấy tổng số khóa học cùng level
+    const [totalCount] = await db.query(
+      "SELECT COUNT(*) as count FROM courses WHERE level = ? AND id != ?",
+      [courseLevel, courseId]
+    );
+
+    res.json({
+      message: "Lấy khóa học liên quan thành công",
+      currentLevel: courseLevel,
+      total: totalCount[0].count,
+      page: limit ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : null,
+      totalPages: limit ? Math.ceil(totalCount[0].count / limit) : 1,
+      courses: relatedCourses
+    });
+
+  } catch (error) {
+    console.error("Lỗi lấy khóa học liên quan:", error);
+    res.status(500).json({ error: "Lỗi server khi lấy khóa học liên quan" });
+  }
+});
 
 // --- GET: Lấy danh sách tất cả khóa học (Hiển thị trang chủ/danh sách) ---
 router.get("/", async (req, res) => {
@@ -47,7 +103,8 @@ router.get("/lesson/:id", async (req, res) => {
 
 
 // --- GET: Lấy chi tiết 1 KHÓA HỌC (Bao gồm Chương và Bài học lồng nhau) ---
-router.get("/:id", async (req, res) => {
+// ⭐ YÊU CẦU ĐĂNG NHẬP
+router.get("/:id", verifyToken, async (req, res) => {
   try {
     const courseId = req.params.id;
 
