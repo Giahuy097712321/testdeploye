@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 // --- IMPORT MANAGERS ---
 import PointManager from "../points/PointManager";
 import SolutionManager from "../solutions/SolutionManager";
-import NotificationManager from "../notifications/NotificationManager";
 import Model3DManager from "../model3d/Model3DManager";
 import CourseManager from "../course/CourseManager";
 import ExamManager from "../exam/ExamManager";
-
-import { useNavigate } from "react-router-dom";
-
-
-// === IMPORT MỚI: QUẢN LÝ NGƯỜI DÙNG ===
 import UserManager from "../UserManager/UserManager";
+import DisplaySettingsManager from "../DisplaySettings/DisplaySettingsManager";
 
 import "./AdminStyles.css";
 
 export default function Admin() {
   const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(false);
-  const [activeTab, setActiveTab] = useState("model3d");
+  
+  // Đổi tab mặc định hoặc giữ nguyên tùy bạn
+  const [activeTab, setActiveTab] = useState("model3d"); 
 
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
@@ -27,15 +26,11 @@ export default function Admin() {
     }
   }, [navigate]);
 
-
-
-
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_user");
     navigate("/login", { replace: true });
   };
-
 
   return (
     <div className="admin-container">
@@ -80,8 +75,6 @@ export default function Admin() {
               >
                 Đăng xuất
               </div>
-
-
             </div>
           )}
         </div>
@@ -108,7 +101,6 @@ export default function Admin() {
             Quản lý Lịch thi
           </button>
 
-          {/* === BUTTON MỚI: NGƯỜI DÙNG === */}
           <button
             className={`nav-item ${activeTab === "users" ? "active" : ""}`}
             onClick={() => setActiveTab("users")}
@@ -130,12 +122,12 @@ export default function Admin() {
             Quản lý Giải pháp
           </button>
 
+          {/* === CẬP NHẬT TAB NÀY === */}
           <button
-            className={`nav-item ${activeTab === "notifications" ? "active" : ""
-              }`}
-            onClick={() => setActiveTab("notifications")}
+            className={`nav-item ${activeTab === "display" ? "active" : ""}`}
+            onClick={() => setActiveTab("display")}
           >
-            Thông báo
+            Giao diện & Thông báo
           </button>
         </nav>
       </header>
@@ -148,16 +140,17 @@ export default function Admin() {
 
         {activeTab === "exams" && <ExamManager />}
 
-        {/* === RENDER COMPONENT QUẢN LÝ NGƯỜI DÙNG === */}
         {activeTab === "users" && <UserManager />}
 
         {activeTab === "points" && <PointManager />}
 
         {activeTab === "solutions" && <div className="panel"><SolutionManager /></div>}
 
-        {activeTab === "notifications" && (
-          <div className="panel" style={{ border: "none", boxShadow: "none", background: "transparent" }}>
-            <NotificationManager />
+        {/* === CẬP NHẬT RENDER COMPONENT MỚI === */}
+        {activeTab === "display" && (
+          <div className="panel" style={{ border: "none", boxShadow: "none", background: "transparent", padding: 0 }}>
+            {/* Component mới xử lý cả Footer và Thông báo */}
+            <DisplaySettingsManager />
           </div>
         )}
       </div>
