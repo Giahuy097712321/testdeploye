@@ -1,142 +1,74 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+const express = require("express");
+const cors = require("cors"); // Nhớ bật lại dòng này
+const bodyParser = require("body-parser");
+const compression = require("compression");
+const { UPLOAD_ROOT } = require("./utils/fileHelpers");
 
 const app = express();
-const PORT = 5000;
-const MONGODB_URI = 'mongodb://localhost:27017/map_db'; 
+const PORT = process.env.PORT || 5000; 
 
-// --- Cấu hình Middleware ---
-app.use(cors()); 
-app.use(bodyParser.json()); 
+// --- CẤU HÌNH CORS CHUẨN (KHUYÊN DÙNG) ---
+app.use(cors({
+  origin: function (origin, callback) {
+    // 1. Cho phép request không có origin (Postman, Server-to-Server)
+    if (!origin) return callback(null, true);
 
-// --- Kết nối MongoDB ---
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('MongoDB: Connected successfully.'))
-    .catch(err => console.error('MongoDB: Connection error:', err));
+    // 2. Tự động cho phép tất cả các port localhost (Dev Mode)
+    // Giúp bạn không lo Vite đổi port 5173, 5174, 5175...
+    if (origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
+      return callback(null, true);
+    }
 
-// --- Định nghĩa Schema (ĐÃ SỬA) ---
-const pointSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true, trim: true }, 
-    title: { type: String, required: true, trim: true },
-    lead: { type: String, trim: true },
-    description: { type: String, trim: true },
-    website: { type: String, trim: true },
-    logoSrc: { type: String, default: '/images/logo-default.svg' },
+    // 3. Cho phép domain thật (Production)
+    const allowedOrigins = [
+      "https://trungtamdaotaouav.vn",
+      "https://www.trungtamdaotaouav.vn"
+    ];
     
-    // Ảnh thường
-    imageSrc: { type: String, default: '/images/img-default.jpg' },
-
-    // === QUAN TRỌNG: Đã thêm trường này để lưu link ảnh 360 ===
-    panoramaUrl: { type: String, default: '' }, 
-    // ==========================================================
-
-    position: { 
-        type: [Number], 
-        required: true, 
-        validate: [v => v.length === 3, 'Position must be an array of 3 numbers [x, y, z]']
-    },
-    schedule: { type: Map, of: String, default: {} }, 
-    contact: { type: Map, of: String, default: {} } 
-});
-
-const Point = mongoose.model('Point', pointSchema);
-
-const handleApiError = (res, err) => {
-    if (err.code === 11000) {
-        return res.status(400).json({ message: 'LỖI: ID này đã tồn tại. Vui lòng chọn ID khác.' });
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
     }
-    console.error('Lỗi Server:', err);
-    return res.status(500).json({ message: `Lỗi Server: ${err.message}` });
-};
 
-// --- API Endpoints ---
+    // 4. Chặn các nguồn lạ khác
+    console.log("Blocked CORS:", origin);
+    return callback(new Error('CORS not allowed'), false);
+  },
+  credentials: true,
+}));
 
-// 1. GET ALL POINTS
-app.get('/api/points', async (req, res) => {
-    try {
-        const points = await Point.find().lean();
-        res.status(200).json(points);
-    } catch (err) {
-        handleApiError(res, err);
-    }
-});
+app.use(compression());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
-// 2. CREATE NEW POINT (POST)
-app.post('/api/points', async (req, res) => {
-    try {
-        // Lấy cả panoramaUrl từ body
-        const { posX, posY, posZ, ...rest } = req.body;
-        
-        // Validation
-        const rawY = parseFloat(posY);
-        if (typeof posX !== 'number' || typeof rawY !== 'number' || typeof posZ !== 'number') {
-            return res.status(400).json({ message: 'Tọa độ (posX, posY, posZ) phải là số hợp lệ.' });
-        }
-        
-        const position = [posX, rawY, posZ];
+app.use("/uploads", express.static(UPLOAD_ROOT, { 
+    maxAge: "7d",
+    immutable: true 
+}));
 
-        const newPoint = new Point({
-            ...rest,
-            position: position,
-        });
+// ... (Giữ nguyên phần import routes phía dưới của bạn) ...
+const filesRoute = require("./api/files");
+const pointsRoute = require("./api/points");
+const solutionsRoute = require("./api/solutions");
+const notificationsRoute = require("./api/notifications");
+const settingsRoute = require("./api/settings");
+const utilsRoute = require("./api/utils");
+const examsRouter = require('./api/exams');
+const coursesRoute = require("./api/courses"); 
+const authRoute = require("./api/auth"); 
+const usersRouter = require("./api/users");
 
-        const savedPoint = await newPoint.save();
-        res.status(201).json(savedPoint.toObject()); 
-
-    } catch (err) {
-        handleApiError(res, err);
-    }
-});
-
-// 3. UPDATE EXISTING POINT (PUT)
-app.put('/api/points/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        // Lấy cả panoramaUrl từ body để update
-        const { posX, posY, posZ, ...rest } = req.body;
-
-        const rawY = parseFloat(posY);
-        if (typeof posX !== 'number' || typeof rawY !== 'number' || typeof posZ !== 'number') {
-            return res.status(400).json({ message: 'Tọa độ (posX, posY, posZ) phải là số hợp lệ.' });
-        }
-        
-        const position = [posX, rawY, posZ];
-
-        const updatedPoint = await Point.findOneAndUpdate(
-            { id: id }, 
-            { ...rest, position: position },
-            { new: true, runValidators: true } 
-        ).lean();
-
-        if (!updatedPoint) {
-            return res.status(404).json({ message: `Không tìm thấy điểm với ID: ${id}` });
-        }
-
-        res.status(200).json(updatedPoint);
-
-    } catch (err) {
-        handleApiError(res, err);
-    }
-});
-
-// 4. DELETE POINT (DELETE)
-app.delete('/api/points/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await Point.findOneAndDelete({ id: id });
-
-        if (!result) {
-            return res.status(404).json({ message: `Không tìm thấy điểm với ID: ${id}` });
-        }
-        res.status(204).send(); 
-    } catch (err) {
-        handleApiError(res, err);
-    }
-});
+app.use("/api/users", usersRouter);
+app.use("/api", filesRoute);
+app.use("/api/points", pointsRoute);
+app.use("/api/solutions", solutionsRoute);
+app.use("/api/notifications", notificationsRoute);
+app.use("/api/settings", settingsRoute);
+app.use("/api", utilsRoute);
+app.use('/api/exams', examsRouter);
+app.use("/api/courses", coursesRoute); 
+app.use("/api/auth", authRoute);
 
 app.listen(PORT, () => {
-    console.log(`Server đang chạy trên http://localhost:${PORT}`);
-    console.log('API endpoints: /api/points');
+  console.log(`Server is running on PORT: ${PORT}`);
+  console.log(`Upload Storage Path: ${UPLOAD_ROOT}`);
 });

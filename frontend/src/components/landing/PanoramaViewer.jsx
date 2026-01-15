@@ -1,3 +1,5 @@
+import React, { useEffect, useRef } from "react";
+
 // Component riêng để xử lý Panorama - Giúp code gọn và fix lỗi reload
 const PanoramaViewer = ({ panoramaUrl }) => {
     const viewerContainerRef = useRef(null);
@@ -35,7 +37,7 @@ const PanoramaViewer = ({ panoramaUrl }) => {
                 hfov: 110,
                 pitch: 0,
                 yaw: 0,
-                backgroundColor: "#000000" // Màu nền khi ảnh đang load
+                backgroundColor: "#222222" // [THEME] Màu nền tối khi ảnh đang load
             });
         } catch (error) {
             console.error("Lỗi khởi tạo Panorama:", error);
@@ -55,8 +57,11 @@ const PanoramaViewer = ({ panoramaUrl }) => {
                 height: '300px', // Chiều cao cố định để không bị méo
                 borderRadius: '8px',
                 overflow: 'hidden',
-                backgroundColor: '#eee'
+                backgroundColor: '#3D3D3D', // [THEME] Màu nền card khi chưa có ảnh
+                border: '1px solid #555'   // [THEME] Viền nhẹ
             }} 
         />
     );
 };
+
+export default PanoramaViewer;

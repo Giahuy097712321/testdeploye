@@ -196,41 +196,90 @@ function AboutPage() {
                 </div>
             </section>
 
-            {/* 4. Đơn vị tổ chức & Yêu cầu */}
+
+            {/* 4. Đơn vị tổ chức */}
             <section className="section section-white">
                 <div className="container">
-                    <div className="grid-2-cols">
-                        {/* Đơn vị tổ chức */}
-                        <div>
-                            <h2 className="sub-title">Đơn vị tổ chức</h2>
-                            <div className="organization-card">
-                                <div className="organization-icon">
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-4h8v4"/></svg>
-                                </div>
-                                <h3>Công ty TNHH Khoa Học Roboboss</h3>
-                                <p className="org-subtitle">Đơn vị đào tạo chính quy</p>
-                                <p>Chịu trách nhiệm quản lý, giám sát và cấp chứng chỉ cho người điều khiển thiết bị bay không người lái theo tiêu chuẩn quốc gia.</p>
+                    <h2 className="section-title">Đơn vị tổ chức</h2>
+                    <div className="organization-grid">
+                        {/* Card 1: Đào tạo và ứng dụng công nghệ */}
+                        <div className="organization-card">
+                            <div className="organization-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
                             </div>
+                            <h3 className="organization-title">Đào tạo và ứng dụng công nghệ</h3>
+                            <p className="organization-subtitle">Công ty TNHH Khoa Học Roboboss</p>
+                            <p className="organization-desc">Chịu trách nhiệm quản lý, giám sát và cấp chứng chỉ cho người điều khiển thiết bị bay không người lái.</p>
                         </div>
 
-                        {/* Yêu cầu */}
-                        <div>
-                            <h2 className="sub-title">Yêu cầu học viên</h2>
-                            <div className="requirement-card">
-                                <h3>Điều kiện cơ bản</h3>
-                                <ul className="requirement-list">
-                                    <li>Độ tuổi từ 18 tuổi trở lên (đối với hạng B trở lên).</li>
-                                    <li>Có đủ năng lực hành vi dân sự.</li>
-                                    <li>Không có tiền án, tiền sự về an ninh quốc gia.</li>
-                                    <li>Đủ sức khỏe (tương đương lái xe hạng A).</li>
-                                    <li>Hồ sơ lý lịch rõ ràng.</li>
-                                </ul>
+                        {/* Card 2: Cơ quan phối hợp */}
+                        <div className="organization-card">
+                            <div className="organization-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
                             </div>
+                            <h3 className="organization-title">Cơ quan phối hợp</h3>
+                            <p className="organization-subtitle">Bộ Quốc phòng, Bộ Công an, Bộ Xây dựng</p>
+                            <p className="organization-desc">Phối hợp trong việc xây dựng quy định, giám sát và đảm bảo an ninh cho hoạt động bay không người lái.</p>
+                        </div>
+
+                        {/* Card 3: Chuyên gia giảng dạy */}
+                        <div className="organization-card">
+                            <div className="organization-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </div>
+                            <h3 className="organization-title">Chuyên gia giảng dạy</h3>
+                            <p className="organization-subtitle">Các chuyên gia hàng không hàng đầu</p>
+                            <p className="organization-desc">Đội ngũ giảng viên có kinh nghiệm trong lĩnh vực hàng không, pháp luật và kỹ thuật bay không người lái.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
+            {/* 5. Yêu cầu đối với người học */}
+            <section className="section section-gray">
+                <div className="container">
+                    <h2 className="section-title">Yêu cầu đối với người học</h2>
+                    <div className="requirements-grid">
+                        {/* Cột 1: Điều kiện cơ bản */}
+                        <div className="requirement-card">
+                            <h3>Điều kiện cơ bản</h3>
+                            <ul className="requirement-list">
+                                <li>Độ tuổi từ 18 tuổi trở lên</li>
+                                <li>Có đủ năng lực hành vi dân sự</li>
+                                <li>Không có tiền án, tiền sự về các tội xâm phạm an ninh quốc gia</li>
+                                <li>Người nước ngoài được bảo lãnh bởi cơ quan đương sự tại Việt Nam</li>
+                            </ul>
+                        </div>
+
+                        {/* Cột 2: Giấy tờ cần chuẩn bị */}
+                        <div className="requirement-card">
+                            <h3>Giấy tờ cần chuẩn bị</h3>
+                            <ul className="requirement-list">
+                                <li>01 giấy chứng nhận đủ sức khỏe (tương đương giấy khám sức khỏe cấp phép lái xe hạng A)</li>
+                                <li>02 ảnh màu cỡ 3 cm x 4 cm, chụp không quá 6 tháng</li>
+                                <li>Bản sao hộ lệ Hộ chiếu còn thời hạn (đối với người nước ngoài); giấy bảo lãnh</li>
+                                <li>Sơ yếu lý lịch</li>
+                                <li>Phiếu lý lịch tư pháp</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
             {/* 5. FAQ Section */}
             <section className="section section-gray">
                 <div className="container">

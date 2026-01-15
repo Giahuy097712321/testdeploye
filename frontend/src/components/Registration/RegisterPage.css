@@ -1,11 +1,30 @@
-/* Register Page Styles */
+/* =========================================
+   REGISTER PAGE - DARK NEON THEME
+   Màu chủ đạo: Vàng Neon #FFCA05 trên nền tối
+   ========================================= */
 
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap");
+
+:root {
+    /* Theme Colors */
+    --primary-yellow: #FFCA05;
+    --bg-body: #222222;
+    --bg-card: #3D3D3D;
+    --bg-card-hover: #454545;
+    --text-white: #ffffff;
+    --text-gray: #b0b0b0;
+    --text-black: #1a1a1a;
+    --border-color: #555555;
+}
+
+/* =========================================
+   PAGE LAYOUT
+   ========================================= */
 .register-page {
     min-height: 100vh;
-    background-color: #f5f7fa;
+    background-color: var(--bg-body) !important;
     padding: 40px 20px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family: "Roboto", sans-serif;
 }
 
 .register-container {
@@ -15,13 +34,16 @@
 }
 
 .register-card {
-    background: white;
+    background: var(--bg-card) !important;
     border-radius: 12px;
     padding: 40px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
 }
 
-/* Step Indicator */
+/* =========================================
+   STEP INDICATOR
+   ========================================= */
 .step-indicator {
     display: flex;
     gap: 8px;
@@ -31,49 +53,55 @@
 .step-bar {
     flex: 1;
     height: 4px;
-    background-color: #e5e7eb;
+    background-color: var(--border-color);
     border-radius: 2px;
     transition: background-color 0.3s ease;
 }
 
 .step-bar.active {
-    background-color: #0066cc;
+    background-color: var(--primary-yellow);
+    box-shadow: 0 0 10px rgba(255, 202, 5, 0.5);
 }
 
-/* Step Title */
+/* =========================================
+   STEP TITLE
+   ========================================= */
 .step-title {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--primary-yellow) !important;
     margin: 0 0 32px 0;
     text-align: center;
 }
 
-/* Info Box */
+/* =========================================
+   INFO BOX
+   ========================================= */
 .info-box {
-    background-color: #f0f7ff;
-    border-left: 4px solid #0066cc;
+    background-color: rgba(255, 202, 5, 0.05);
+    border-left: 4px solid var(--primary-yellow);
     border-radius: 8px;
     padding: 24px;
     margin-bottom: 32px;
+    border: 1px solid rgba(255, 202, 5, 0.2);
 }
 
 .info-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-white) !important;
     margin: 0 0 8px 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .info-icon {
-    font-size: 1.3rem;
+    color: var(--primary-yellow);
 }
 
 .info-subtitle {
-    color: #666;
+    color: var(--text-gray) !important;
     margin: 0 0 16px 0;
     font-size: 0.95rem;
 }
@@ -81,19 +109,20 @@
 .info-list {
     margin: 16px 0;
     padding-left: 20px;
-    color: #333;
+    color: var(--text-white) !important;
     line-height: 1.8;
 }
 
 .info-list li {
     margin-bottom: 8px;
+    color: var(--text-white) !important;
 }
 
 .info-note {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #666;
+    color: var(--text-gray) !important;
     font-size: 0.9rem;
     margin: 12px 0 0 0;
 }
@@ -102,37 +131,41 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #059669;
+    color: #10b981 !important;
     font-weight: 600;
     margin: 12px 0 0 0;
 }
 
 .info-box-small {
-    background-color: #f9fafb;
+    background-color: #2c2c2c;
     border-radius: 8px;
     padding: 20px;
     margin: 24px 0;
+    border: 1px solid var(--border-color);
 }
 
 .info-box-small h4 {
     margin: 0 0 12px 0;
     font-size: 1rem;
-    color: #1a1a1a;
+    color: var(--text-white) !important;
 }
 
 .info-box-small ul {
     margin: 0;
     padding-left: 20px;
-    color: #0066cc;
+    color: var(--primary-yellow) !important;
     line-height: 1.6;
     font-size: 0.9rem;
 }
 
 .info-box-small li {
     margin-bottom: 6px;
+    color: var(--primary-yellow) !important;
 }
 
-/* Terms Section */
+/* =========================================
+   TERMS SECTION
+   ========================================= */
 .terms-section {
     margin-bottom: 32px;
 }
@@ -140,12 +173,12 @@
 .terms-section h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-white) !important;
     margin: 0 0 12px 0;
 }
 
 .terms-intro {
-    color: #666;
+    color: var(--text-gray) !important;
     margin: 0 0 12px 0;
 }
 
@@ -153,15 +186,18 @@
     list-style: disc;
     padding-left: 20px;
     margin: 0 0 16px 0;
-    color: #333;
+    color: var(--text-white) !important;
     line-height: 1.6;
 }
 
 .terms-list li {
     margin-bottom: 6px;
+    color: var(--text-white) !important;
 }
 
-/* Form Sections */
+/* =========================================
+   FORM SECTIONS
+   ========================================= */
 .form-section {
     margin-bottom: 32px;
 }
@@ -169,7 +205,7 @@
 .form-section h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-white) !important;
     margin: 0 0 16px 0;
 }
 
@@ -190,33 +226,41 @@
 .form-group label {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #333;
+    color: var(--text-white) !important;
 }
 
 .form-input,
 .form-select {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid #e5e7eb;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.3s ease;
     box-sizing: border-box;
+    background-color: #2c2c2c !important;
+    color: var(--text-white) !important;
 }
 
 .form-input:focus,
 .form-select:focus {
     outline: none;
-    border-color: #0066cc;
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 3px rgba(255, 202, 5, 0.2);
+    background-color: #333333 !important;
 }
 
 .form-input::placeholder {
-    color: #999;
+    color: #666666;
+}
+
+.form-select option {
+    background-color: var(--bg-card);
+    color: var(--text-white);
 }
 
 .field-note {
-    color: #e67e22;
+    color: #f59e0b !important;
     font-size: 0.85rem;
     margin: 8px 0 0 0;
     display: flex;
@@ -224,7 +268,9 @@
     gap: 4px;
 }
 
-/* Camera Box */
+/* =========================================
+   CAMERA BOX
+   ========================================= */
 .camera-box {
     margin: 24px 0;
 }
@@ -232,31 +278,34 @@
 .camera-placeholder {
     width: 100%;
     height: 400px;
-    background-color: #f5f7fa;
+    background-color: #2c2c2c;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 16px;
+    border: 2px solid var(--border-color);
 }
 
 .camera-icon {
-    color: #bbb;
+    color: var(--border-color);
 }
 
 .camera-instruction {
     text-align: center;
-    color: #999;
+    color: var(--text-gray) !important;
     font-size: 0.9rem;
     margin: 12px 0 0 0;
 }
 
-/* Radio & Checkbox Options */
+/* =========================================
+   RADIO & CHECKBOX OPTIONS
+   ========================================= */
 .verification-options,
 .radio-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     margin-bottom: 24px;
 }
 
@@ -264,28 +313,29 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
+    padding: 10px 14px;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+    background-color: transparent;
 }
 
 .radio-option:hover {
-    border-color: #0066cc;
-    background-color: #f0f7ff;
+    border-color: var(--primary-yellow);
+    background-color: rgba(255, 202, 5, 0.05);
 }
 
 .radio-option input[type="radio"] {
     width: 18px;
     height: 18px;
-    accent-color: #0066cc;
+    accent-color: var(--primary-yellow);
     cursor: pointer;
 }
 
 .radio-option span {
     flex: 1;
-    color: #333;
+    color: var(--text-white) !important;
     font-size: 0.95rem;
 }
 
@@ -295,42 +345,50 @@
     gap: 10px;
     cursor: pointer;
     font-size: 0.95rem;
-    color: #333;
+    color: var(--text-white) !important;
     margin-bottom: 12px;
 }
 
 .checkbox-label input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: #0066cc;
+    accent-color: var(--primary-yellow);
     cursor: pointer;
+}
+
+.checkbox-label span {
+    color: var(--text-white) !important;
 }
 
 .checkbox-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
 }
 
-/* Summary Section */
+/* =========================================
+   SUMMARY SECTION
+   ========================================= */
 .summary-section {
-    background-color: #f9fafb;
+    background-color: #2c2c2c;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 24px;
+    border: 1px solid var(--border-color);
 }
 
 .summary-section h3 {
     font-size: 1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-white) !important;
     margin: 0 0 16px 0;
 }
 
 .summary-item {
     padding: 8px 0;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color);
     font-size: 0.95rem;
+    color: var(--text-white) !important;
 }
 
 .summary-item:last-child {
@@ -338,12 +396,14 @@
 }
 
 .summary-item strong {
-    color: #666;
+    color: var(--primary-yellow) !important;
     font-weight: 600;
     margin-right: 8px;
 }
 
-/* Buttons */
+/* =========================================
+   BUTTONS
+   ========================================= */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -357,27 +417,29 @@
     cursor: pointer;
     transition: all 0.3s ease;
     text-decoration: none;
+    font-family: "Roboto", sans-serif;
 }
 
 .btn-primary {
-    background-color: #0066cc;
-    color: white;
+    background-color: var(--primary-yellow) !important;
+    color: var(--text-black) !important;
+    box-shadow: 0 0 20px rgba(255, 202, 5, 0.3);
 }
 
 .btn-primary:hover {
-    background-color: #0052a3;
+    background-color: #e6b804 !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    box-shadow: 0 0 25px rgba(255, 202, 5, 0.5);
 }
 
 .btn-secondary {
-    background-color: white;
-    color: #0066cc;
-    border: 2px solid #0066cc;
+    background-color: transparent !important;
+    color: var(--primary-yellow) !important;
+    border: 2px solid var(--primary-yellow);
 }
 
 .btn-secondary:hover {
-    background-color: #f0f7ff;
+    background-color: rgba(255, 202, 5, 0.1) !important;
 }
 
 .btn-full {
@@ -392,19 +454,33 @@
 
 .btn-disabled:hover {
     transform: none;
-    box-shadow: none;
-    background-color: #0066cc;
+    box-shadow: 0 0 20px rgba(255, 202, 5, 0.3);
+    background-color: var(--primary-yellow) !important;
 }
 
 .required-checkbox {
     font-weight: 600;
     padding: 12px;
-    background-color: #fff5e6;
+    background-color: rgba(245, 158, 11, 0.1);
     border-radius: 8px;
-    border: 2px solid #f59e0b;
+    border: 2px solid rgba(245, 158, 11, 0.5);
 }
 
-/* Form Actions */
+.required-checkbox * {
+    color: var(--text-white) !important;
+}
+
+.required-checkbox .checkbox-label {
+    color: var(--text-white) !important;
+}
+
+.required-checkbox .checkbox-label span {
+    color: var(--text-white) !important;
+}
+
+/* =========================================
+   FORM ACTIONS
+   ========================================= */
 .form-actions {
     display: flex;
     gap: 16px;
@@ -415,19 +491,25 @@
     flex: 1;
 }
 
-/* Link */
+/* =========================================
+   LINKS
+   ========================================= */
 .link-primary {
-    color: #0066cc;
+    color: var(--primary-yellow) !important;
     text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
+    transition: all 0.3s ease;
 }
 
 .link-primary:hover {
     text-decoration: underline;
+    color: #e6b804 !important;
 }
 
-/* Responsive */
+/* =========================================
+   RESPONSIVE DESIGN
+   ========================================= */
 @media (max-width: 768px) {
     .register-card {
         padding: 24px;
@@ -463,4 +545,60 @@
     .step-title {
         font-size: 1.25rem;
     }
+}
+
+/* =========================================
+   ADDITIONAL OVERRIDES
+   ========================================= */
+
+/* Ensure all text is white */
+.register-card * {
+    color: var(--text-white);
+}
+
+.register-card label,
+.register-card p,
+.register-card span,
+.register-card li,
+.register-card h3,
+.register-card h4 {
+    color: var(--text-white) !important;
+}
+
+/* Override for specific colored elements */
+.info-icon,
+.info-box-small ul,
+.info-box-small li,
+.summary-item strong,
+.link-primary {
+    /* Already set above */
+}
+
+/* Scrollbar styling */
+.register-page ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.register-page ::-webkit-scrollbar-track {
+    background: var(--bg-body);
+}
+
+.register-page ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.register-page ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-yellow);
+}
+
+.input-error {
+  border: 1px solid red;
+}
+
+.error-text {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
 }

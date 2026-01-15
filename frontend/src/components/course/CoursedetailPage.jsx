@@ -1,371 +1,373 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import './CoursedetailPage.css';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import './CourseDetailPage.css'; // Đảm bảo import CSS mới
 import { 
-    PlayCircle, FileText, CheckCircle, ChevronDown, ChevronUp, Star, 
-    MessageSquare, MoreHorizontal, Play, Video, PenTool, ThumbsUp, Share2, Clock, QrCode 
+    Video, FileText, ChevronDown, ChevronUp, 
+    PenTool, PlayCircle, MessageSquare, CheckCircle, RefreshCw,
+    Circle, CheckCircle2
 } from 'lucide-react';
+
+const API_BASE = "http://localhost:5000/api/courses";
+const MEDIA_BASE = "http://localhost:5000";
 
 function CourseDetailPage() {
     const { id } = useParams();
+    const navigate = useNavigate();
+    const topRef = useRef(null); 
+    
+    // === DATA STATE ===
+    const [course, setCourse] = useState(null);
+    const [relatedCourses, setRelatedCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
+    // === UI STATE ===
     const [activeTab, setActiveTab] = useState('intro');
     const [expandedChapters, setExpandedChapters] = useState({});
-    const [expandedOverview, setExpandedOverview] = useState({ 1: true, 2: true });
-    const [activeLesson, setActiveLesson] = useState({
-        id: 1, title: 'Tổng quan về DJI Dock 2', type: 'video', src: '/course-video/course-video.webm'
-    });
-    const [quizStep, setQuizStep] = useState('intro');
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    
+    // === PLAYER STATE ===
+    const [activeLesson, setActiveLesson] = useState(null);
+
+    // === QUIZ STATE ===
+    const [quizStarted, setQuizStarted] = useState(false);
+    const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
+    const [userAnswers, setUserAnswers] = useState({}); 
+    const [quizSubmitted, setQuizSubmitted] = useState(false);
     const [score, setScore] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState(null);
 
-    const comments = [
-        { id: 1, name: 'Nguyễn Văn An', avatar: 'N', rating: 4, time: '25/02/2025 16:11:21', content: 'Khóa học rất chi tiết và đầy đủ thông tin', level: 'Cấp 1' },
-        { id: 2, name: 'Trần Thị Bình', avatar: 'T', rating: 5, time: '21/02/2025 15:38:45', content: 'Tuyệt vời', level: 'Cấp 4' }
-    ];
+    // ... (Phần logic fetch API giữ nguyên như cũ, chỉ thay đổi Render UI) ...
+    // Copy lại phần useEffect fetch data và các helper function từ file cũ của bạn
+    // ...
+    // ... (Giả sử logic fetch data ở đây)
+    
+    // --- MÔ PHỎNG LẠI PHẦN LOGIC ĐỂ CODE CHẠY ĐƯỢC ---
+    useEffect(() => {
+        const fetchAllData = async () => {
+            try {
+                setLoading(true);
+                const resCourse = await fetch(`${API_BASE}/${id}`);
+                if (!resCourse.ok) throw new Error("Lỗi tải khóa học");
+                const data = await resCourse.json();
 
-    const notes = [
-        { id: 1, name: 'Lê Minh Dũng', time: '21/01/2025 15:11', videoTime: '01:14:12', lesson: 'Matrice 4 Series - Bài học cuối', content: 'So sánh Matrice 4 với dòng Mavic 3', likes: 1, level: 'Cấp 6' },
-        { id: 2, name: 'Lê Minh Dũng', time: '21/01/2025 15:07', videoTime: '46:48', lesson: 'Matrice 4 Series - Bài học cuối', content: 'Chụp ảnh 3D thông minh', likes: 1, level: 'Cấp 6' }
-    ];
+                let processedChapters = [];
+                if (data.chapters && data.chapters.length > 0) {
+                    processedChapters = data.chapters.map(chap => ({
+                        ...chap,
+                        lessons: (chap.lessons || []).map(l => formatLessonData(l))
+                    }));
+                } else if (data.lessons && data.lessons.length > 0) {
+                    processedChapters = [{
+                        id: 'main',
+                        title: 'Nội dung khóa học',
+                        lessons: data.lessons.map(l => formatLessonData(l))
+                    }];
+                } else {
+                    processedChapters = [{ id: 'empty', title: 'Chưa có nội dung', lessons: [] }];
+                }
 
-    const quizQuestions = [
-        { id: 1, question: "DJI Dock 2 có thể hoạt động trong điều kiện thời tiết nào?", options: ["Chỉ trong điều kiện thời tiết tốt", "Trong mọi điều kiện thời tiết (IP55)", "Chỉ ban ngày", "Chỉ khi không có gió"], correct: 1 },
-        { id: 2, question: "Thời gian sạc nhanh của DJI Dock 2 từ 20% đến 90% là bao lâu?", options: ["15 phút", "25 phút", "45 phút", "60 phút"], correct: 1 },
-        { id: 3, question: "Bán kính hoạt động hiệu quả tối đa của DJI Dock 2 là bao nhiêu?", options: ["5 km", "7 km", "10 km", "15 km"], correct: 2 },
-        { id: 4, question: "Dòng máy bay nào tương thích với DJI Dock 2?", options: ["DJI Mavic 3 Enterprise", "DJI Matrice 3D/3TD", "DJI Matrice 300 RTK", "DJI Mini 4 Pro"], correct: 1 },
-        { id: 5, question: "Tính năng 'Live Flight Controls' cho phép làm gì?", options: ["Chỉ xem video trực tiếp", "Điều khiển drone và gimbal thủ công từ xa", "Tự động chỉnh sửa video", "Tăng tốc độ bay"], correct: 1 }
-    ];
+                const formattedCourse = {
+                    ...data,
+                    chapters: processedChapters,
+                    instructor: data.instructor || 'Admin',
+                    updateDate: data.updateDate ? new Date(data.updateDate).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
+                };
 
-    const courseData = {
-        id: 1, title: 'Điều khiển thiết bị bay không người lái hạng A', rating: 4.8, progress: 30,
-        chapters: [
-            {
-                id: 1, title: 'Giới thiệu về DJI Dock 2',
-                lessons: [
-                    { id: 1, title: 'Tổng quan về DJI Dock 2', type: 'video', duration: '10:22', completed: true, src: '/course-video/course-video.webm' },
-                    { id: 2, title: 'Thông số kỹ thuật và khả năng', type: 'video', duration: '15:45', completed: true, src: '/course-video/course-video.webm' },
-                    { id: 3, title: 'Các chế độ bay', type: 'video', duration: '12:30', completed: false, src: '/course-video/course-video.webm' },
-                    { id: 4, title: 'Tài liệu kỹ thuật', type: 'doc', duration: '25 trang', completed: false, src: '/document/course-document.pdf' },
-                ]
-            },
-            {
-                id: 2, title: 'Tính năng nâng cao',
-                lessons: [
-                    { id: 5, title: 'Nhận diện đối tượng thông minh', type: 'video', duration: '14:20', completed: false, src: '/course-video/course-video.webm' },
-                    { id: 6, title: 'Điều hướng theo điểm', type: 'video', duration: '13:55', completed: false, src: '/course-video/course-video.webm' },
-                    { id: 7, title: 'Kiểm tra kiến thức', type: 'quiz', duration: '10:00', completed: false },
-                ]
+                setCourse(formattedCourse);
+                
+                if (processedChapters.length > 0) {
+                    setExpandedChapters({ [processedChapters[0].id]: true });
+                    if (processedChapters[0].lessons.length > 0) {
+                        setActiveLesson(processedChapters[0].lessons[0]);
+                    }
+                }
+
+                const resAll = await fetch(API_BASE);
+                if (resAll.ok) {
+                    const allCourses = await resAll.json();
+                    setRelatedCourses(allCourses.filter(c => c.id !== parseInt(id) && c.id !== id).slice(0, 3));
+                }
+
+            } catch (err) {
+                console.error("Lỗi fetch detail:", err);
+            } finally {
+                setLoading(false);
             }
-        ],
-        instructor: { name: 'Hệ thống đào tạo DJI', avatar: 'https://ui-avatars.com/api/?name=DJI&background=0D8ABC&color=fff' },
-        description: `Đây là thông tin mới nhất về dòng DJI Matrice 4. Khóa đào tạo mới cung cấp hơn 10 tính năng mới. Xem liên kết bên dưới để biết thêm chi tiết.`
+        };
+        if (id) fetchAllData();
+    }, [id]);
+
+    const formatLessonData = (l) => {
+        let parsedQuestions = [];
+        const rawQuizData = l.quiz_data || l.content_data;
+        if (Array.isArray(rawQuizData)) {
+            parsedQuestions = rawQuizData;
+        } else if (typeof rawQuizData === 'string') {
+            try { parsedQuestions = JSON.parse(rawQuizData); } catch(e) { parsedQuestions = []; }
+        }
+        return {
+            ...l,
+            src: l.video_url || '',
+            type: l.type || 'video',
+            duration: l.duration || '00:00',
+            questions: parsedQuestions
+        };
+    };
+
+    const getFullMediaPath = (path) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        return `${MEDIA_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
     };
 
     const handleLessonSelect = (lesson) => {
         setActiveLesson(lesson);
-        if (lesson.type === 'quiz') { setQuizStep('intro'); setScore(0); setCurrentQuestionIndex(0); setSelectedAnswer(null); }
-    };
-    const handleAnswerSelect = (index) => setSelectedAnswer(index);
-    const handleNextQuestion = () => {
-        if (selectedAnswer === quizQuestions[currentQuestionIndex].correct) setScore(score + 1);
-        if (currentQuestionIndex < quizQuestions.length - 1) { setCurrentQuestionIndex(currentQuestionIndex + 1); setSelectedAnswer(null); } else { setQuizStep('result'); }
-    };
-    const handleRetryQuiz = () => { setQuizStep('intro'); setScore(0); setCurrentQuestionIndex(0); setSelectedAnswer(null); };
-    const toggleChapter = (id) => setExpandedChapters(p => ({...p, [id]: !p[id]}));
-    const toggleOverview = (id) => setExpandedOverview(p => ({...p, [id]: !p[id]}));
-    const getLessonIcon = (type) => {
-        if (type === 'video') return <Video size={16} />;
-        if (type === 'quiz') return <PenTool size={16} />;
-        return <FileText size={16} />;
+        setQuizStarted(false);
+        setQuizSubmitted(false);
+        setUserAnswers({});
+        setCurrentQuestionIdx(0);
+        setScore(0);
+        if (topRef.current) topRef.current.scrollIntoView({ behavior: 'smooth' });
     };
 
+    const getLessonIcon = (type) => {
+        // Trả về icon màu vàng hoặc trắng
+        const color = activeLesson?.id ? "#FFCA05" : "#aaa"; 
+        switch(type) {
+            case 'video': return <Video size={16} />;
+            case 'quiz': return <PenTool size={16} />;
+            case 'document': return <FileText size={16} />;
+            default: return <FileText size={16} />;
+        }
+    };
+
+    // Quiz Logic Handlers
+    const handleStartQuiz = () => { setQuizStarted(true); setQuizSubmitted(false); setUserAnswers({}); setScore(0); };
+    const handleSelectAnswer = (qIdx, optionIdx) => { if (quizSubmitted) return; setUserAnswers(prev => ({...prev, [qIdx]: optionIdx})); };
+    const handleSubmitQuiz = () => {
+        if (!activeLesson?.questions) return;
+        let correctCount = 0;
+        activeLesson.questions.forEach((q, idx) => {
+            if (userAnswers[idx] === parseInt(q.correctIndex)) correctCount++;
+        });
+        setScore(correctCount);
+        setQuizSubmitted(true);
+    };
+    const handleRetryQuiz = () => { setQuizSubmitted(false); setUserAnswers({}); setCurrentQuestionIdx(0); setScore(0); setQuizStarted(false); };
+
+    if (loading) return <div className="lms-page"><div style={{padding:40, textAlign:'center', color: '#fff'}}>Đang tải dữ liệu...</div></div>;
+    if (!course) return <div className="lms-page"><div style={{padding:40, textAlign:'center', color: '#fff'}}>Không tìm thấy khóa học</div></div>;
+
     return (
-        <div className="lms-page">
+        <div className="lms-page" ref={topRef}>
+            
+            {/* PLAYER SECTION */}
             <div className="lms-player-section">
                 <div className="player-header">
                     <div className="header-left">
-                        <h1 className="course-header-title">{courseData.title}</h1>
-                        <div className="rating-badge"><Star size={14} fill="#ffc107" color="#ffc107" /> 4.8</div>
-                        <span style={{fontSize: '0.8rem', color: '#aaa', marginLeft: '10px'}}>Thời lượng: 3h 45p | Bạn có thể nhận được 85 tín chỉ</span>
-                    </div>
-                    <div className="header-right">
-                        <span style={{fontSize: '0.8rem', color: '#aaa'}}>Đã hoàn thành 3/10</span>
-                        <div className="progress-bar"><div className="progress-fill" style={{width: '30%'}}></div></div>
-                        <button className="btn-plan">Thêm vào kế hoạch của tôi</button>
+                        <button className="btn-back-list" onClick={() => navigate('/khoa-hoc')}>
+                             ← Danh sách khóa học
+                        </button>
+                        <h1 className="course-header-title">{course.title}</h1>
                     </div>
                 </div>
 
                 <div className="player-body">
+                    {/* SIDEBAR (DANH SÁCH BÀI HỌC) */}
                     <div className="player-sidebar">
-                        {courseData.chapters.map(chapter => (
+                        {course.chapters.map(chapter => (
                             <div key={chapter.id} className="chapter-group">
-                                <div className="chapter-header" onClick={() => toggleChapter(chapter.id)}>
-                                    <span>Chương {chapter.id}: {chapter.title}</span>
-                                    {expandedChapters[chapter.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                <div className="chapter-header" onClick={() => setExpandedChapters(p => ({...p, [chapter.id]: !p[chapter.id]}))}>
+                                    <span style={{color: '#FFCA05'}}>{chapter.title}</span>
+                                    {expandedChapters[chapter.id] ? <ChevronUp size={16} color="#aaa"/> : <ChevronDown size={16} color="#aaa"/>}
                                 </div>
                                 {expandedChapters[chapter.id] && (
                                     <div className="lesson-list">
-                                        {chapter.lessons.map(lesson => (
-                                            <div 
-                                                key={lesson.id} 
-                                                className={`lesson-item ${activeLesson.id === lesson.id ? 'active' : ''}`} 
-                                                onClick={() => handleLessonSelect(lesson)}
-                                            >
-                                                <div className="lesson-icon">{getLessonIcon(lesson.type)}</div>
-                                                <div className="lesson-info">
-                                                    <div className="lesson-title">{lesson.title}</div>
-                                                    <div className="lesson-duration">{lesson.duration}</div>
+                                        {chapter.lessons.length === 0 ? <div style={{padding:'10px', color:'#666', fontSize:'0.9rem'}}>Chưa có bài học</div> :
+                                            chapter.lessons.map(lesson => (
+                                                <div 
+                                                    key={lesson.id} 
+                                                    className={`lesson-item ${activeLesson?.id === lesson.id ? 'active' : ''}`} 
+                                                    onClick={() => handleLessonSelect(lesson)}
+                                                >
+                                                    <div className="lesson-icon">{getLessonIcon(lesson.type)}</div>
+                                                    <div className="lesson-info">
+                                                        <div className="lesson-title">{lesson.title}</div>
+                                                        <div className="lesson-duration">{lesson.duration} phút</div>
+                                                    </div>
                                                 </div>
-                                                {lesson.completed && <div className="status-dot"></div>}
-                                            </div>
-                                        ))}
+                                            ))
+                                        }
                                     </div>
                                 )}
                             </div>
                         ))}
                     </div>
 
+                    {/* MAIN SCREEN (KHUNG HIỂN THỊ) */}
                     <div className="player-screen">
-                        {activeLesson.type === 'video' ? (
+                        {/* 1. VIDEO PLAYER */}
+                        {activeLesson?.type === 'video' && (
                             <div className="video-wrapper">
-                                <video key={activeLesson.src} controls autoPlay className="main-video-player">
-                                    <source src={activeLesson.src} type="video/webm" />
+                                <video key={activeLesson.id} controls autoPlay className="main-video-player">
+                                    <source src={getFullMediaPath(activeLesson.src)} type="video/mp4" />
+                                    Trình duyệt không hỗ trợ.
                                 </video>
                             </div>
-                        ) : activeLesson.type === 'quiz' ? (
+                        )}
+                        
+                        {/* 2. DOCUMENT VIEWER */}
+                        {activeLesson?.type === 'document' && (
+                            <div className="doc-wrapper">
+                                {activeLesson.src?.toLowerCase().endsWith('.pdf') ? (
+                                    <iframe src={getFullMediaPath(activeLesson.src)} className="pdf-viewer" title="Document Viewer"></iframe>
+                                ) : (
+                                    <img src={getFullMediaPath(activeLesson.src)} alt={activeLesson.title} />
+                                )}
+                            </div>
+                        )}
+                        
+                        {/* 3. QUIZ PLAYER */}
+                        {activeLesson?.type === 'quiz' && (
                             <div className="quiz-wrapper">
-                                {quizStep === 'intro' && (
+                                {!quizStarted && !quizSubmitted && (
                                     <div className="quiz-card">
-                                        <div className="quiz-header-with-qr">
-                                            <h2 className="quiz-main-title">Thời gian làm bài: Không giới hạn</h2>
-                                            <div className="qr-icon-wrapper">
-                                                <QrCode size={32} strokeWidth={1.5} color="#0066cc" />
-                                            </div>
-                                        </div>
-                                        <div className="quiz-info-grid-light">
-                                            <div className="info-item-light">
-                                                <FileText size={18} color="#666" />
-                                                <span>Tổng số câu hỏi: {quizQuestions.length} câu hỏi</span>
-                                            </div>
-                                            <div className="info-item-light">
-                                                <CheckCircle size={18} color="#666" />
-                                                <span>Số câu đã làm: 0 câu hỏi</span>
-                                            </div>
-                                            <div className="info-item-light">
-                                                <Video size={18} color="#666" />
-                                                <span>Số câu sai: 0 câu hỏi</span>
-                                            </div>
-                                            <div className="info-item-light">
-                                                <Clock size={18} color="#666" />
-                                                <span>Thời gian làm bài: 0s</span>
-                                            </div>
-                                        </div>
-                                        <p className="quiz-description">
-                                            Bạn có thể sử dụng những câu hỏi thực hành này để đánh giá mức độ hiểu biết của mình về chủ đề tạo.
+                                        <h2 style={{color: '#FFCA05'}}>{activeLesson.title}</h2>
+                                        <p style={{color:'#ccc', marginBottom: 20}}>
+                                            Bài kiểm tra trắc nghiệm gồm {activeLesson.questions?.length || 0} câu hỏi.
                                         </p>
-                                        <div className="quiz-actions">
-                                            <button className="btn-light-outline">Làm lại</button>
-                                            <button className="btn-blue-fill" onClick={() => setQuizStep('playing')}>Bắt đầu</button>
-                                        </div>
+                                        <button className="btn-start-learning" onClick={handleStartQuiz}>
+                                            Bắt đầu làm bài
+                                        </button>
                                     </div>
                                 )}
-                                {quizStep === 'playing' && (
-                                    <div className="quiz-card">
-                                        <div className="question-card-new">
-                                            <div className="question-header-new">
-                                                <h3>Câu hỏi {currentQuestionIndex + 1}/{quizQuestions.length}</h3>
-                                                <div className="progress-bar-new">
-                                                    <div className="progress-blue" style={{width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%`}}></div>
-                                                </div>
-                                            </div>
-                                            
-                                            <p className="question-text-new">{quizQuestions[currentQuestionIndex].question}</p>
-                                            
-                                            <div className="options-list-new">
-                                                {quizQuestions[currentQuestionIndex].options.map((opt, idx) => (
-                                                    <label key={idx} className={`option-radio ${selectedAnswer === idx ? 'selected' : ''}`}>
-                                                        <input 
-                                                            type="radio" 
-                                                            name="answer" 
-                                                            checked={selectedAnswer === idx} 
-                                                            onChange={() => handleAnswerSelect(idx)} 
-                                                        />
+
+                                {quizStarted && !quizSubmitted && activeLesson.questions && (
+                                    <div className="quiz-playing-card">
+                                        <div className="qp-header">
+                                            <h3>Câu hỏi {currentQuestionIdx + 1} / {activeLesson.questions.length}</h3>
+                                        </div>
+                                        <div className="qp-body">
+                                            <h4 className="qp-question-text">
+                                                {activeLesson.questions[currentQuestionIdx]?.text}
+                                            </h4>
+                                            <div className="qp-options-list">
+                                                {activeLesson.questions[currentQuestionIdx]?.options.map((opt, oIdx) => (
+                                                    <div 
+                                                        key={oIdx} 
+                                                        className={`qp-option-item ${userAnswers[currentQuestionIdx] === oIdx ? 'selected' : ''}`}
+                                                        onClick={() => handleSelectAnswer(currentQuestionIdx, oIdx)}
+                                                    >
+                                                        {userAnswers[currentQuestionIdx] === oIdx ? (
+                                                            <CheckCircle2 size={20} className="radio-icon" color="#FFCA05" />
+                                                        ) : (
+                                                            <Circle size={20} className="radio-icon" />
+                                                        )}
                                                         <span>{opt}</span>
-                                                    </label>
+                                                    </div>
                                                 ))}
                                             </div>
-                                            
-                                            <div className="quiz-footer-actions">
-                                                <button className="btn-light-outline" disabled={currentQuestionIndex === 0}>
-                                                    Câu trước
-                                                </button>
-                                                <button className="btn-blue-fill" disabled={selectedAnswer === null} onClick={handleNextQuestion}>
-                                                    Câu tiếp
-                                                </button>
-                                            </div>
+                                        </div>
+                                        <div className="qp-footer">
+                                            <button className="btn-nav-quiz" disabled={currentQuestionIdx === 0} onClick={() => setCurrentQuestionIdx(p => p - 1)}>Quay lại</button>
+                                            {currentQuestionIdx < activeLesson.questions.length - 1 ? (
+                                                <button className="btn-nav-quiz next" onClick={() => setCurrentQuestionIdx(p => p + 1)}>Câu tiếp theo</button>
+                                            ) : (
+                                                <button className="btn-submit-quiz" onClick={handleSubmitQuiz}>Nộp bài</button>
+                                            )}
                                         </div>
                                     </div>
                                 )}
-                                {quizStep === 'result' && (
+
+                                {quizSubmitted && (
                                     <div className="quiz-card">
-                                        <div className="result-box-bordered">
-                                            <h3>Kết quả bài kiểm tra</h3>
-                                            <span className="score-text-blue">{score}/{quizQuestions.length}</span>
-                                            <div className="result-bar-light">
-                                                <div className="result-fill-yellow" style={{width: `${(score / quizQuestions.length) * 100}%`}}></div>
-                                            </div>
-                                            <p className="result-percent-text">{((score / quizQuestions.length) * 100).toFixed(0)}% đúng</p>
-                                        </div>
-                                        <div className="quiz-footer-actions">
-                                            <button className="btn-light-outline" onClick={handleRetryQuiz}>Làm lại</button>
-                                            <button className="btn-blue-fill" onClick={() => setActiveLesson(courseData.chapters[0].lessons[0])}>Tiếp tục học</button>
-                                        </div>
+                                        <CheckCircle size={50} color="#FFCA05" style={{marginBottom: 15}} />
+                                        <h2 style={{color: '#FFCA05'}}>Hoàn thành bài thi!</h2>
+                                        <p style={{fontSize: '1.2rem', margin: '15px 0', color: '#fff'}}>
+                                            Bạn trả lời đúng <strong style={{color: '#FFCA05'}}>{score}</strong> / {activeLesson.questions?.length} câu.
+                                        </p>
+                                        <button className="btn-start-learning" onClick={handleRetryQuiz}>
+                                            <RefreshCw size={16} style={{marginRight:5, verticalAlign: 'middle'}}/> Làm lại
+                                        </button>
                                     </div>
                                 )}
                             </div>
-                        ) : (
-                            <div className="doc-wrapper">
-                                <iframe src={activeLesson.src} className="pdf-viewer" title="Course Document"></iframe>
+                        )}
+                        
+                        {!activeLesson && (
+                            <div style={{color:'#fff', padding: 20, textAlign: 'center'}}>
+                                <p>Vui lòng chọn bài học từ danh sách bên trái.</p>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
+            {/* INFO SECTION - DARK MODE */}
             <div className="lms-info-section">
-                <div className="container">
-                    <div className="course-tabs">
-                        <button className={`tab-btn ${activeTab === 'intro' ? 'active' : ''}`} onClick={() => setActiveTab('intro')}>
-                            Giới thiệu
-                        </button>
-                        <button className={`tab-btn ${activeTab === 'comment' ? 'active' : ''}`} onClick={() => setActiveTab('comment')}>
-                            Bình luận
-                        </button>
-                        <button className={`tab-btn ${activeTab === 'notes' ? 'active' : ''}`} onClick={() => setActiveTab('notes')}>
-                            Ghi chú
-                        </button>
+                 <div className="intro-header-tabs">
+                    <div className="container">
+                        <button className={`intro-tab ${activeTab === 'intro' ? 'active' : ''}`} onClick={() => setActiveTab('intro')}>Giới thiệu</button>
+                        <button className={`intro-tab ${activeTab === 'comments' ? 'active' : ''}`} onClick={() => setActiveTab('comments')}>Bình luận</button>
                     </div>
+                </div>
 
-                    <div className="tab-content-grid">
-                        {activeTab === 'intro' && (
-                            <div className="main-col">
-                                <div className="section-block">
-                                    <h3>Giảng viên</h3>
-                                    <div className="instructor-box">
-                                        <img src={courseData.instructor.avatar} alt="Instructor" className="avatar-circle" />
-                                        <div className="inst-info">
-                                            <span className="label">Giảng viên</span>
-                                            <span className="name">{courseData.instructor.name}</span>
+                <div className="container intro-body-grid">
+                    <div className="intro-left-col">
+                        <div className="course-main-card">
+                            {activeTab === 'intro' ? (
+                                <>
+                                    <div className="intro-inner-section">
+                                        <h3 className="intro-heading">Tổng quan</h3>
+                                        <div className="intro-desc" dangerouslySetInnerHTML={{__html: course.description}}></div>
+                                    </div>
+                                    <div className="intro-inner-section no-border">
+                                        <h3 className="intro-heading">Nội dung chi tiết</h3>
+                                        <div className="intro-curriculum">
+                                            {course.chapters.map((chapter, idx) => (
+                                                <div key={chapter.id} className="intro-chapter-group">
+                                                    <h4 className="intro-chapter-title">Chương {idx + 1}: {chapter.title}</h4>
+                                                    <div className="intro-lesson-list">
+                                                        {chapter.lessons.map(lesson => (
+                                                            <div key={lesson.id} className={`intro-lesson-row ${activeLesson?.id === lesson.id ? 'playing' : ''}`} onClick={() => handleLessonSelect(lesson)}>
+                                                                <div className="il-icon">
+                                                                    {lesson.type === 'video' ? <PlayCircle size={20} color="#FFCA05" /> : lesson.type === 'quiz' ? <PenTool size={20} color="#FFCA05" /> : <FileText size={20} color="#FFCA05" />}
+                                                                </div>
+                                                                <div className="il-title">{lesson.title}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                    <div className="desc-text">
-                                        <p><strong>Giới thiệu</strong></p>
-                                        <p>{courseData.description}</p>
-                                        <a href="#" style={{color: '#1890ff'}}>https://enterprise.dji.com/matrice-4-series</a>
+                                </>
+                            ) : (
+                                <div className="comments-placeholder">
+                                    <MessageSquare size={48} color="#FFCA05" />
+                                    <p>Chưa có bình luận nào</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* Sidebar Right */}
+                    <div className="intro-right-col">
+                        <div className="sidebar-card related-card">
+                            <h4>Khóa học khác</h4>
+                            {relatedCourses.length > 0 ? (
+                                relatedCourses.map(rc => (
+                                    <div key={rc.id} className="related-item" onClick={() => { navigate(`/khoa-hoc/${rc.id}`); window.scrollTo(0, 0); }}>
+                                        <img 
+                                            src={getFullMediaPath(rc.image)} 
+                                            alt={rc.title} 
+                                            onError={(e) => e.target.src='https://placehold.co/100x60/333/fff?text=Course'}
+                                        />
+                                        <div className="related-info"><div className="r-title">{rc.title}</div></div>
                                     </div>
-                                </div>
-                                <div className="content-list-wrapper">
-                                    <h3 className="content-section-title">Nội dung khóa học</h3>
-                                    {courseData.chapters.map(chapter => (
-                                        <div key={chapter.id} className="content-chapter-item">
-                                            <div className="content-chapter-header" onClick={() => toggleOverview(chapter.id)}>
-                                                <span className="chapter-title-text">{chapter.title}</span>
-                                                <span className="chapter-chevron">{expandedOverview[chapter.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
-                                            </div>
-                                            {expandedOverview[chapter.id] && (
-                                                <div className="content-chapter-body">
-                                                    {chapter.lessons.map(lesson => (
-                                                        <div key={lesson.id} className="content-lesson-row">
-                                                            <span className="lesson-row-icon">{getLessonIcon(lesson.type)}</span>
-                                                            <span className="lesson-row-title">{lesson.title}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'comment' && (
-                            <div className="main-col full-width">
-                                <div className="comment-input-area">
-                                    <textarea placeholder="Chia sẻ ý kiến của bạn..." rows="3"></textarea>
-                                    <div className="comment-actions">
-                                        <div className="rating-select">Đánh giá: <Star size={16} /> <Star size={16} /> <Star size={16} /> <Star size={16} /> <Star size={16} /></div>
-                                        <span className="char-count">0/500</span>
-                                        <button className="btn-send">Đăng</button>
-                                    </div>
-                                </div>
-                                <div className="comments-list">
-                                    {comments.map(comment => (
-                                        <div key={comment.id} className="comment-item">
-                                            <div className="user-avatar-badge">
-                                                <div className="avatar-circle">{comment.avatar}</div>
-                                                <span className="level-badge">{comment.level}</span>
-                                            </div>
-                                            <div className="comment-content-box">
-                                                <div className="comment-header">
-                                                    <span className="user-name">{comment.name}</span>
-                                                    <div className="user-rating">{[...Array(comment.rating)].map((_,i)=><Star key={i} size={12} fill="#ffc107" color="#ffc107"/>)}</div>
-                                                </div>
-                                                <div className="comment-text">{comment.content}</div>
-                                                <div className="comment-footer">
-                                                    <span className="time">{comment.time}</span>
-                                                    <button className="action-btn"><ThumbsUp size={12}/> Trả lời</button>
-                                                    <button className="action-btn">0 <ThumbsUp size={12}/></button>
-                                                    <button className="action-btn">Chia sẻ với học viên khác</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'notes' && (
-                            <div className="main-col full-width">
-                                <div className="notes-filter-tabs">
-                                    <button className="filter-btn active">Tất cả</button>
-                                    <button className="filter-btn">Nổi bật</button>
-                                    <button className="filter-btn">Của tôi</button>
-                                </div>
-                                <div className="comments-list">
-                                    {notes.map(note => (
-                                        <div key={note.id} className="comment-item">
-                                            <div className="user-avatar-badge">
-                                                <div className="avatar-circle" style={{backgroundColor:'#ddd'}}>L</div>
-                                                <span className="level-badge">{note.level}</span>
-                                            </div>
-                                            <div className="comment-content-box">
-                                                <div className="comment-header">
-                                                    <span className="user-name">{note.name}</span>
-                                                    <span className="note-time-stamp">{note.time}</span>
-                                                </div>
-                                                <div className="note-link">
-                                                    <Clock size={12}/> {note.videoTime} <span>{note.lesson}</span>
-                                                </div>
-                                                <div className="comment-text">{note.content}</div>
-                                                <div className="comment-footer">
-                                                    <button className="action-btn"><ThumbsUp size={12}/> {note.likes}</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'intro' && (
-                            <div className="side-col">
-                                <div className="side-card">
-                                    <h3><MessageSquare size={16} /> Khu vực thảo luận</h3>
-                                    <p className="small-text">Kết nối với bạn học và giảng viên để thảo luận và chia sẻ kiến thức về khóa học này.</p>
-                                </div>
-                            </div>
-                        )}
+                                ))
+                            ) : (
+                                <p style={{color: '#aaa', fontSize: '0.9rem'}}>Không có khóa học liên quan.</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

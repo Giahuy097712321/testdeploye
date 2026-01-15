@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useCallback, memo } from 'react';
+import React, { useState, useEffect, Suspense, useCallback, memo, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Experience } from '../../../../components/Experience';
 import UI from '../../../../components/UI';
@@ -12,14 +12,14 @@ const Scene = memo(({ onPointClick, points }) => {
     return (
         <Canvas
             shadows
-            style={{ background: '#d6d2ca' }} // Màu nền giống trong hình
+            // [THEME] Đổi màu nền Canvas sang xám đen
+            style={{ background: '#222222' }} 
             camera={{ 
                 position: [1, 1, 1],
                 fov: 30
             }}
         >
             <Suspense fallback={null}>
-                {/* TRUYỀN DỮ LIỆU ĐỂ TẠO NÚT */}
                 <Experience onPointClick={onPointClick} points={points} />
             </Suspense>
         </Canvas>
@@ -30,7 +30,7 @@ export default function MapPage() {
     const [pointsData, setPointsData] = useState([]);
     const [selectedPointId, setSelectedPointId] = useState(null);
 
-    // Hàm tải dữ liệu (có thể được gọi lại sau khi Admin thêm/sửa)
+    // Hàm tải dữ liệu
     const fetchPoints = async () => {
         try {
             const response = await fetch(API_URL);
@@ -49,7 +49,21 @@ export default function MapPage() {
         fetchPoints();
     }, []);
 
-    // Dùng 'useCallback' để hàm không bị tạo lại mỗi lần render
+    // --- LOGIC MỚI: XỬ LÝ DATA CHO UI ---
+    const pointsDataForUI = useMemo(() => {
+        return pointsData.map(point => {
+            const isScheduleDisabled = 
+                point.enableSchedule === false || 
+                point.enableSchedule === 0 || 
+                point.enableSchedule === "false";
+
+            if (isScheduleDisabled) {
+                return { ...point, schedule: null };
+            }
+            return point;
+        });
+    }, [pointsData]);
+
     const handlePointClick = useCallback((id) => {
         setSelectedPointId(id);
     }, []);
@@ -65,22 +79,24 @@ export default function MapPage() {
                 width: '100%',
                 height: '100vh',
                 overflow: 'hidden',
+                backgroundColor: '#222' // [THEME] Nền bao ngoài
             }}>
-                {/* Logo Admin (Thêm nút Admin) */}
+                {/* Logo Admin */}
                 <Link to="/admin" style={styles.adminButton}>
+                    {/* [THEME] Đổi icon sang màu vàng bằng filter CSS */}
                     <img src="/images/icn-settings.svg" alt="Admin Settings" style={styles.adminIcon} />
                     ADMIN
                 </Link>
 
-                {/* Lớp 3D (nằm DƯỚI) */}
+                {/* Lớp 3D */}
                 <div style={styles.layer3D}>
                     <Scene onPointClick={handlePointClick} points={pointsData} />
                 </div>
 
-                {/* Lớp 2D (nằm TRÊN) */}
+                {/* Lớp 2D */}
                 <div style={styles.layer2D}>
                     <UI
-                        points={pointsData}
+                        points={pointsDataForUI} 
                         selectedId={selectedPointId}
                         onClose={handleClosePanel}
                         onPointClick={handlePointClick}
@@ -99,20 +115,26 @@ const styles = {
         zIndex: 1000,
         display: 'flex',
         alignItems: 'center',
-        padding: '10px 15px',
-        backgroundColor: '#041676',
-        color: 'white',
-        borderRadius: '5px',
+        padding: '10px 20px',
+        // [THEME] Đổi sang style Neon: Nền tối, Viền vàng, Chữ vàng
+        backgroundColor: '#3D3D3D', 
+        color: '#FFCA05',
+        border: '1px solid #FFCA05',
+        borderRadius: '30px', // Bo tròn nhiều hơn cho hiện đại
         textDecoration: 'none',
         fontSize: '0.9rem',
-        fontFamily: 'Arial, sans-serif',
+        fontWeight: 'bold',
+        fontFamily: 'Roboto, sans-serif',
         pointerEvents: 'auto',
+        boxShadow: '0 0 10px rgba(255, 202, 5, 0.2)', // Glow nhẹ
+        transition: 'all 0.3s'
     },
     adminIcon: {
         width: '16px',
         height: '16px',
         marginRight: '8px',
-        filter: 'invert(100%)',
+        // [THEME] Filter này biến icon màu trắng/đen thành màu vàng #FFCA05
+        filter: 'invert(74%) sepia(61%) saturate(1682%) hue-rotate(359deg) brightness(103%) contrast(106%)',
     },
     layer3D: {
         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1,

@@ -33,3 +33,9 @@ media-server/uploads/
 frontend/public/course-video/
 frontend/public/models/
 frontend/public/document/
+
+# Bỏ qua file trong thư mục uploads của backend
+backend/uploads/*
+
+# Nhưng giữ lại file .gitkeep (nếu có) để giữ cấu trúc thư mục
+!backend/uploads/.gitkeep

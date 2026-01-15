@@ -1,208 +1,221 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // 1. Import thêm Link
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Award, BookOpen } from 'lucide-react';
 import './CoursePage.css';
 
-// Icon SVG
+// --- CẤU HÌNH API ---
+const API_URL = "http://localhost:5000/api/courses";
+const MEDIA_BASE_URL = "http://localhost:5000";
+
+// --- DANH SÁCH ẢNH BANNER SLIDER ---
+// Bạn thay thế bằng link ảnh thực tế của bạn nhé
+const BANNER_IMAGES = [
+    "https://images.unsplash.com/photo-1473968512647-3e447244af8f?q=80&w=2000&auto=format&fit=crop", // Ảnh 1: Drone trên trời
+    "https://images.unsplash.com/photo-1506947411487-a56738267384?q=80&w=2000&auto=format&fit=crop", // Ảnh 2: Phong cảnh núi
+    "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?q=80&w=2000&auto=format&fit=crop"  // Ảnh 3: Người điều khiển
+];
+
+// Icon Components
 const StarIcon = () => (
     <svg className="star-icon" viewBox="0 0 24 24">
-        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#FFCA05" />
     </svg>
 );
 
 const MedalIcon = () => (
     <svg className="icon-medal" viewBox="0 0 24 24">
-         <path fill="currentColor" d="M12 2l-5.5 9h11z"/>
-         <circle fill="none" stroke="currentColor" strokeWidth="2" cx="12" cy="16" r="4"/>
+         <path fill="#FFCA05" d="M12 2l-5.5 9h11z"/>
+         <circle fill="none" stroke="#FFCA05" strokeWidth="2" cx="12" cy="16" r="4"/>
     </svg>
 );
 
 function CoursesPage() {
-    const navigate = useNavigate(); // Hook điều hướng
+    const navigate = useNavigate();
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Hàm xử lý khi click vào khóa học
+    // --- STATE CHO SLIDER ---
+    const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
+    // --- HIỆU ỨNG TỰ CHẠY SLIDER ---
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentBannerIndex((prevIndex) => 
+                prevIndex === BANNER_IMAGES.length - 1 ? 0 : prevIndex + 1
+            );
+        }, 5000); // Chuyển ảnh sau mỗi 5 giây
+
+        return () => clearInterval(interval); // Dọn dẹp khi component unmount
+    }, []);
+
+    // Fetch dữ liệu từ API
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Không thể kết nối Server');
+                const data = await response.json();
+                setCourses(data);
+            } catch (err) {
+                console.error('Lỗi fetch courses:', err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCourses();
+    }, []);
+
     const handleCourseClick = (id) => {
         navigate(`/khoa-hoc/${id}`);
-        // Scroll lên đầu trang khi chuyển trang
         window.scrollTo(0, 0);
     };
 
-    const courses = [
-        // --- KHÓA HỌC MỚI NHẤT ---
-        {
-            id: 1,
-            title: 'ĐIỀU KHIỂN THIẾT BỊ BAY KHÔNG NGƯỜI LÁI HẠNG A',
-            image: '/images/course-images/course-a.jpeg',
-            badge: 'Sản phẩm mới',
-            rating: 4.8,
-            reviews: 250,
-            group: 'newest'
-        },
-        {
-            id: 2,
-            title: 'ĐIỀU KHIỂN THIẾT BỊ BAY KHÔNG NGƯỜI LÁI HẠNG B',
-            image: '/images/course-images/course-b.jpeg',
-            badge: 'Sản phẩm mới',
-            rating: 4.9,
-            reviews: 171,
-            group: 'newest'
-        },
-        {
-            id: 3,
-            title: 'LỚP ỨNG DỤNG: KIỂM TRA CÔNG NGHIỆP VỚI ĐƯỜNG DÂY CAO THẾ VỚI UAV',
-            image: '/images/course-images/course-industry.jpeg',
-            badge: 'Sản phẩm mới',
-            rating: 4.8,
-            reviews: 150,
-            group: 'newest'
-        },
-        {
-            id: 4,
-            title: 'LỚP ỨNG DỤNG: QUÉT CHỤP KHẢO SÁT BẢN ĐỒ SỐ 2D/3D (MAPPING - DIGITAL TWIN)',
-            image: '/images/course-images/course-mapping.jpeg',
-            badge: 'Cập nhật',
-            rating: 4.5,
-            reviews: 198,
-            group: 'newest'
-        },
-        // --- KHÓA HỌC NỔI BẬT ---
-        {
-            id: 5,
-            title: 'ĐIỀU KHIỂN THIẾT BỊ BAY KHÔNG NGƯỜI LÁI HẠNG A',
-            image: '/images/course-images/course-a.jpeg',
-            badge: 'Nổi bật',
-            rating: 4.9,
-            reviews: 199,
-            group: 'featured'
-        },
-        {
-            id: 6,
-            title: 'ĐIỀU KHIỂN THIẾT BỊ BAY KHÔNG NGƯỜI LÁI HẠNG B',
-            image: '/images/course-images/course-b.jpeg',
-            badge: 'Nổi bật',
-            rating: 4.8,
-            reviews: 381,
-            group: 'featured'
-        },
-        {
-            id: 7,
-            title: 'LỚP ỨNG DỤNG: TRẠM DRONE TỰ ĐỘNG - TRUNG TÂM ĐIỀU KHIỂN TẬP TRUNG OCC',
-            image: '/images/course-images/course-auto.jpeg',
-            badge: 'Nổi bật',
-            rating: 4.7,
-            reviews: 227,
-            group: 'featured'
-        },
-        {
-            id: 8,
-            title: 'LỚP ỨNG DỤNG: QUÉT CHỤP KHẢO SÁT BẢN ĐỒ SỐ 2D/3D (MAPPING - DIGITAL TWIN)',
-            image: '/images/course-images/course-mapping.jpeg',
-            badge: 'Nổi bật',
-            rating: 4.6,
-            reviews: 293,
-            group: 'featured'
-        }
-    ];
+    const getImageUrl = (path) => {
+        if (!path) return 'https://placehold.co/600x400/333333/ffffff?text=No+Image';
+        if (path.startsWith('http')) return path;
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `${MEDIA_BASE_URL}${cleanPath}`;
+    };
 
-    const newestCourses = courses.filter(c => c.group === 'newest');
-    const featuredCourses = courses.filter(c => c.group === 'featured');
+    const newestCourses = [...courses]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 4);
 
-    const renderCourseCard = (course) => (
-        <div 
-            key={course.id} 
-            className="course-card" 
-            onClick={() => handleCourseClick(course.id)}
-        >
-            <div className="course-image-wrapper">
-                <img src={course.image} alt={course.title} />
-                {course.badge && <div className="course-badge">{course.badge}</div>}
-            </div>
-            <div className="course-content">
-                <h3 className="course-title">{course.title}</h3>
-                <div className="course-rating">
-                    <div className="stars">
-                        {[...Array(5)].map((_, i) => (
-                            <StarIcon key={i} />
-                        ))}
+    const featuredCourses = [...courses]
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, 4);
+
+    const renderCourseCard = (course) => {
+        const isTypeA = course.level === 'A';
+        const isTypeB = course.level === 'B';
+        
+        return (
+            <div 
+                key={course.id} 
+                className="course-card" 
+                onClick={() => handleCourseClick(course.id)}
+            >
+                <div className="course-image-wrapper">
+                    <img src={getImageUrl(course.image)} alt={course.title} />
+                    <div className={`course-badge ${isTypeA ? 'badge-type-a' : isTypeB ? 'badge-type-b' : ''}`}>
+                        {isTypeA && <BookOpen size={16} />}
+                        {isTypeB && <Award size={16} />}
+                        {!isTypeA && !isTypeB && <span>{course.level || 'Mới'}</span>}
                     </div>
-                    <span>{course.rating} ({course.reviews} lượt xem)</span>
                 </div>
+                <div className="course-content">
+                    <h3 className="course-title">{course.title}</h3>
+                    <div className="course-rating">
+                        <div className="stars">
+                            {[...Array(5)].map((_, i) => <StarIcon key={i} />)}
+                        </div>
+                        <span style={{color: '#b0b0b0'}}>{course.rating || '5.0'} ({course.views || 0} lượt xem)</span>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    if (loading) return <div className="courses-page"><div style={{padding: '100px 20px', textAlign: 'center', color: '#b0b0b0'}}>Đang tải khóa học...</div></div>;
+    if (error) return (
+        <div className="courses-page">
+            <div style={{padding: '100px 20px', textAlign: 'center'}}>
+                <div style={{fontSize: '1.2rem', color: '#ff4d4f', marginBottom: '10px'}}>⚠️ Lỗi: {error}</div>
+                <button onClick={() => window.location.reload()} style={{padding: '10px 20px', background: '#FFCA05', color: '#000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}>Thử lại</button>
             </div>
         </div>
     );
 
     return (
         <div className="courses-page">
-            {/* Header Links */}
-            <div className="container">
-                <nav className="top-nav">
-                    {/* 2. Đổi tất cả thẻ a thành Link */}
-                    <Link to="/">Trang chủ</Link>
-                    <Link to="/gioi-thieu">Giới thiệu</Link>
-                    <Link to="/khoa-hoc">Khóa học</Link>
-                    <Link to="/thi-sat-hach">Thi sát hạch</Link>
-                    <Link to="/tra-cuu">Tra cứu</Link>
-                </nav>
-            </div>
-
-            {/* HERO BANNER */}
+            {/* HERO BANNER SLIDER */}
             <section className="hero-banner-wrapper">
-                <div className="container">
+                
+                {/* --- PHẦN SLIDER ẢNH NỀN --- */}
+                <div className="hero-slider">
+                    {BANNER_IMAGES.map((img, index) => (
+                        <div 
+                            key={index}
+                            className={`hero-slide-item ${index === currentBannerIndex ? 'active' : ''}`}
+                            style={{ backgroundImage: `url(${img})` }}
+                        />
+                    ))}
+                    {/* Lớp phủ tối để làm nổi bật chữ Neon */}
+                    <div className="hero-overlay"></div>
+                </div>
+
+                <div className="container" style={{position: 'relative', zIndex: 2}}>
                     <div className="hero-content">
                         <div className="hero-text">
-                            <h1 className="hero-title">TRAINING & CERTIFICATION</h1>
-                            <span className="hero-pill">PUBLIC SAFETY</span>
+                            <h1 className="hero-title">TRAINING CENTER</h1>
+                            <span className="hero-pill">UAV PROFESSIONAL</span>
                         </div>
                         
-                        <div className="hero-illustration">
+                        {/* ĐÃ LOẠI BỎ HÌNH MINH HỌA NGƯỜI NGỒI XE MÁY TẠI ĐÂY 
+                           (Phần div className="hero-illustration" đã được xóa hoặc comment lại)
+                        */}
+                        {/* <div className="hero-illustration">
                              <img 
                                 src="https://cdn-icons-png.flaticon.com/512/3063/3063822.png" 
                                 alt="Training Illustration" 
-                                style={{opacity: 0.8, filter: 'invert(1) brightness(2)'}} 
+                                style={{
+                                    opacity: 0.9, 
+                                    filter: 'invert(74%) sepia(61%) saturate(1682%) hue-rotate(359deg) brightness(103%) contrast(106%)'
+                                }} 
                             />
-                        </div>
+                        </div> 
+                        */}
                     </div>
+                </div>
                     
-                    {/* Bottom Bar */}
-                    <div className="hero-bottom-bar">
-                        <div className="bar-content">
-                            <div className="bar-item">
-                                <MedalIcon />
-                                <span>GET DJI OFFICIAL CERTIFICATION</span>
-                            </div>
-                            <div className="bar-item">
-                                <MedalIcon />
-                                <span>LEARN THE GLOBAL DRONE USE CASE</span>
+                {/* Bottom Bar */}
+                <div className="hero-bottom-bar">
+                        <div className="container">
+                            <div className="bar-content">
+                                <div className="bar-item">
+                                    <MedalIcon />
+                                    <span>CHỨNG CHỈ CHÍNH THỨC</span>
+                                </div>
+                                <div className="bar-item">
+                                    <MedalIcon />
+                                    <span>HỌC TẬP CHUYÊN NGHIỆP</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
                 </div>
             </section>
 
-            {/* SECTION 1 */}
+            {/* CÁC SECTION KHÁC GIỮ NGUYÊN */}
             <section className="courses-section">
                 <div className="container">
                     <div className="section-header">
                         <h2 className="section-title">Khóa học mới nhất</h2>
-                        {/* 3. Đổi nút Xem tất cả thành Link */}
-                        <Link to="/newest" className="view-all">Xem tất cả</Link>
+                        {courses.length > 4 && <Link to="/newest" className="view-all">Xem tất cả</Link>}
                     </div>
                     <div className="courses-grid">
-                        {newestCourses.map(course => renderCourseCard(course))}
+                        {newestCourses.length > 0 ? newestCourses.map(course => renderCourseCard(course)) : <p style={{gridColumn: '1 / -1', textAlign: 'center', color: '#666', padding: '40px 0'}}>Chưa có khóa học nào.</p>}
                     </div>
                 </div>
             </section>
 
-            {/* SECTION 2 */}
             <section className="courses-section">
                 <div className="container">
                     <div className="section-header">
                         <h2 className="section-title">Khóa học nổi bật</h2>
-                        {/* 4. Đổi nút Xem tất cả thành Link */}
-                        <Link to="/featured" className="view-all">Xem tất cả</Link>
+                         {courses.length > 4 && <Link to="/featured" className="view-all">Xem tất cả</Link>}
                     </div>
                     <div className="courses-grid">
-                        {featuredCourses.map(course => renderCourseCard(course))}
+                        {featuredCourses.length > 0 ? featuredCourses.map(course => renderCourseCard(course)) : <p style={{gridColumn: '1 / -1', textAlign: 'center', color: '#666', padding: '40px 0'}}>Chưa có khóa học nào.</p>}
                     </div>
+                </div>
+            </section>
+
+            <section className="courses-section">
+                <div className="container">
+                    <div className="section-header"><h2 className="section-title">Tất cả khóa học</h2></div>
+                    <div className="courses-grid">{courses.map(course => renderCourseCard(course))}</div>
                 </div>
             </section>
         </div>

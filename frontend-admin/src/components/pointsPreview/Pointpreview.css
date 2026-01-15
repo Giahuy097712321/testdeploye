@@ -1,0 +1,331 @@
+/* =========================================
+   POINT PREVIEW COMPONENT - BRANDED
+   Đồng bộ hoàn toàn với AdminStyles.css & UAVLandingPage.css
+   ========================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap");
+
+/* 1. VARIABLES (Đồng bộ với AdminStyles mới) */
+:root {
+  /* Brand Colors */
+  --pp-primary: #0066cc;          /* Xanh DJI */
+  --pp-primary-dark: #0052a3;
+  --pp-primary-light: #3b82f6;
+  --pp-primary-lighter: #f0f7ff;  /* Nền xanh rất nhạt */
+  
+  /* Accent Colors */
+  --pp-accent: #ff6407;           /* Cam nổi bật */
+  --pp-accent-light: #ff8534;
+  
+  /* Neutrals */
+  --pp-bg-white: #ffffff;
+  --pp-bg-gray-50: #f9fafb;
+  --pp-bg-gray-100: #f3f4f6;
+  --pp-text-primary: #333333;
+  --pp-text-secondary: #666666;
+  --pp-border-light: #e0e0e0;
+  
+  /* Shapes */
+  --pp-radius: 8px;               /* Bo góc chuẩn 8px */
+  --pp-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 2. CONTAINER & CARD */
+.point-preview-container {
+  width: 100%;
+  font-family: 'Roboto', sans-serif;
+  animation: ppFadeInUp 0.3s ease;
+}
+
+@keyframes ppFadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.preview-card {
+  background: var(--pp-bg-white);
+  border: 1px solid var(--pp-border-light);
+  border-radius: var(--pp-radius);
+  overflow: hidden;
+  box-shadow: var(--pp-shadow);
+  /* Loại bỏ border dày cũ, dùng style phẳng */
+}
+
+/* 3. HEADER SECTION */
+.preview-header {
+  /* Header trắng sạch, border dưới */
+  background: var(--pp-bg-white);
+  border-bottom: 1px solid var(--pp-border-light);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start; /* Căn trên để tránh logo bị lệch nếu tên dài */
+  gap: 16px;
+}
+
+.preview-logo-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--pp-radius);
+  background: var(--pp-bg-white);
+  border: 1px solid var(--pp-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  flex-shrink: 0;
+}
+
+.preview-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.preview-header-text {
+  flex: 1;
+}
+
+.preview-point-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--pp-primary); /* Tiêu đề xanh */
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.preview-point-id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--pp-text-secondary);
+}
+
+.preview-id-value {
+  background: var(--pp-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* 4. IMAGE SECTION */
+.preview-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-height: 280px; /* Giới hạn chiều cao ảnh */
+  overflow: hidden;
+  background: var(--pp-bg-gray-100);
+  border-bottom: 1px solid var(--pp-border-light);
+}
+
+.preview-main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.preview-card:hover .preview-main-image {
+  transform: scale(1.03); /* Zoom nhẹ khi hover */
+}
+
+/* 5. CONTENT SECTIONS */
+.preview-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--pp-border-light);
+}
+.preview-section:last-child {
+  border-bottom: none;
+}
+
+.preview-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pp-primary);
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.preview-title-icon {
+  font-size: 16px;
+  color: var(--pp-accent); /* Icon màu cam */
+}
+
+/* 6. LEAD TEXT (Mô tả ngắn) */
+.preview-lead-wrapper {
+  background: #fff5eb; /* Nền cam rất nhạt */
+  border-left: 3px solid var(--pp-accent); /* Viền cam */
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.preview-lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #555;
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* 7. HTML CONTENT (Mô tả chi tiết) */
+/* Style này QUAN TRỌNG để khớp với Landing Page */
+.preview-html-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pp-text-primary);
+}
+
+.preview-html-content h1 { font-size: 1.4rem; color: var(--pp-primary); font-weight: 700; margin: 15px 0 10px; }
+.preview-html-content h2 { font-size: 1.2rem; color: #222; font-weight: 700; border-bottom: 1px solid #eee; margin: 15px 0 10px; }
+.preview-html-content p { margin-bottom: 10px; }
+.preview-html-content ul, .preview-html-content ol { margin-left: 20px; margin-bottom: 10px; }
+.preview-html-content img { max-width: 100%; border-radius: 4px; margin: 10px 0; }
+.preview-html-content a { color: var(--pp-primary); text-decoration: underline; }
+
+/* 8. INFO ROWS (Contact/Links) */
+.preview-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed #eee;
+}
+.preview-info-row:last-child { border-bottom: none; }
+
+.preview-label {
+  font-weight: 500;
+  color: var(--pp-text-secondary);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-contact-value, .preview-link {
+  color: var(--pp-primary);
+  font-weight: 500;
+  font-size: 13px;
+  text-decoration: none;
+}
+.preview-contact-value:hover, .preview-link:hover {
+  text-decoration: underline;
+}
+
+/* 9. COORDINATES (Tọa độ) */
+.preview-coords {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.preview-coord-item {
+  background: var(--pp-bg-gray-50);
+  border: 1px solid var(--pp-border-light);
+  border-radius: 4px;
+  padding: 10px;
+  text-align: center;
+}
+
+.preview-coord-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pp-text-secondary);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.preview-coord-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pp-primary);
+  font-family: 'Courier New', monospace;
+}
+
+/* 10. FOOTER */
+.preview-footer {
+  background: var(--pp-bg-gray-50);
+  border-top: 1px solid var(--pp-border-light);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-footer-icon {
+  color: var(--pp-primary);
+  font-size: 20px;
+}
+
+.preview-footer-text {
+  font-size: 12px;
+  color: var(--pp-text-secondary);
+  margin: 0;
+}
+
+/* 11. RESPONSIVE */
+@media (max-width: 480px) {
+  .preview-coords {
+    grid-template-columns: 1fr;
+  }
+  .preview-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+/* =========================================
+   THÊM MỚI: Style cho phần thông báo Ẩn Lịch
+   ========================================= */
+.preview-hidden-notice {
+  background: var(--pp-bg-gray-100);
+  border: 1px dashed #9ca3af;
+  color: #6b7280;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  font-style: italic;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Grid Lịch (Thêm vào để đảm bảo hiển thị đẹp) */
+.preview-schedule-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.preview-schedule-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+.preview-schedule-item:last-child {
+  border-bottom: none;
+}
+.preview-day {
+  font-weight: 500;
+  color: var(--pp-text-secondary);
+  text-transform: capitalize;
+}
+.preview-time {
+  font-weight: 600;
+  color: var(--pp-text-primary);
+}
