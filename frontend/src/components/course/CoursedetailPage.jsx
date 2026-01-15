@@ -130,7 +130,7 @@ function CourseDetailPage() {
 
     const getLessonIcon = (type) => {
         // Trả về icon màu vàng hoặc trắng
-        const color = activeLesson?.id ? "#FFCA05" : "#aaa"; 
+        const color = activeLesson?.id ? "#0050b8" : "#aaa"; 
         switch(type) {
             case 'video': return <Video size={16} />;
             case 'quiz': return <PenTool size={16} />;
@@ -176,7 +176,7 @@ function CourseDetailPage() {
                         {course.chapters.map(chapter => (
                             <div key={chapter.id} className="chapter-group">
                                 <div className="chapter-header" onClick={() => setExpandedChapters(p => ({...p, [chapter.id]: !p[chapter.id]}))}>
-                                    <span style={{color: '#FFCA05'}}>{chapter.title}</span>
+                                    <span style={{color: '#0050b8'}}>{chapter.title}</span>
                                     {expandedChapters[chapter.id] ? <ChevronUp size={16} color="#aaa"/> : <ChevronDown size={16} color="#aaa"/>}
                                 </div>
                                 {expandedChapters[chapter.id] && (
@@ -230,7 +230,7 @@ function CourseDetailPage() {
                             <div className="quiz-wrapper">
                                 {!quizStarted && !quizSubmitted && (
                                     <div className="quiz-card">
-                                        <h2 style={{color: '#FFCA05'}}>{activeLesson.title}</h2>
+                                        <h2 style={{color: '#0050b8'}}>{activeLesson.title}</h2>
                                         <p style={{color:'#ccc', marginBottom: 20}}>
                                             Bài kiểm tra trắc nghiệm gồm {activeLesson.questions?.length || 0} câu hỏi.
                                         </p>
@@ -257,7 +257,7 @@ function CourseDetailPage() {
                                                         onClick={() => handleSelectAnswer(currentQuestionIdx, oIdx)}
                                                     >
                                                         {userAnswers[currentQuestionIdx] === oIdx ? (
-                                                            <CheckCircle2 size={20} className="radio-icon" color="#FFCA05" />
+                                                            <CheckCircle2 size={20} className="radio-icon" color="#0050b8" />
                                                         ) : (
                                                             <Circle size={20} className="radio-icon" />
                                                         )}
@@ -279,10 +279,10 @@ function CourseDetailPage() {
 
                                 {quizSubmitted && (
                                     <div className="quiz-card">
-                                        <CheckCircle size={50} color="#FFCA05" style={{marginBottom: 15}} />
-                                        <h2 style={{color: '#FFCA05'}}>Hoàn thành bài thi!</h2>
+                                        <CheckCircle size={50} color="#0050b8" style={{marginBottom: 15}} />
+                                        <h2 style={{color: '#0050b8'}}>Hoàn thành bài thi!</h2>
                                         <p style={{fontSize: '1.2rem', margin: '15px 0', color: '#fff'}}>
-                                            Bạn trả lời đúng <strong style={{color: '#FFCA05'}}>{score}</strong> / {activeLesson.questions?.length} câu.
+                                            Bạn trả lời đúng <strong style={{color: '#0050b8'}}>{score}</strong> / {activeLesson.questions?.length} câu.
                                         </p>
                                         <button className="btn-start-learning" onClick={handleRetryQuiz}>
                                             <RefreshCw size={16} style={{marginRight:5, verticalAlign: 'middle'}}/> Làm lại
@@ -329,7 +329,7 @@ function CourseDetailPage() {
                                                         {chapter.lessons.map(lesson => (
                                                             <div key={lesson.id} className={`intro-lesson-row ${activeLesson?.id === lesson.id ? 'playing' : ''}`} onClick={() => handleLessonSelect(lesson)}>
                                                                 <div className="il-icon">
-                                                                    {lesson.type === 'video' ? <PlayCircle size={20} color="#FFCA05" /> : lesson.type === 'quiz' ? <PenTool size={20} color="#FFCA05" /> : <FileText size={20} color="#FFCA05" />}
+                                                                    {lesson.type === 'video' ? <PlayCircle size={20} color="#0050b8" /> : lesson.type === 'quiz' ? <PenTool size={20} color="#0050b8" /> : <FileText size={20} color="#0050b8" />}
                                                                 </div>
                                                                 <div className="il-title">{lesson.title}</div>
                                                             </div>
@@ -342,7 +342,7 @@ function CourseDetailPage() {
                                 </>
                             ) : (
                                 <div className="comments-placeholder">
-                                    <MessageSquare size={48} color="#FFCA05" />
+                                    <MessageSquare size={48} color="#0050b8" />
                                     <p>Chưa có bình luận nào</p>
                                 </div>
                             )}
