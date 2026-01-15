@@ -56,6 +56,7 @@ const examsRouter = require('./api/exams');
 const coursesRoute = require("./api/courses"); 
 const authRoute = require("./api/auth"); 
 const usersRouter = require("./api/users");
+const commentsRoute = require("./api/comment");
 
 app.use("/api/users", usersRouter);
 app.use("/api", filesRoute);
@@ -67,6 +68,7 @@ app.use("/api", utilsRoute);
 app.use('/api/exams', examsRouter);
 app.use("/api/courses", coursesRoute); 
 app.use("/api/auth", authRoute);
+app.use("/api/comments", commentsRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on PORT: ${PORT}`);
