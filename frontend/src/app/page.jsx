@@ -22,7 +22,7 @@ const PanoramaViewer = ({ panoramaUrl }) => {
     if (viewerInstanceRef.current) {
       try {
         viewerInstanceRef.current.destroy();
-      } catch (e) {}
+      } catch (e) { }
       viewerInstanceRef.current = null;
     }
 
@@ -60,12 +60,12 @@ const PanoramaViewer = ({ panoramaUrl }) => {
         // --- QUAN TRỌNG: Lắng nghe sự kiện 'load' ---
         // Chỉ tắt loading spinner KHI ẢNH ĐÃ TẢI XONG
         viewerInstanceRef.current.on('load', () => {
-           setIsLoading(false); 
+          setIsLoading(false);
         });
 
         // Phòng trường hợp lỗi tải ảnh thì cũng tắt loading
         viewerInstanceRef.current.on('error', () => {
-           setIsLoading(false);
+          setIsLoading(false);
         });
 
       } catch (error) {
@@ -79,7 +79,7 @@ const PanoramaViewer = ({ panoramaUrl }) => {
       if (viewerInstanceRef.current) {
         try {
           viewerInstanceRef.current.destroy();
-        } catch (e) {}
+        } catch (e) { }
       }
     };
   }, [panoramaUrl]);
@@ -119,7 +119,7 @@ const StarIcon = () => (
   <svg
     className="star-icon"
     viewBox="0 0 24 24"
-    style={{ width: "16px", height: "16px", fill: "#FFCA05" }} 
+    style={{ width: "16px", height: "16px", fill: "#FFCA05" }}
   >
     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
   </svg>
@@ -163,7 +163,7 @@ function UAVLandingPage() {
     fetch("http://localhost:5000/api/settings/current_model_url")
       .then((res) => res.json()).then((data) => setModelUrl(data.value || "/models/scene.glb")).catch(() => setModelUrl("/models/scene.glb"));
     fetch("http://localhost:5000/api/settings/default_camera_view")
-      .then((res) => res.json()).then((data) => { if (data.value) try { setCameraSettings(JSON.parse(data.value)); } catch (e) {} }).catch(() => {});
+      .then((res) => res.json()).then((data) => { if (data.value) try { setCameraSettings(JSON.parse(data.value)); } catch (e) { } }).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -288,15 +288,22 @@ function UAVLandingPage() {
               <div>
                 <span className="uav-cert-badge badge-a">Hạng A</span>
                 <h3 className="uav-cert-title">VLOS – Visual Line of Sight</h3>
-                <p className="uav-cert-desc">Giấy phép điều khiển bay bằng trực quan (Hạng A) áp dụng đối với người điều khiển phương tiện bay có trọng lượng cất cánh tối đa từ 0,25 ki-lô-gam đến nhỏ hơn 2 ki-lô-gam...</p>
+                <p className="uav-cert-desc">Giấy phép điều khiển bay bằng trực quan (Hạng A) áp dụng đối với người điều khiển phương tiện bay có trọng lượng cất cách tối đa từ 0,25 ki-lô-gam đến nhỏ hơn 2 ki-lô-gam, bay trong tầm nhìn trực quan;</p>
+                <p className="uav-cert-note">Thời gian hiệu lực: 10 năm.</p>
                 <p className="uav-cert-note">Chứng chỉ cơ bản phù hợp cho người mới bắt đầu sử dụng UAV.</p>
                 <strong>Nội dung chương trình học:</strong>
                 <ol className="uav-cert-list">
                   <li>Pháp luật quy định về tàu bay.</li>
                   <li>Kiến thức hàng không cơ bản.</li>
                   <li>Hệ thống tàu bay không người lái.</li>
-                  <li>Vận hành an toàn.</li>
+                  <li>Vận hành an toàn và quy trình bay.</li>
+                  <li>Khí tượng và môi trường bay.</li>
+                  <li>Quản lý không phận và UTM cơ bản.</li>
+                  <li>Kỹ năng điều khiển cơ bản (VLOS).</li>
+                  <li>Thực hành nhiệm vụ VLOS nâng cao.</li>
                 </ol>
+                <br/>
+                <br/>
               </div>
               <div className="uav-duration-box">Thời gian đào tạo: xx Tuần</div>
               <button className="uav-cert-btn">Xem chi tiết</button>
@@ -305,16 +312,24 @@ function UAVLandingPage() {
               <div>
                 <span className="uav-cert-badge badge-b">Hạng B</span>
                 <h3 className="uav-cert-title">BVLOS - Beyond Visual Line of Sight</h3>
-                <p className="uav-cert-desc">Giấy phép điều khiển bay bằng thiết bị (Hạng B) áp dụng đối với người điều khiển phương tiện bay có trọng lượng cất cánh tối đa từ 2 ki-lô-gam trở lên...</p>
+                <p className="uav-cert-desc">Giấy phép điều khiển bay bằng thiết bị (Hạng B) áp dụng đối với người điều khiển phương tiện bay có trọng lượng cất cánh tối đa từ 2 ki-lô-gam trở lên, phương tiện bay bay ngoài tầm nhìn trực quan, phương tiện bay được lập trình thông qua bộ điều khiển trung tâm.</p>
+                <p className="uav-cert-note">Thời gian hiệu lực: 10 năm.</p>
+                <br/> <br/>
                 <strong>Nội dung chương trình học:</strong>
                 <ol className="uav-cert-list">
-                  <li>Pháp luật quy định.</li>
-                  <li>Kiến thức hàng không.</li>
-                  <li>Kỹ năng điều khiển BVLOS.</li>
+                  <li>Pháp luật quy định về tàu bay không người lái và phương tiện bay khác.</li>
+                  <li>Kiến thức hàng không cơ bản và nguyên lý bay.</li>
+                  <li>Hệ thống tàu bay không người lái và phương tiện bay khác; trang bị, thiết bị đồng bộ.</li>
+                  <li>Vận hành an toàn và quy trình bay.</li>
+                  <li>Khí tượng và môi trường bay.</li>
+                  <li>Quản lý không phận và UTM cơ bản.</li>
+                  <li>Kỹ năng điều khiển cơ bản (VLOS).</li>
+                  <li>Thực hành nhiệm vụ VLOS nâng cao.</li>
+                  <li>Kỹ năng điều khiển nâng cao (BVLOS).</li>
                 </ol>
               </div>
-              <div className="uav-duration-box">Thời gian: xx Tuần</div>
-              <div className="cert-tabs-container">
+              <div className="uav-duration-box">Thời gian đào tạo: xx Tuần (Tùy lĩnh vực ứng dụng)</div>
+              {/* <div className="cert-tabs-container">
                 <span className="cert-tabs-label">Các nghiệp vụ bao gồm:</span>
                 <div className="cert-tabs-header">
                   {Object.keys(certTabsData).map((key) => (
@@ -328,7 +343,37 @@ function UAVLandingPage() {
                     {certTabsData[activeCertTab].map((item, i) => <li key={i}>{item}</li>)}
                   </ul>
                 </div>
+              </div> */}
+              <div className="cert-tabs-container">
+                <span className="cert-tabs-label">Các nghiệp vụ bao gồm:</span>
+
+                <div className="cert-tabs-header scroll-x">
+                  {Object.keys(certTabsData).map((key) => (
+                    <button
+                      key={key}
+                      className={`cert-tab-btn ${activeCertTab === key ? "active" : ""}`}
+                      onClick={() => setActiveCertTab(key)}
+                    >
+                      {key === 'map'
+                        ? 'Khảo sát bản đồ'
+                        : key === 'check'
+                          ? 'Kiểm tra công nghiệp'
+                          : key === 'agro'
+                            ? 'Nông Lâm Vận Tải'
+                            : 'Trình diễn nghệ thuật'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="cert-tab-content">
+                  <ul className="sub-list-arrow">
+                    {certTabsData[activeCertTab].map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
+
               <button className="uav-cert-btn-detail">Xem chi tiết</button>
             </div>
           </div>
@@ -388,12 +433,12 @@ function UAVLandingPage() {
                 </div>
                 <div className="map-info-content">
                   {/* FIX LOGO: Style inline để chắc chắn logo nhỏ */}
-                  <img 
-                    className="map-info-logo" 
-                    src={selectedPointData.logoSrc} 
-                    alt="logo" 
-                    style={{maxWidth: "150px", height: "auto", display: "block", marginBottom: "15px"}}
-                    onError={(e) => (e.target.style.display = "none")} 
+                  <img
+                    className="map-info-logo"
+                    src={selectedPointData.logoSrc}
+                    alt="logo"
+                    style={{ maxWidth: "150px", height: "auto", display: "block", marginBottom: "15px" }}
+                    onError={(e) => (e.target.style.display = "none")}
                   />
                   <h3 className="map-info-title-new">{selectedPointData.title}</h3>
                   {selectedPointData.description && (
