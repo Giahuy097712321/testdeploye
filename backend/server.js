@@ -1,8 +1,13 @@
+require('dotenv').config(); 
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const compression = require("compression");
 const { UPLOAD_ROOT } = require("./utils/fileHelpers");
+
+// --- SỬA ĐƯỜNG DẪN Ở ĐÂY ---
+const db = require("./config/db"); 
+// ---------------------------
 
 const app = express();
 const PORT = process.env.PORT || 5000; 
@@ -40,10 +45,7 @@ app.use("/uploads", express.static(UPLOAD_ROOT, {
 const filesRoute = require("./api/files");
 const pointsRoute = require("./api/points");
 const solutionsRoute = require("./api/solutions");
-
-// Lưu ý: Đảm bảo file display.js nằm đúng trong thư mục api/display.js
 const displayRoute = require("./api/display"); 
-
 const settingsRoute = require("./api/settings");
 const utilsRoute = require("./api/utils");
 const examsRouter = require('./api/exams');
@@ -56,12 +58,7 @@ app.use("/api/users", usersRouter);
 app.use("/api", filesRoute);
 app.use("/api/points", pointsRoute);
 app.use("/api/solutions", solutionsRoute);
-
-// === SỬA DÒNG NÀY ===
-// Đổi từ "/api/display" thành "/api"
-// Kết quả: /api/notifications và /api/footer-config
 app.use("/api", displayRoute); 
-
 app.use("/api/settings", settingsRoute);
 app.use("/api", utilsRoute);
 app.use('/api/exams', examsRouter);
@@ -69,7 +66,27 @@ app.use("/api/courses", coursesRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/auth", authRoute);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on PORT: ${PORT}`);
-  console.log(`Upload Storage Path: ${UPLOAD_ROOT}`);
-});
+// --- KHỞI ĐỘNG SERVER & KIỂM TRA DB ---
+const startServer = async () => {
+    try {
+        const connection = await db.getConnection();
+        console.log("✅ Database connected successfully via Aiven!");
+        connection.release(); 
+
+        app.listen(PORT, () => {
+            console.log(`🚀 Server is running on PORT: ${PORT}`);
+            console.log(`📂 Upload Storage Path: ${UPLOAD_ROOT}`);
+        });
+
+    } catch (error) {
+        console.error("❌ Database Connection Failed:");
+        console.error("Message:", error.message);
+        console.error("Code:", error.code);
+        
+        if (error.code === 'HANDSHAKE_SSL_ERROR' || error.code === 'ER_NOT_SUPPORTED_AUTH_MODE') {
+            console.warn("⚠️  LƯU Ý: Aiven yêu cầu SSL. Hãy kiểm tra lại file config/db.js.");
+        }
+    }
+};
+
+startServer();
