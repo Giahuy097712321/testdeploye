@@ -43,7 +43,7 @@ router.get("/:id/view-stats", async (req, res) => {
   }
 });
 
-// --- POST: Ghi nhận lượt xem khóa học (Debounce 10 giây, không yêu cầu đăng nhập) ---
+// --- POST: Ghi nhận lượt xem khóa học (Debounce 10 phút, không yêu cầu đăng nhập) ---
 router.post("/:id/record-view", async (req, res) => {
   try {
     const courseId = req.params.id;
@@ -69,10 +69,10 @@ router.post("/:id/record-view", async (req, res) => {
     );
 
     const now = new Date();
-    const tenSecondsAgo = new Date(now.getTime() - 10 * 1000);
+    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
 
-    // Nếu chưa có view hoặc view cuối cùng cách đây > 10 giây, thì ghi nhận
-    if (lastView.length === 0 || new Date(lastView[0].last_viewed_at) < tenSecondsAgo) {
+    // Nếu chưa có view hoặc view cuối cùng cách đây > 10 phút, thì ghi nhận
+    if (lastView.length === 0 || new Date(lastView[0].last_viewed_at) < tenMinutesAgo) {
       // Insert hàng mới (không cập nhật cái cũ)
       await db.query(
         `INSERT INTO course_views (course_id, user_id, last_viewed_at)
@@ -85,7 +85,7 @@ router.post("/:id/record-view", async (req, res) => {
         recorded: true 
       });
     } else {
-      // View đã được ghi nhận trong 10 giây gần đây
+      // View đã được ghi nhận trong 10 phút gần đây
       return res.json({ 
         message: "Lượt xem đã được ghi nhận gần đây, không ghi nhận lại",
         recorded: false 
