@@ -17,8 +17,12 @@ import CourseDetailPage from "./components/course/CoursedetailPage";
 import ExamBookingPage from "./components/exam/ExamBookingPage";
 /* === IMPORT COMPONENT GIẢI PHÁP ĐỘNG === */
 import SolutionDetail from "./components/solutions/SolutionDetail";
+<<<<<<< HEAD
 import PrivacyPolicyPage from './components/privacy-policy/PrivacyPolicyPage';
 import TermsOfServicePage from './components/TermsOfServicePage/TermsOfServicePage';
+=======
+import UserProfile from "./components/user/UserProfile";
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
 // Import Component 404 (Nếu có) hoặc dùng tạm div
 const NotFound = () => <div className="p-20 text-center">404 - Không tìm thấy trang</div>;
 
@@ -45,6 +49,7 @@ function App() {
                 }
               />
 
+<<<<<<< HEAD
               {/* 2. CÁC TRANG TĨNH (Phải đặt trước các route động) */}
               <Route path="/gioi-thieu" element={<AboutPage />} />
               <Route path="/thi-sat-hach" element={<ExamPage />} />
@@ -60,6 +65,12 @@ function App() {
               <Route path="/khoa-hoc/:id" element={<CourseDetailPage />} />
 
               {/* 3. ROUTE GIẢI PHÁP (Dynamic Slug) 
+=======
+            {/* Route Thông tin user */}
+            <Route path="/profile/:id" element={<UserProfile />} />
+
+            {/* 3. ROUTE GIẢI PHÁP (Dynamic Slug) 
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
                - Lưu ý: Vì SQL bạn lưu link là "/khai-khoang", "/lam-nghiep"... 
                  nên ta dùng path="/:id" để bắt các link này.
                - Quan trọng: Route này bắt buộc đặt CUỐI CÙNG trong danh sách để tránh

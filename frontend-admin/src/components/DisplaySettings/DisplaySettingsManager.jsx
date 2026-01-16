@@ -21,6 +21,7 @@ export default function DisplaySettingsManager() {
   const [footerConfig, setFooterConfig] = useState(initialFooterState);
   const [notis, setNotis] = useState([]);
 
+<<<<<<< HEAD
   // === THÊM STATE RIÊNG CHO CHÍNH SÁCH ===
   const [privacyPolicy, setPrivacyPolicy] = useState('');
   const [termsOfService, setTermsOfService] = useState('');
@@ -28,6 +29,8 @@ export default function DisplaySettingsManager() {
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [savingTerms, setSavingTerms] = useState(false);
 
+=======
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
   // --- STATE CHO PHẦN VĂN BẢN PHÁP LÝ ---
   const [tempDoc, setTempDoc] = useState({ title: "", url: "" });
   const [editingDocIndex, setEditingDocIndex] = useState(null);
@@ -179,9 +182,17 @@ export default function DisplaySettingsManager() {
     const newDocs = [...footerConfig.legalDocuments];
 
     if (editingDocIndex !== null) {
+<<<<<<< HEAD
       newDocs[editingDocIndex] = tempDoc;
       setEditingDocIndex(null);
     } else {
+=======
+      // Chế độ SỬA: Cập nhật
+      newDocs[editingDocIndex] = tempDoc;
+      setEditingDocIndex(null);
+    } else {
+      // Chế độ THÊM: Push vào cuối
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
       newDocs.push(tempDoc);
     }
 
@@ -289,6 +300,7 @@ export default function DisplaySettingsManager() {
       <aside className="panel">
         <div className="panel-header">Menu Cấu Hình</div>
         <div style={{ padding: '15px', borderBottom: '1px solid #eee', background: '#fff' }}>
+<<<<<<< HEAD
           <button style={tabBtnStyle(activeTab === 'footer')} onClick={() => { setActiveTab('footer'); setMessage(null); }}>
             Cấu hình Footer
           </button>
@@ -298,6 +310,22 @@ export default function DisplaySettingsManager() {
           <button style={tabBtnStyle(activeTab === 'policies')} onClick={() => { setActiveTab('policies'); setMessage(null); }}>
             Chính sách & Điều khoản
           </button>
+=======
+          <button
+            style={{
+              ...tabBtnStyle(activeTab === 'footer'),
+              color: '#000'
+            }}
+            onClick={() => {
+              setActiveTab('footer');
+              setMessage(null);
+            }}
+          >
+            <span>⚙️</span> Cấu hình Footer
+          </button>
+
+          <button style={{...tabBtnStyle(activeTab === 'notifications'), color :'#000'}} onClick={() => { setActiveTab('notifications'); setMessage(null); }}><span>🔔</span> Quản lý Thông báo</button>
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
         </div>
 
         {activeTab === 'notifications' && (
@@ -365,6 +393,10 @@ export default function DisplaySettingsManager() {
                   2. Văn bản pháp lý (Cột 3 Footer)
                 </h5>
 
+<<<<<<< HEAD
+=======
+                {/* KHU VỰC NHẬP LIỆU */}
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
                 <div style={{ background: editingDocIndex !== null ? '#e8f5e9' : '#f1f8ff', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: editingDocIndex !== null ? '1px solid #c3e6cb' : '1px solid #cce5ff', transition: 'all 0.3s' }}>
                   <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '10px', color: editingDocIndex !== null ? '#155724' : '#004085', display: 'flex', justifyContent: 'space-between' }}>
                     <span>{editingDocIndex !== null ? "Đang chỉnh sửa mục:" : "Thêm liên kết mới:"}</span>
@@ -374,9 +406,17 @@ export default function DisplaySettingsManager() {
                     <input type="text" className="form-control" placeholder="Tiêu đề..." value={tempDoc.title} onChange={e => setTempDoc({ ...tempDoc, title: e.target.value })} style={{ fontSize: '13px' }} />
                     <input type="text" className="form-control" placeholder="Link (URL)..." value={tempDoc.url} onChange={e => setTempDoc({ ...tempDoc, url: e.target.value })} style={{ fontSize: '13px' }} />
 
+<<<<<<< HEAD
                     <button type="button" onClick={handleSaveDoc}
                       style={{
                         height: '38px', whiteSpace: 'nowrap', fontWeight: '600',
+=======
+                    {/* NÚT LƯU / THÊM */}
+                    <button type="button" onClick={handleSaveDoc}
+                      style={{
+                        height: '38px', whiteSpace: 'nowrap', fontWeight: '600',
+                        // Nút Lưu thay đổi: Màu xanh lá (#28a745) | Nút Thêm: Màu xanh dương (#0066cc)
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
                         background: editingDocIndex !== null ? '#28a745' : '#0066cc',
                         color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '0 15px'
                       }}>
@@ -385,6 +425,10 @@ export default function DisplaySettingsManager() {
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {/* DANH SÁCH */}
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
                 <div style={{ marginBottom: '20px', border: '1px solid #eee', borderRadius: '6px', overflow: 'hidden' }}>
                   {footerConfig.legalDocuments.length === 0 && <div style={{ padding: '15px', textAlign: 'center', color: '#999', fontSize: '13px' }}>Chưa có văn bản nào.</div>}
 
@@ -399,10 +443,18 @@ export default function DisplaySettingsManager() {
                       </div>
 
                       <div style={{ display: 'flex', gap: '8px', marginLeft: '10px' }}>
+<<<<<<< HEAD
+=======
+                        {/* NÚT SỬA: MÀU XANH DƯƠNG */}
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
                         <button type="button" onClick={() => handleStartEditDoc(index)}
                           style={{ background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>
                           Sửa
                         </button>
+<<<<<<< HEAD
+=======
+                        {/* NÚT XÓA: MÀU ĐỎ */}
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
                         <button type="button" onClick={() => handleDeleteDoc(index)}
                           style={{ background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>
                           Xóa
@@ -428,6 +480,7 @@ export default function DisplaySettingsManager() {
 
         {/* TAB NOTIFICATIONS */}
         {activeTab === 'notifications' && (
+<<<<<<< HEAD
           <>
             <div style={headerStyle}>
               <h2 style={headerTitleStyle}>
@@ -585,6 +638,22 @@ export default function DisplaySettingsManager() {
               </div>
             )}
           </>
+=======
+          <div className="form-section">
+            <form onSubmit={handleSubmitNoti}>
+              <div className="form-group"><label className="form-label">Tiêu đề</label><input type="text" className="form-control" value={notiForm.title} onChange={e => setNotiForm({ ...notiForm, title: e.target.value })} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="form-group"><label className="form-label">Ngày</label><input type="text" className="form-control" value={notiForm.date} onChange={e => setNotiForm({ ...notiForm, date: e.target.value })} /></div>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
+                  <input type="checkbox" checked={notiForm.isNew} onChange={e => setNotiForm({ ...notiForm, isNew: e.target.checked })} style={{ width: '20px', height: '20px', marginRight: '10px' }} />
+                  <label>Badge MỚI</label>
+                </div>
+              </div>
+              <div className="form-group"><label className="form-label">Link</label><input type="text" className="form-control" value={notiForm.link} onChange={e => setNotiForm({ ...notiForm, link: e.target.value })} /></div>
+              <button type="submit" className="btn btn-primary btn-block" style={{ width: '100%', padding: '10px' }}>{isEditingNoti ? "CẬP NHẬT" : "ĐĂNG"}</button>
+            </form>
+          </div>
+>>>>>>> 203f8372910f697d32b6c06a7489195ff3b80092
         )}
       </main>
     </div>
