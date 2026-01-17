@@ -149,7 +149,7 @@ function UAVLandingPage() {
   const certTabsData = {
     map: ["Nghiệp vụ Khảo Sát Bản Đồ Số Hoá Dân Dụng & Công Nghiệp"],
     check: ["Nghiệp vụ Khảo Sát - Kiểm Tra Thiết bị", "Hạ tầng Dân Dụng & Công Nghiệp"],
-    agro: ["Nghiệp vụ Khảo Sát Nông - Lâm - Ngư Nghiệp", "Dịch Vụ Nông Nghiệp Công Nghệ cao"],
+    agro: ["Nghiệp vụ Khảo Sát Nông - Lâm - Ngư Nghiệp", "Dịch Vụ Nông Nghiệp Công Nghệ Cao"],
     art: ["Trình diễn nghệ thuật UAV", "Biểu Diễn Mô Hình R/C", "Tổ hợp sáng tạo nội dung số UAV"],
   };
 
@@ -464,7 +464,7 @@ function UAVLandingPage() {
         <div className="container">
           <h2 className="section-title solutions-section-title">Giải pháp cho các ngành nghề khác nhau</h2>
           {solutions.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#b0b0b0" }}><p>Đang tải dữ liệu giải pháp...</p></div>
+            <div style={{ textAlign: "center", padding: "40px", color: "#ffffff" }}><p>Đang tải dữ liệu giải pháp...</p></div>
           ) : (
             <div className="solutions-grid">
               {solutions.map((item) => (
