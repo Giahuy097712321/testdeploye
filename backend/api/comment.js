@@ -7,7 +7,7 @@ const { verifyToken } = require('../middleware/verifyToken');
 router.post("/", verifyToken, async (req, res) => {
   const connection = await db.getConnection();
   try {
-    const { course_id, content } = req.body;
+    const { course_id, content, rating } = req.body;
     const user_id = req.user.id;
 
     // Kiểm tra dữ liệu
@@ -23,6 +23,9 @@ router.post("/", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Nội dung comment không được vượt quá 500 ký tự" });
     }
 
+    // Validate rating (1-5)
+    const validRating = rating ? Math.min(5, Math.max(1, parseInt(rating))) : null;
+
     // Kiểm tra khóa học có tồn tại không
     const [courseExists] = await db.query("SELECT id FROM courses WHERE id = ?", [course_id]);
     if (courseExists.length === 0) {
@@ -31,9 +34,9 @@ router.post("/", verifyToken, async (req, res) => {
 
     // Insert comment
     const [result] = await db.query(
-      `INSERT INTO comments (user_id, course_id, content) 
-       VALUES (?, ?, ?)`,
-      [user_id, course_id, content.trim()]
+      `INSERT INTO comments (user_id, course_id, content, rating) 
+       VALUES (?, ?, ?, ?)`,
+      [user_id, course_id, content.trim(), validRating]
     );
 
     res.status(201).json({
@@ -43,6 +46,7 @@ router.post("/", verifyToken, async (req, res) => {
         user_id,
         course_id,
         content: content.trim(),
+        rating: validRating,
         created_at: new Date().toISOString()
       }
     });
@@ -71,7 +75,8 @@ router.get("/course/:course_id", async (req, res) => {
     let query = `SELECT 
         c.id, 
         c.user_id, 
-        c.content, 
+        c.content,
+        c.rating,
         c.created_at,
         u.full_name,
         u.avatar
@@ -79,7 +84,7 @@ router.get("/course/:course_id", async (req, res) => {
        JOIN users u ON c.user_id = u.id
        WHERE c.course_id = ?
        ORDER BY c.created_at DESC`;
-    
+
     let queryParams = [course_id];
 
     if (limit) {
@@ -110,7 +115,54 @@ router.get("/course/:course_id", async (req, res) => {
     res.status(500).json({ error: "Lỗi server khi lấy comments" });
   }
 });
+// --- READ: Lấy comments của user hiện tại (Chỉ user đã đăng nhập) ---
+router.get("/my-comments", verifyToken, async (req, res) => {
+  try {
+    const user_id = req.user.id;
+    const { page = 1, limit } = req.query;
 
+    let query = `SELECT 
+        c.id, 
+        c.user_id, 
+        c.course_id,
+        c.content,
+        c.rating,
+        c.created_at,
+        co.title as course_title
+       FROM comments c
+       JOIN courses co ON c.course_id = co.id
+       WHERE c.user_id = ?
+       ORDER BY c.created_at DESC`;
+
+    let queryParams = [user_id];
+
+    if (limit) {
+      const offset = (page - 1) * limit;
+      query += ` LIMIT ? OFFSET ?`;
+      queryParams.push(parseInt(limit), offset);
+    }
+
+    const [comments] = await db.query(query, queryParams);
+
+    const [totalCount] = await db.query(
+      "SELECT COUNT(*) as count FROM comments WHERE user_id = ?",
+      [user_id]
+    );
+
+    res.json({
+      message: "Lấy danh sách comments của bạn thành công",
+      total: totalCount[0].count,
+      page: limit ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : null,
+      totalPages: limit ? Math.ceil(totalCount[0].count / limit) : 1,
+      comments
+    });
+
+  } catch (error) {
+    console.error("Lỗi lấy comments của user:", error);
+    res.status(500).json({ error: "Lỗi server khi lấy comments" });
+  }
+});
 // --- READ: Lấy comment theo ID ---
 router.get("/:id", async (req, res) => {
   try {
@@ -121,7 +173,8 @@ router.get("/:id", async (req, res) => {
         c.id, 
         c.user_id, 
         c.course_id,
-        c.content, 
+        c.content,
+        c.rating,
         c.created_at,
         u.full_name,
         u.avatar
@@ -151,7 +204,7 @@ router.put("/:id", verifyToken, async (req, res) => {
   const connection = await db.getConnection();
   try {
     const { id } = req.params;
-    const { content } = req.body;
+    const { content, rating } = req.body;
     const user_id = req.user.id;
 
     if (!content) {
@@ -165,6 +218,9 @@ router.put("/:id", verifyToken, async (req, res) => {
     if (content.length > 500) {
       return res.status(400).json({ error: "Nội dung comment không được vượt quá 500 ký tự" });
     }
+
+    // Validate rating (1-5)
+    const validRating = rating ? Math.min(5, Math.max(1, parseInt(rating))) : null;
 
     // Kiểm tra comment có tồn tại không
     const [comments] = await db.query(
@@ -183,15 +239,16 @@ router.put("/:id", verifyToken, async (req, res) => {
 
     // Update comment
     await db.query(
-      "UPDATE comments SET content = ? WHERE id = ?",
-      [content.trim(), id]
+      "UPDATE comments SET content = ?, rating = ? WHERE id = ?",
+      [content.trim(), validRating, id]
     );
 
     res.json({
       message: "Cập nhật comment thành công",
       comment: {
         id: parseInt(id),
-        content: content.trim()
+        content: content.trim(),
+        rating: validRating
       }
     });
 
@@ -244,52 +301,6 @@ router.delete("/:id", verifyToken, async (req, res) => {
   }
 });
 
-// --- READ: Lấy comments của user hiện tại (Chỉ user đã đăng nhập) ---
-router.get("/my-comments", verifyToken, async (req, res) => {
-  try {
-    const user_id = req.user.id;
-    const { page = 1, limit } = req.query;
 
-    let query = `SELECT 
-        c.id, 
-        c.user_id, 
-        c.course_id,
-        c.content, 
-        c.created_at,
-        co.title as course_title
-       FROM comments c
-       JOIN courses co ON c.course_id = co.id
-       WHERE c.user_id = ?
-       ORDER BY c.created_at DESC`;
-    
-    let queryParams = [user_id];
-
-    if (limit) {
-      const offset = (page - 1) * limit;
-      query += ` LIMIT ? OFFSET ?`;
-      queryParams.push(parseInt(limit), offset);
-    }
-
-    const [comments] = await db.query(query, queryParams);
-
-    const [totalCount] = await db.query(
-      "SELECT COUNT(*) as count FROM comments WHERE user_id = ?",
-      [user_id]
-    );
-
-    res.json({
-      message: "Lấy danh sách comments của bạn thành công",
-      total: totalCount[0].count,
-      page: limit ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : null,
-      totalPages: limit ? Math.ceil(totalCount[0].count / limit) : 1,
-      comments
-    });
-
-  } catch (error) {
-    console.error("Lỗi lấy comments của user:", error);
-    res.status(500).json({ error: "Lỗi server khi lấy comments" });
-  }
-});
 
 module.exports = router;

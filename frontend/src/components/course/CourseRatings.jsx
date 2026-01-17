@@ -4,7 +4,7 @@ import './CourseRatings.css';
 
 const API_BASE = "http://localhost:5000/api/courses";
 
-export default function CourseRatings({ courseId, token, currentUserId }) {
+export default function CourseRatings({ courseId, token }) {
   const [ratings, setRatings] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,9 +12,26 @@ export default function CourseRatings({ courseId, token, currentUserId }) {
   const [userComment, setUserComment] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Decode JWT để lấy user info
+  const decodeToken = (token) => {
+    try {
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload));
+      return decoded;
+    } catch (e) {
+      console.error('Lỗi decode token:', e);
+      return null;
+    }
+  };
 
   // Fetch ratings khi load component
   useEffect(() => {
+    if (token) {
+      const user = decodeToken(token);
+      setCurrentUserId(user?.id || null);
+    }
     fetchRatings();
   }, [courseId, token]);
 
@@ -169,29 +186,39 @@ export default function CourseRatings({ courseId, token, currentUserId }) {
       )}
 
       {/* Rating Form */}
-      {token && (
+      {token ? (
         <form className="rating-form" onSubmit={handleSubmitRating}>
           <h3 className="form-title">{userRating ? 'Cập nhật đánh giá' : 'Thêm đánh giá của bạn'}</h3>
           
-          <StarRating
-            value={userRating}
-            onChange={setUserRating}
-            onHover={setHoverRating}
-            onHoverLeave={() => setHoverRating(0)}
-          />
+          <div className="form-group">
+            <label className="form-label">Chọn số sao:</label>
+            <StarRating
+              value={userRating}
+              onChange={setUserRating}
+              onHover={setHoverRating}
+              onHoverLeave={() => setHoverRating(0)}
+            />
+          </div>
 
-          <textarea
-            className="rating-textarea"
-            placeholder="Chia sẻ trải nghiệm của bạn về khóa học này..."
-            value={userComment}
-            onChange={(e) => setUserComment(e.target.value)}
-            rows="4"
-          />
+          <div className="form-group">
+            <label className="form-label">Bình luận của bạn:</label>
+            <textarea
+              className="rating-textarea"
+              placeholder="Chia sẻ trải nghiệm của bạn về khóa học này..."
+              value={userComment}
+              onChange={(e) => setUserComment(e.target.value)}
+              rows="4"
+            />
+          </div>
 
           <button type="submit" className="btn-submit-rating" disabled={submitting}>
             <Send size={16} /> {submitting ? 'Đang gửi...' : 'Gửi đánh giá'}
           </button>
         </form>
+      ) : (
+        <div style={{ padding: '15px', backgroundColor: '#1a1a1a', borderRadius: '8px', color: '#aaa', marginBottom: '20px' }}>
+          <p>Vui lòng đăng nhập để đánh giá khóa học</p>
+        </div>
       )}
 
       {/* Ratings List */}
