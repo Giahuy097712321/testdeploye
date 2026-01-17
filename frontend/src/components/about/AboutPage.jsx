@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 import './AboutPage.css';
 import { ChevronDown } from "lucide-react";
@@ -6,10 +6,17 @@ import { ChevronDown } from "lucide-react";
 function AboutPage() {
     const [activeTab, setActiveTab] = useState('van-ban');
     const [openFAQ, setOpenFAQ] = useState(null);
-
+    const formRef = useRef(null);
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }, []);
     const toggleFAQ = (index) => {
         setOpenFAQ(openFAQ === index ? null : index);
     };
+
 
     // Dữ liệu FAQ
     const faqData = [
@@ -94,7 +101,7 @@ function AboutPage() {
                         {/* Card 1 */}
                         <div className="objective-card">
                             <div className="objective-icon">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path d="M12 14v7"/></svg>
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 14l9-5-9-5-9 5 9 5z" /><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /><path d="M12 14v7" /></svg>
                             </div>
                             <h3 className="objective-title">Đào tạo kiến thức</h3>
                             <ul className="objective-list">
@@ -107,7 +114,7 @@ function AboutPage() {
                         {/* Card 2 */}
                         <div className="objective-card">
                             <div className="objective-icon">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                             </div>
                             <h3 className="objective-title">Nâng cao ý thức</h3>
                             <ul className="objective-list">
@@ -120,7 +127,7 @@ function AboutPage() {
                         {/* Card 3 */}
                         <div className="objective-card">
                             <div className="objective-icon">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
                             </div>
                             <h3 className="objective-title">Quản lý hoạt động bay</h3>
                             <ul className="objective-list">
@@ -137,7 +144,7 @@ function AboutPage() {
             <section className="section section-gray">
                 <div className="container">
                     <h2 className="section-title">Cơ sở pháp lý</h2>
-                    
+
                     <div className="legal-tabs">
                         <button className={`legal-tab ${activeTab === 'van-ban' ? 'active' : ''}`} onClick={() => setActiveTab('van-ban')}>Văn bản pháp luật</button>
                         <button className={`legal-tab ${activeTab === 'tham-quyen' ? 'active' : ''}`} onClick={() => setActiveTab('tham-quyen')}>Thẩm quyền</button>
@@ -206,10 +213,10 @@ function AboutPage() {
                         <div className="organization-card">
                             <div className="organization-icon">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="9" cy="7" r="4"/>
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                 </svg>
                             </div>
                             <h3 className="organization-title">Đào tạo và ứng dụng công nghệ</h3>
@@ -221,10 +228,10 @@ function AboutPage() {
                         <div className="organization-card">
                             <div className="organization-icon">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="9" cy="7" r="4"/>
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                 </svg>
                             </div>
                             <h3 className="organization-title">Cơ quan phối hợp</h3>
@@ -236,10 +243,10 @@ function AboutPage() {
                         <div className="organization-card">
                             <div className="organization-icon">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="9" cy="7" r="4"/>
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                 </svg>
                             </div>
                             <h3 className="organization-title">Chuyên gia giảng dạy</h3>
@@ -287,7 +294,7 @@ function AboutPage() {
                     <div className="faq-container">
                         {faqData.map((item, index) => (
                             <div key={index} className="faq-item">
-                                <button 
+                                <button
                                     className={`faq-question ${openFAQ === index ? 'active' : ''}`}
                                     onClick={() => toggleFAQ(index)}
                                 >
