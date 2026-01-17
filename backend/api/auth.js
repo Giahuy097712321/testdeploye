@@ -60,17 +60,17 @@ router.post("/register", async (req, res) => {
        uav_type, usage_purpose, operation_area, uav_experience, target_tier)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        newUserId, 
-        fullCurrentAddress, 
-        fullPermanentAddress, 
+        newUserId,
+        fullCurrentAddress,
+        fullPermanentAddress,
         cccd, // Dùng số CCCD làm identity_number
-        emergencyName, 
-        emergencyPhone, 
+        emergencyName,
+        emergencyPhone,
         emergencyRelation,
-        uavTypeString, 
-        uavPurposeString, 
-        activityArea, 
-        experience, 
+        uavTypeString,
+        uavPurposeString,
+        activityArea,
+        experience,
         certificateType
       ]
     );
@@ -94,8 +94,8 @@ router.post("/login", async (req, res) => {
   try {
     // 1. Tìm user theo Email HOẶC Phone
     const [rows] = await db.query(
-        "SELECT * FROM users WHERE email = ? OR phone = ?", 
-        [identifier, identifier]
+      "SELECT * FROM users WHERE email = ? OR phone = ?",
+      [identifier, identifier]
     );
 
     if (rows.length === 0) {
@@ -117,9 +117,9 @@ router.post("/login", async (req, res) => {
 
     // 4. Tạo Token (JWT)
     const token = jwt.sign(
-        { id: user.id, role: user.role, fullName: user.full_name }, 
-        "YOUR_SECRET_KEY", // Thay bằng chuỗi bí mật của bạn (nên để trong .env)
-        { expiresIn: "1d" }
+      { id: user.id, role: user.role, fullName: user.full_name },
+      process.env.JWT_SECRET || "YOUR_SECRET_KEY", // Thay bằng chuỗi bí mật của bạn (nên để trong .env)
+      { expiresIn: "1d" }
     );
 
     // 5. Lấy dữ liệu khác nhau dựa vào role

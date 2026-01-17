@@ -2,13 +2,24 @@
 
 /* 1. KHAI BÁO BIẾN */
 :root {
-  --about-primary: #0050b8;       /* Xanh dương chủ đạo */
-  --about-primary-hover: #00387a; /* Xanh đậm hơn khi hover */
-  --about-bg-body: #ffffff;       /* Nền trang trắng/sáng cho sạch */
-  --about-bg-card: #f7f9fc;       /* Nền thẻ hơi xám xanh nhẹ */
-  --about-text-main: #111111;     /* Chữ đen */
-  --about-text-sub: #555555;      /* Chữ phụ */
-  --about-border: #e5e5e5;
+  --about-primary: #0050b8;
+  /* Vàng Neon */
+  --about-primary-hover: #e6b804;
+  /* Vàng đậm */
+  --about-bg-body: #222222;
+  /* Nền đen chính */
+  --about-bg-card: #f7f3f3;
+  /* Nền thẻ */
+  --about-bg-darker: #ffffff;
+  /* Nền xám đậm (thay cho gray sáng cũ) */
+  --about-text-main: #000000;
+  /* Chữ trắng */
+  --about-text-sub: #0a0a0a;
+  /* Chữ xám */
+  --about-text-black: #ffffff;
+  /* Chữ đen (dùng trên nền vàng) */
+  --about-border: #555555;
+  /* Viền xám */
   --about-font: 'Roboto', sans-serif;
 }
 
@@ -28,16 +39,26 @@
 }
 
 /* === SECTIONS === */
-.section { padding: 60px 0; }
-.section-white { background: #ffffff; }
-.section-gray { background: #f8fafb; }
+.section {
+  padding: 60px 0;
+}
+
+/* Override lại các class màu nền cũ sang màu tối */
+.section-white {
+  background: var(--about-bg-body);
+}
+
+.section-gray {
+  background: var(--about-bg-darker);
+}
 
 .section-title {
   text-align: center;
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 40px;
-  color: var(--about-primary); /* Tiêu đề Xanh */
+  color: var(--about-primary);
+  /* Tiêu đề màu Vàng */
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -60,13 +81,9 @@
 .about-hero-title {
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 10px;
-  
-  /* QUAN TRỌNG: Chuyển màu chữ thành Trắng */
-  color: #ffffff !important; 
-  
-  text-shadow: none; /* Bỏ bóng đen để giống thiết kế phẳng */
-  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--about-primary);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 .about-hero-subtitle {
@@ -98,14 +115,16 @@
 
 .objective-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 15px rgba(255, 202, 5, 0.2); /* Glow nhẹ màu vàng */
+  box-shadow: 0 0 15px rgba(255, 202, 5, 0.2);
+  /* Glow nhẹ màu vàng */
   border-color: var(--about-primary);
 }
 
 .objective-icon {
   width: 70px;
   height: 70px;
-  background: rgba(255, 255, 255, 0.1); /* Nền vàng trong suốt */
+  background: rgba(255, 202, 5, 0.1);
+  /* Nền vàng trong suốt */
   border: 1px solid var(--about-primary);
   border-radius: 50%;
   display: flex;
@@ -131,7 +150,8 @@
 .objective-list li {
   padding: 5px 0 5px 25px;
   position: relative;
-  color: var(--about-text-sub); /* Chữ xám */
+  color: var(--about-text-sub);
+  /* Chữ xám */
   font-size: 0.95rem;
 }
 
@@ -170,7 +190,8 @@
 
 .legal-tab.active {
   background: var(--about-primary);
-  color: var(--about-text-black); /* Chữ đen trên nền vàng */
+  color: var(--about-text-black);
+  /* Chữ đen trên nền vàng */
   border-color: var(--about-primary);
   font-weight: 700;
 }
@@ -179,11 +200,106 @@
   background: var(--about-bg-card);
   border-radius: 8px;
   padding: 40px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--about-border);
 }
 
-/* Legal Items */
+/* Legal Cards Grid - Clean and Compact */
+.legal-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.legal-card {
+  padding: 10px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  height: fit-content;
+}
+
+.legal-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  border-color: var(--about-primary);
+}
+
+.legal-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--about-primary);
+  margin: 0;
+}
+
+.legal-card-desc {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.legal-card-date {
+  font-size: 0.85rem;
+  color: #999;
+  font-style: italic;
+  margin: 0;
+}
+
+.legal-card-link {
+  color: var(--about-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: absolute;
+  right: 20px;
+  top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: rgba(0, 80, 184, 0.08);
+  padding: 0;
+  z-index: 10;
+}
+
+.legal-card-link:hover {
+  background: rgba(0, 80, 184, 0.15);
+  transform: translateY(-2px);
+  color: var(--about-primary);
+}
+
+/* Styling for document links (văn bản pháp luật tab) */
+.legal-card-link.doc-link {
+  position: static;
+  width: auto;
+  padding: 0;
+  margin-top: auto;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  text-align: left;
+  font-weight: 600;
+  color: var(--about-primary);
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.legal-card-link.doc-link:hover {
+  background: transparent;
+  color: var(--about-primary);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* Legacy styles - kept for compatibility */
 .legal-doc-item {
   padding-bottom: 20px;
   border-bottom: 1px solid #444;
@@ -237,7 +353,7 @@
 }
 
 .authority-item p {
-    color: var(--about-text-sub);
+  color: var(--about-text-sub);
 }
 
 /* Forms (Biểu mẫu) */
@@ -290,7 +406,7 @@
   border: 1px solid var(--about-border);
   border-radius: 8px;
   padding: 30px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   text-align: center;
   transition: transform 0.3s, box-shadow 0.3s;
 }
@@ -344,11 +460,8 @@
 .requirement-card {
   background: var(--about-bg-card);
   border-radius: 8px;
-  
-  /* --- THAY ĐỔI CHÍNH TẠI ĐÂY --- */
-  padding: 20px; /* Giảm từ 30px xuống 20px để khung ôm sát nội dung hơn */
-  
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Giảm độ đậm bóng cho nhẹ nhàng */
+  padding: 30px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--about-border);
 }
 
@@ -372,7 +485,7 @@
   /* Giảm padding trên dưới để danh sách ngắn lại */
   padding: 8px 0 8px 25px; 
   position: relative;
-  
+
   color: var(--about-text-sub);
   font-size: 0.9rem; /* Giảm size chữ 1 chút cho vừa vặn */
   line-height: 1.4;
@@ -385,6 +498,7 @@
 
 .requirement-list li:before {
   content: "•";
+  /* Dùng chấm tròn hoặc dấu tick */
   position: absolute;
   left: 0;
   top: 6px; /* Căn chỉnh lại vị trí dấu chấm */
@@ -463,7 +577,8 @@
 .cta-section {
   padding: 80px 20px;
   text-align: center;
-  background: #f8fafb; /* Đậm hơn cả body */
+  background: #f8fafb;
+  /* Đậm hơn cả body */
   /* border-top: 2px solid var(--about-primary); */
 }
 
