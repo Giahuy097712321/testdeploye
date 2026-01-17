@@ -162,13 +162,13 @@ function UAVLandingPage() {
       .then((res) => res.json()).then((data) => setSolutions(data)).catch((err) => console.error(err));
     fetch("http://localhost:5000/api/display/notifications")
       .then((res) => res.json()).then((data) => setNotifications(Array.isArray(data) ? data : data.data || [])).catch((err) => console.error(err));
-
+    
     // Fetch courses và ratings
     fetch("http://localhost:5000/api/courses")
       .then((res) => res.json())
       .then((data) => {
         setCourses(data);
-
+        
         // Fetch ratings cho từng course
         const ratings = {};
         data.forEach((course) => {
@@ -186,7 +186,7 @@ function UAVLandingPage() {
         });
       })
       .catch((err) => console.error(err));
-
+    
     fetch("http://localhost:5000/api/settings/current_model_url")
       .then((res) => res.json()).then((data) => setModelUrl(data.value || "/models/scene.glb")).catch(() => setModelUrl("/models/scene.glb"));
     fetch("http://localhost:5000/api/settings/default_camera_view")
@@ -226,7 +226,7 @@ function UAVLandingPage() {
 
   const renderCourseCard = (course) => {
     const rating = courseRatings[course.id]?.average ? parseFloat(courseRatings[course.id].average) : (course.rating || 5.0);
-
+    
     return (
       <div key={course.id} className="course-card" onClick={() => handleCourseClick(course.id)}>
         <div className="course-image-wrapper">
@@ -239,16 +239,16 @@ function UAVLandingPage() {
             <div className="stars" style={{ display: "flex" }}>
               {[...Array(5)].map((_, i) => (
                 <svg key={i} className="star-icon" viewBox="0 0 24 24" style={{ width: "16px", height: "16px" }}>
-                  <path
-                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                    fill={i < Math.round(rating) ? '#FFC107' : '#ddd'}
+                  <path 
+                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" 
+                    fill={i < Math.round(rating) ? '#FFC107' : '#ddd'} 
                   />
                 </svg>
               ))}
             </div>
             <span style={{ marginLeft: "8px", fontSize: "14px", color: "#b0b0b0" }}>
-              {courseRatings[course.id]
-                ? `${courseRatings[course.id].average} (${course.totalViews || 0} lượt xem)`
+              {courseRatings[course.id] 
+                ? `${courseRatings[course.id].average} (${course.totalViews || 0} lượt xem)` 
                 : `${course.rating || '5.0'} (${course.totalViews || 0} lượt xem)`}
             </span>
           </div>
