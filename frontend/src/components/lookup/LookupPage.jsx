@@ -82,8 +82,8 @@ function LookupPage() {
             <section className="search-section">
                 <div className="container">
                     <div className="search-card">
-                        <h2 className="search-title">Tra cứu thông tin</h2>
-                        <p className="search-subtitle">Nhập thông tin để tra cứu giấy phép/bằng lái drone</p>
+                        <h2 className="search-title">Tra Cứu Thông Tin</h2>
+                        <p className="search-subtitle">Nhập thông tin để tra cứu giấy phép/ bằng lái drone</p>
 
                         {/* Tabs */}
                         <div className="search-tabs">

@@ -117,7 +117,7 @@
 .search-tabs {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    background: #f3f4f6; /* xám rất nhạt */
+    background: #d7d8d8; /* xám rất nhạt */
     border-radius: 10px;
     padding: 3px
 }
