@@ -142,7 +142,7 @@ function CoursesPage() {
                         </div>
                         <span style={{color: '#b0b0b0'}}>
                             {courseRatings[course.id] 
-                                ? `${courseRatings[course.id].average} (${courseRatings[course.id].count} đánh giá)` 
+                                ? `${courseRatings[course.id].average} (${course.totalViews || 0} lượt xem)` 
                                 : `${course.rating || '5.0'} (${course.totalViews || 0} lượt xem)`}
                         </span>
                     </div>
