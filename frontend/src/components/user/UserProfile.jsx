@@ -129,8 +129,7 @@ function UserProfile() {
             <h3 className="user-name">{profile.full_name}</h3>
             <p className="user-id">{profile.email || profile.phone}</p>
             <div className="user-buttons">
-              <Link to={`/profile/${id}`} className="btn-home">Trang chủ</Link>
-              <Link to={`/profile/${id}/profile`} className="btn-profile">My Profile</Link>
+              <Link to={'/'} className="btn-home">Trang chủ</Link>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './LookupPage.css';
 import { Search, FileText, CreditCard, Smartphone, Camera } from 'lucide-react';
 
@@ -11,9 +11,17 @@ function LookupPage() {
         droneSerial: '',
         droneType: ''
     });
+
     const [cameraActive, setCameraActive] = useState(false);
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
+    const formRef = useRef(null);
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -22,6 +30,7 @@ function LookupPage() {
             [name]: value
         }));
     };
+
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -32,8 +41,8 @@ function LookupPage() {
 
     const activateCamera = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } 
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
             });
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
@@ -52,11 +61,13 @@ function LookupPage() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            
+
             // Ở đây bạn có thể tích hợp thư viện đọc QR code
             alert('Đã chụp ảnh QR. Tính năng đọc QR đang được phát triển.');
         }
     };
+
+
 
     return (
         <div className="lookup-page">
@@ -76,28 +87,28 @@ function LookupPage() {
 
                         {/* Tabs */}
                         <div className="search-tabs">
-                            <button 
+                            <button
                                 className={`search-tab ${activeTab === 'so-giay-phep' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('so-giay-phep')}
                             >
                                 <FileText size={18} />
                                 <span>Số giấy phép</span>
                             </button>
-                            <button 
+                            <button
                                 className={`search-tab ${activeTab === 'cccd' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('cccd')}
                             >
                                 <CreditCard size={18} />
                                 <span>CCCD/CMND</span>
                             </button>
-                            <button 
+                            <button
                                 className={`search-tab ${activeTab === 'ma-thiet-bi' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('ma-thiet-bi')}
                             >
                                 <Smartphone size={18} />
                                 <span>Mã thiết bị drone</span>
                             </button>
-                            <button 
+                            <button
                                 className={`search-tab ${activeTab === 'qr' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('qr')}
                             >
@@ -195,14 +206,14 @@ function LookupPage() {
                                             </div>
                                         ) : (
                                             <>
-                                                <video 
-                                                    ref={videoRef} 
-                                                    autoPlay 
+                                                <video
+                                                    ref={videoRef}
+                                                    autoPlay
                                                     playsInline
                                                     className="qr-video"
                                                 />
                                                 <div className="qr-capture-overlay">
-                                                    <button 
+                                                    <button
                                                         type="button"
                                                         onClick={captureQR}
                                                         className="btn btn-primary btn-camera"
@@ -217,7 +228,7 @@ function LookupPage() {
                                     </div>
                                     <div className="qr-buttons">
                                         {!cameraActive && (
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={activateCamera}
                                                 className="btn btn-primary btn-camera"
@@ -227,7 +238,7 @@ function LookupPage() {
                                             </button>
                                         )}
                                         <p className="qr-instruction">Đặt mã QR trên giấy phép hoặc thẻ đăng ký drone vào khung hình camera</p>
-                                        <button 
+                                        <button
                                             type="submit"
                                             className="btn btn-primary btn-search"
                                         >
@@ -289,9 +300,9 @@ function LookupPage() {
                             <div className="instruction-card">
                                 <div className="instruction-icon">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <line x1="12" y1="16" x2="12" y2="12"/>
-                                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="12" y1="16" x2="12" y2="12" />
+                                        <line x1="12" y1="8" x2="12.01" y2="8" />
                                     </svg>
                                 </div>
                                 <div className="instruction-content">
