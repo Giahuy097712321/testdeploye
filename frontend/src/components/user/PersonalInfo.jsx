@@ -27,7 +27,7 @@ function PersonalInfo() {
 
               <div className="info-row">
                 <span className="info-label">Số điện thoại</span>
-                <span className="info-value">{profile.phone || '--'}</span>
+                <span className="info-value">(+84) {profile.phone || '--'}</span>
               </div>
 
               {/* <div className="info-row">
@@ -62,7 +62,7 @@ function PersonalInfo() {
                 <span className="info-value">{profile.uav_type || '--'}</span>
               </div>
 
-              
+
 
               <div className="info-row">
                 <span className="info-label">Ngày kích hoạt</span>
@@ -75,9 +75,19 @@ function PersonalInfo() {
             </div>
           </div>
 
-          <div className="info-avatar-large">
-            {profile.full_name?.charAt(0).toUpperCase()}
+          <div className="info-avatar-wrapper">
+            <div className="info-avatar-large">
+              {profile.full_name?.charAt(0).toUpperCase()}
+            </div>
+
+            <button
+              className="btn-edit-profile"
+              onClick={() => navigate("/sua-thong-tin")}
+            >
+              Sửa thông tin
+            </button>
           </div>
+
         </div>
       </div>
     </div>

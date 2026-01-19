@@ -513,7 +513,7 @@ function RegisterPage() {
               onChange={handleInputChange}
               className={`form-select ${errors.gender ? "input-error" : ""}`}
             >
-              <option value="">Chọn</option>
+              <option value="">--Chọn giới tính--</option>
               <option value="male">Nam</option>
               <option value="female">Nữ</option>
             </select>
@@ -535,7 +535,7 @@ function RegisterPage() {
             value={formData.address}
             onChange={handleInputChange}
             className={`form-input ${errors.address ? "input-error" : ""}`}
-            placeholder="Số nhà, đường"
+            placeholder="Số nhà, đường, ấp, thôn..."
           />
 
           {errors.address && (
