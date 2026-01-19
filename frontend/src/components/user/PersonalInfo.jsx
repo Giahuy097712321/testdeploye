@@ -7,7 +7,7 @@ function PersonalInfo() {
   const params = useParams();
   const fileInputRef = useRef(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  
+
   // Hàm helper để format ngày thành YYYY-MM-DD theo local timezone
   const formatDateToInput = (dateStr) => {
     if (!dateStr) return '';
@@ -24,12 +24,12 @@ function PersonalInfo() {
   // Hàm helper để parse địa chỉ thành các phần riêng biệt
   const parseAddress = (fullAddress) => {
     if (!fullAddress) return { street: '', wardName: '', cityName: '' };
-    
+
     const parts = fullAddress.split(',').map(p => p.trim());
     let street = '';
     let wardName = '';
     let cityName = '';
-    
+
     const streetParts = [];
     for (const part of parts) {
       if (/^(Phường|Xã|Thị trấn)/i.test(part)) {
@@ -44,7 +44,7 @@ function PersonalInfo() {
         streetParts.push(part);
       }
     }
-    
+
     street = streetParts.join(', ');
     return { street, wardName, cityName };
   };
@@ -165,7 +165,7 @@ function PersonalInfo() {
       }
 
       const data = await res.json();
-      
+
       // Cập nhật profile với avatar mới
       if (setProfile) {
         setProfile(prev => ({ ...prev, avatar: data.avatar }));
@@ -182,7 +182,7 @@ function PersonalInfo() {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('user_token');
-      
+
       // Reconstruct address từ components
       const fullAddress = [
         form.address,
@@ -235,304 +235,324 @@ function PersonalInfo() {
     }
   };
   return (
-    <div className="personal-info-container">
-      <h2 className="section-title">Thông Tin Cá Nhân</h2>
+    <>
+      <div className="personal-info-container">
+        <h2 className="section-title">Thông Tin Cá Nhân</h2>
 
-      <div className="info-card">
-        <div className="info-header">
-          <div className="info-left">
-            <h3 className="info-name">{profile.full_name}</h3>
+        <div className="info-card">
+          <div className="info-header">
+            <div className="info-left">
+              <h3 className="info-name">{profile.full_name}</h3>
 
-            <div className="info-grid">
-              {!isEditing ? (
-                <>
-                  <div className="info-row">
-                    <span className="info-label">Tài khoản</span>
-                    <span className="info-value">{profile.full_name}</span>
-                  </div>
+              <div className="info-grid">
+                {!isEditing ? (
+                  <>
+                    <div className="info-row">
+                      <span className="info-label">Tài khoản</span>
+                      <span className="info-value">{profile.full_name}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Email</span>
-                    <span className="info-value">{profile.email || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Email</span>
+                      <span className="info-value">{profile.email || '--'}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Số điện thoại</span>
-                    <span className="info-value">{profile.phone || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Số điện thoại</span>
+                      <span className="info-value">{profile.phone || '--'}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Giới tính</span>
-                    <span className="info-value">{profile.gender || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Giới tính</span>
+                      <span className="info-value">{profile.gender || '--'}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Ngày sinh</span>
-                    <span className="info-value">
-                      {profile.birth_date ? formatDate(profile.birth_date) : '--'}
-                    </span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Ngày sinh</span>
+                      <span className="info-value">
+                        {profile.birth_date ? formatDate(profile.birth_date) : '--'}
+                      </span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Mã định danh</span>
-                    <span className="info-value">{profile.identity_number || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Mã định danh</span>
+                      <span className="info-value">{profile.identity_number || '--'}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Địa chỉ</span>
-                    <span className="info-value">{profile.address || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Địa chỉ</span>
+                      <span className="info-value">{profile.address || '--'}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Hạng</span>
-                    <span className="info-value">{profile.target_tier || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Hạng</span>
+                      <span className="info-value">{profile.target_tier || '--'}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Loại UAV</span>
-                    <span className="info-value">{profile.uav_type || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Loại UAV</span>
+                      <span className="info-value">{profile.uav_type || '--'}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Ngày kích hoạt</span>
-                    <span className="info-value">
-                      {profile.created_at ? formatDate(profile.created_at) : '--'}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="info-row">
-                    <span className="info-label">Tài khoản</span>
-                    <input
-                      type="text"
-                      name="full_name"
-                      value={form.full_name}
-                      onChange={handleChange}
-                      className="form-input"
-                      style={{ flex: 1 }}
-                    />
-                  </div>
-
-                  <div className="info-row">
-                    <span className="info-label">Email</span>
-                    <input
-                      type="email"
-                      name="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      className="form-input"
-                      style={{ flex: 1 }}
-                    />
-                  </div>
-
-                  <div className="info-row">
-                    <span className="info-label">Số điện thoại</span>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={form.phone}
-                      onChange={handleChange}
-                      className="form-input"
-                      style={{ flex: 1 }}
-                    />
-                  </div>
-
-                  <div className="info-row">
-                    <span className="info-label">Giới tính</span>
-                    <select
-                      name="gender"
-                      value={form.gender || ''}
-                      onChange={handleChange}
-                      className="form-input"
-                      style={{ flex: 1 }}
-                    >
-                      <option value="">--Chọn--</option>
-                      <option value="Nam">Nam</option>
-                      <option value="Nữ">Nữ</option>
-                    </select>
-                  </div>
-
-                  <div className="info-row">
-                    <span className="info-label">Ngày sinh</span>
-                    <input
-                      type="date"
-                      name="birth_date"
-                      value={form.birth_date}
-                      onChange={handleChange}
-                      className="form-input"
-                      style={{ flex: 1 }}
-                    />
-                  </div>
-
-                  <div className="info-row">
-                    <span className="info-label">Mã định danh</span>
-                    <span className="info-value">{profile.identity_number || '--'}</span>
-                  </div>
-
-                  <div className="info-row">
-                    <span className="info-label">Địa chỉ</span>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div className="info-row">
+                      <span className="info-label">Ngày kích hoạt</span>
+                      <span className="info-value">
+                        {profile.created_at ? formatDate(profile.created_at) : '--'}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="info-row">
+                      <span className="info-label">Tài khoản</span>
                       <input
                         type="text"
-                        name="address"
-                        value={form.address}
+                        name="full_name"
+                        value={form.full_name}
                         onChange={handleChange}
                         className="form-input"
-                        placeholder="Số nhà, đường..."
+                        style={{ flex: 1 }}
                       />
-                      <select
-                        value={form.cityId}
-                        onChange={handleProvinceChange}
+                    </div>
+
+                    <div className="info-row">
+                      <span className="info-label">Email</span>
+                      <input
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
                         className="form-input"
-                      >
-                        <option value="">
-                          {form.cityName && !form.cityId 
-                            ? `${form.cityName} (nhấn để đổi)` 
-                            : '-- Chọn tỉnh/thành --'}
-                        </option>
-                        {provinces.map(p => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={form.wardId}
-                        onChange={(e) => {
-                          const ward = wards.find(w => w.id == e.target.value);
-                          setForm(prev => ({
-                            ...prev,
-                            wardId: ward?.id || '',
-                            wardName: ward?.name || '',
-                          }));
-                        }}
+                        style={{ flex: 1 }}
+                      />
+                    </div>
+
+                    <div className="info-row">
+                      <span className="info-label">Số điện thoại</span>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={form.phone}
+                        onChange={handleChange}
                         className="form-input"
-                        disabled={!wards.length && !form.wardName}
+                        style={{ flex: 1 }}
+                      />
+                    </div>
+
+                    <div className="info-row">
+                      <span className="info-label">Giới tính</span>
+                      <select
+                        name="gender"
+                        value={form.gender || ''}
+                        onChange={handleChange}
+                        className="form-input"
+                        style={{ flex: 1 }}
                       >
-                        <option value="">
-                          {form.wardName && !form.wardId 
-                            ? `${form.wardName} (chọn tỉnh để đổi)` 
-                            : '-- Chọn xã/phường --'}
-                        </option>
-                        {wards.map(w => (
-                          <option key={w.id} value={w.id}>
-                            {w.name}
-                          </option>
-                        ))}
+                        <option value="">--Chọn--</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
                       </select>
                     </div>
-                  </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Hạng</span>
-                    <span className="info-value">{profile.target_tier || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Ngày sinh</span>
+                      <input
+                        type="date"
+                        name="birth_date"
+                        value={form.birth_date}
+                        onChange={handleChange}
+                        className="form-input"
+                        style={{ flex: 1 }}
+                      />
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Loại UAV</span>
-                    <span className="info-value">{profile.uav_type || '--'}</span>
-                  </div>
+                    <div className="info-row">
+                      <span className="info-label">Mã định danh</span>
+                      <span className="info-value">{profile.identity_number || '--'}</span>
+                    </div>
 
-                  <div className="info-row">
-                    <span className="info-label">Ngày kích hoạt</span>
-                    <span className="info-value">
-                      {profile.created_at ? formatDate(profile.created_at) : '--'}
-                    </span>
-                  </div>
-                </>
-              )}
+                    <div className="info-row">
+                      <span className="info-label">Địa chỉ</span>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <input
+                          type="text"
+                          name="address"
+                          value={form.address}
+                          onChange={handleChange}
+                          className="form-input"
+                          placeholder="Số nhà, đường..."
+                        />
+                        <select
+                          value={form.cityId}
+                          onChange={handleProvinceChange}
+                          className="form-input"
+                        >
+                          <option value="">
+                            {form.cityName && !form.cityId
+                              ? `${form.cityName} (nhấn để đổi)`
+                              : '-- Chọn tỉnh/thành --'}
+                          </option>
+                          {provinces.map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={form.wardId}
+                          onChange={(e) => {
+                            const ward = wards.find(w => w.id == e.target.value);
+                            setForm(prev => ({
+                              ...prev,
+                              wardId: ward?.id || '',
+                              wardName: ward?.name || '',
+                            }));
+                          }}
+                          className="form-input"
+                          disabled={!wards.length && !form.wardName}
+                        >
+                          <option value="">
+                            {form.wardName && !form.wardId
+                              ? `${form.wardName} (chọn tỉnh để đổi)`
+                              : '-- Chọn xã/phường --'}
+                          </option>
+                          {wards.map(w => (
+                            <option key={w.id} value={w.id}>
+                              {w.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="info-row">
+                      <span className="info-label">Hạng</span>
+                      <span className="info-value">{profile.target_tier || '--'}</span>
+                    </div>
+
+                    <div className="info-row">
+                      <span className="info-label">Loại UAV</span>
+                      <span className="info-value">{profile.uav_type || '--'}</span>
+                    </div>
+
+                    <div className="info-row">
+                      <span className="info-label">Ngày kích hoạt</span>
+                      <span className="info-value">
+                        {profile.created_at ? formatDate(profile.created_at) : '--'}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+
             </div>
-          </div>
 
             <div className="info-avatar-wrapper">
-            {/* Hidden file input for avatar upload */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleAvatarChange}
-              accept="image/*"
-              style={{ display: 'none' }}
-            />
-            <div 
-              className="info-avatar-large"
-              onClick={handleAvatarClick}
-              style={{ 
-                cursor: 'pointer',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-              title="Nhấn để thay đổi ảnh đại diện"
-            >
-              {isUploadingAvatar ? (
-                <span style={{ fontSize: '14px' }}>...</span>
-              ) : profile.avatar ? (
-                <img 
-                  src={profile.avatar} 
-                  alt="Avatar" 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover',
-                    borderRadius: '50%'
-                  }} 
-                />
-              ) : (
-                profile.full_name?.charAt(0).toUpperCase()
-              )}
-              <div 
+              {/* Hidden file input for avatar upload */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarChange}
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
+              <div
+                className="info-avatar-large"
+                onClick={handleAvatarClick}
                 style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  background: 'rgba(0,0,0,0.5)',
-                  color: 'white',
-                  fontSize: '10px',
-                  padding: '2px 0',
-                  textAlign: 'center',
-                  opacity: 0,
-                  transition: 'opacity 0.2s'
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
-                className="avatar-overlay"
+                title="Nhấn để thay đổi ảnh đại diện"
               >
-                Đổi ảnh
+                {isUploadingAvatar ? (
+                  <span style={{ fontSize: '14px' }}>...</span>
+                ) : profile.avatar ? (
+                  <img
+                    src={profile.avatar}
+                    alt="Avatar"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '50%'
+                    }}
+                  />
+                ) : (
+                  profile.full_name?.charAt(0).toUpperCase()
+                )}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    color: 'white',
+                    fontSize: '10px',
+                    padding: '2px 0',
+                    textAlign: 'center',
+                    opacity: 0,
+                    transition: 'opacity 0.2s'
+                  }}
+                  className="avatar-overlay"
+                >
+                  Đổi ảnh
+                </div>
               </div>
+
+
             </div>
 
-            {!isEditing ? (
-              <button
-                className="btn-edit-profile"
-                onClick={() => {
-                  const parsed = parseAddress(profile.address);
-                  setForm({
-                    full_name: profile.full_name || '',
-                    email: profile.email || '',
-                    phone: profile.phone || '',
-                    birth_date: formatDateToInput(profile.birth_date) || '',
-                    gender: profile.gender || '',
-                    address: parsed.street || '',
-                    cityId: '',
-                    cityName: parsed.cityName || '',
-                    wardId: '',
-                    wardName: parsed.wardName || ''
-                  });
-                  setIsEditing(true);
-                }}
-              >
-                Sửa thông tin
-              </button>
-            ) : (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-secondary" onClick={handleCancel}>Hủy</button>
-                <button className="btn btn-primary" onClick={handleSave}>Lưu</button>
-              </div>
-            )}
           </div>
-
         </div>
       </div>
-    </div>
+      <div>
+        {!isEditing ? (
+          <button
+            className="btn-edit-profile"
+            onClick={() => {
+              const parsed = parseAddress(profile.address);
+              setForm({
+                full_name: profile.full_name || '',
+                email: profile.email || '',
+                phone: profile.phone || '',
+                birth_date: formatDateToInput(profile.birth_date) || '',
+                gender: profile.gender || '',
+                address: parsed.street || '',
+                cityId: '',
+                cityName: parsed.cityName || '',
+                wardId: '',
+                wardName: parsed.wardName || ''
+              });
+              setIsEditing(true);
+            }}
+          >
+            Chỉnh Sửa Thông Tin Cá Nhân
+          </button>
+        ) : (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              className="btn-cancel btn-large"
+              style={{ flex: 2 }}
+              onClick={handleCancel}
+            >
+              Hủy
+            </button>
+
+            <button
+              className="btn btn-primary btn-large"
+              style={{ flex: 8 }}
+              onClick={handleSave}
+            >
+              Lưu
+            </button>
+          </div>
+
+        )}
+      </div>
+    </>
   );
 }
 
