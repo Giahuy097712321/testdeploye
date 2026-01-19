@@ -60,22 +60,22 @@ router.post("/register", async (req, res) => {
          emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
          uav_type, usage_purpose, operation_area, uav_experience, target_tier)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        newUserId,
-        fullCurrentAddress,
-        fullPermanentAddress,
-        cccd, // Dùng số CCCD làm identity_number
-        birthDate || null,
-        gender || null,
-        emergencyName,
-        emergencyPhone,
-        emergencyRelation,
-        uavTypeString,
-        uavPurposeString,
-        activityArea,
-        experience,
-        certificateType
-      ]
+        [
+          newUserId,
+          fullCurrentAddress,
+          fullPermanentAddress,
+          cccd, // Dùng số CCCD làm identity_number
+          birthDate || null,
+          gender || null,
+          emergencyName,
+          emergencyPhone,
+          emergencyRelation,
+          uavTypeString,
+          uavPurposeString,
+          activityArea,
+          experience,
+          certificateType
+        ]
     );
 
     await connection.commit();
