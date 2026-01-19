@@ -17,11 +17,23 @@ import {
 // Định nghĩa API URL
 const API_URL = "http://localhost:5000/api/auth/register";
 
+
 function RegisterPage() {
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
   const navigate = useNavigate();
   const location = useLocation(); // Hook lấy dữ liệu từ trang ExamPage
 
   const [errors, setErrors] = useState({}); // check thông tin 
+  useEffect(() => {
+    fetch('http://localhost:5000/api/location/provinces')
+      .then(res => {
+        if (!res.ok) throw new Error('API lỗi');
+        return res.json();
+      })
+      .then(setProvinces)
+      .catch(err => console.error(err));
+  }, []);
 
 
   // Lấy dữ liệu được truyền sang (nếu có)
@@ -31,6 +43,31 @@ function RegisterPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const handleProvinceChange = (e) => {
+    const provinceId = e.target.value;
+    const province = provinces.find(p => p.id == provinceId);
+
+    setFormData(prev => ({
+      ...prev,
+      cityId: provinceId,
+      cityName: province?.name || "",
+      wardId: "",
+      wardName: "",
+    }));
+
+    if (!provinceId) {
+      setWards([]);
+      return;
+    }
+
+    fetch(`http://localhost:5000/api/location/wards?province_id=${provinceId}`, {
+      cache: "no-store",
+    })
+      .then(res => res.json())
+      .then(data => setWards(data))
+      .catch(console.error);
+  };
+
 
   const validateStep2 = () => {
     const newErrors = {};
@@ -70,12 +107,12 @@ function RegisterPage() {
       newErrors.address = "Vui lòng nhập địa chỉ";
     }
 
-    if (!formData.city.trim()) {
-      newErrors.city = "Vui lòng nhập tỉnh/thành";
+    if (!formData.cityId) {
+      newErrors.city = "Vui lòng chọn tỉnh/thành";
     }
 
-    if (!formData.district.trim()) {
-      newErrors.district = "Vui lòng nhập quận/huyện";
+    if (!formData.wardId) {
+      newErrors.district = "Vui lòng chọn xã/phường";
     }
 
     setErrors(newErrors);
@@ -236,23 +273,47 @@ function RegisterPage() {
     idNumber: "",
     issueDate: "",
     gender: "",
-    address: "", ward: "", district: "", city: "",
-    email: "", phone: "", password: "", confirmPassword: "",
-    permanentCity: "", permanentDistrict: "", permanentWard: "", permanentAddress: "",
+
+    // Địa chỉ hiện tại (dùng select + API)
+    address: "",
+    cityId: "",
+    cityName: "",
+    wardId: "",
+    wardName: "",
+
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+
+    // Hộ khẩu thường trú (để sau, chưa động)
+    permanentCity: "",
+    permanentDistrict: "",
+    permanentWard: "",
+    permanentAddress: "",
+
     sameAsPermanent: false,
-    currentCity: "", currentDistrict: "", currentWard: "", currentAddress: "",
-    emergencyName: "", emergencyRelation: "", emergencyPhone: "",
+
+    // Địa chỉ hiện tại khác
+    currentCity: "",
+    currentDistrict: "",
+    currentWard: "",
+    currentAddress: "",
+
+    emergencyName: "",
+    emergencyRelation: "",
+    emergencyPhone: "",
 
     uavTypes: [],
     uavPurposes: [],
     activityArea: "",
     experience: "",
 
-    // Tự động điền nếu có preSelectedTier, nếu không để trống
     certificateType: preSelectedTier,
 
     confirmations: [],
   });
+
 
   // Tự động cuộn lên đầu khi chuyển bước
   useEffect(() => {
@@ -467,7 +528,7 @@ function RegisterPage() {
 
 
         <div className="form-group">
-          <label>Địa chỉ thường trú</label>
+          <label>Địa chỉ thường trú (sau sát nhập)</label>
           <input
             type="text"
             name="address"
@@ -483,36 +544,53 @@ function RegisterPage() {
         </div>
 
         <div className="form-row">
+          {/* TỈNH / THÀNH */}
           <div className="form-group">
             <label>Tỉnh/Thành</label>
-            <input
-              type="text"
-              name="city"
-              value={formData.city}
-              onChange={handleInputChange}
-              className={`form-input ${errors.city ? "input-error" : ""}`}
-              required
-            />
-            {errors.city && (
-              <p className="error-text">{errors.city}</p>
-            )}
+            <select
+              value={formData.cityId}
+              onChange={handleProvinceChange}
+              className={`form-select ${errors.city ? "input-error" : ""}`}
+            >
+              <option value="">-- Chọn tỉnh/thành --</option>
+              {provinces.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+
+            {errors.city && <p className="error-text">{errors.city}</p>}
           </div>
 
+          {/* XÃ / PHƯỜNG */}
           <div className="form-group">
-            <label>Quận/Huyện</label>
-            <input
-              type="text"
-              name="district"
-              value={formData.district}
-              onChange={handleInputChange}
-              className={`form-input ${errors.district ? "input-error" : ""}`}
-              required
-            />
-            {errors.district && (
-              <p className="error-text">{errors.district}</p>
-            )}
+            <label>Xã/Phường</label>
+            <select
+              value={formData.wardId}
+              onChange={(e) => {
+                const ward = wards.find(w => w.id == e.target.value);
+                setFormData(prev => ({
+                  ...prev,
+                  wardId: ward.id,
+                  wardName: ward.name,
+                }));
+              }}
+              className={`form-select ${errors.district ? "input-error" : ""}`}
+              disabled={!wards.length}
+            >
+              <option value="">-- Chọn xã/phường --</option>
+              {wards.map(w => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+
+            {errors.district && <p className="error-text">{errors.district}</p>}
           </div>
         </div>
+
       </div>
 
       <div className="form-actions">
