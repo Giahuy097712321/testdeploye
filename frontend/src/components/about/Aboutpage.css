@@ -116,7 +116,7 @@
 
 .objective-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 15px rgba(255, 202, 5, 0.2);
+  box-shadow: 0 0 15px #0050b8;
   /* Glow nhẹ màu vàng */
   border-color: var(--about-primary);
 }
@@ -125,7 +125,6 @@
   width: 70px;
   height: 70px;
   background: rgba(255, 255, 255, 0.1);
-  /* Nền vàng trong suốt */
   border: 1px solid var(--about-primary);
   border-radius: 50%;
   display: flex;
@@ -186,7 +185,7 @@
 
 .legal-tab:hover {
   color: var(--about-text-main);
-  box-shadow: 0 0 10px rgba(255, 202, 5, 0.2);
+  box-shadow: 0 0 10px #0050b8;
 }
 
 .legal-tab.active {
@@ -237,7 +236,7 @@
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--about-primary);
-  margin: 0;
+  margin: 1;
   margin-right: 50px;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -264,7 +263,7 @@
   transition: all 0.2s ease;
   position: absolute;
   right: 20px;
-  top: 4px;
+  top: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -419,7 +418,7 @@
 
 .organization-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 15px rgba(255, 202, 5, 0.2);
+  box-shadow: 0 0 15px #0050b8;
   border-color: var(--about-primary);
 }
 

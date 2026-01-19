@@ -2,8 +2,11 @@ import React, { useState, useEffect, Suspense } from "react";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
+// Đảm bảo đường dẫn import đúng với cấu trúc thư mục của bạn
 import MediaSelector from "../mediaSelector/MediaSelector"; 
 import PointPreview from "../pointsPreview/PointPreview";
+
+// MapPicker thường nặng nên dùng Lazy load
 const MapPicker = React.lazy(() => import("../mappicker/MapPicker"));
 
 // --- CONFIG ---
@@ -12,7 +15,11 @@ const MEDIA_BASE_URL = "http://localhost:5001/uploads/";
 
 // --- INITIAL STATE ---
 const initialPointState = {
-  id: "", title: "", lead: "", description: "", website: "",
+  id: "", 
+  title: "", 
+  lead: "", 
+  description: "", 
+  website: "",
   logoSrc: "/images/logo-default.svg",
   imageSrc: "/images/img-default.jpg",
   panoramaUrl: "",
@@ -25,7 +32,7 @@ const initialPointState = {
   posX: 0, posY: 0, posZ: 0,
 };
 
-// Cấu hình Toolbar Quill
+// Cấu hình Toolbar cho ReactQuill
 const modules = {
   toolbar: [
     [{ 'header': [1, 2, 3, false] }],
@@ -48,7 +55,7 @@ export default function PointManager() {
   // Modal State (Map & Media)
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-  const [mediaTarget, setMediaTarget] = useState(null);
+  const [mediaTarget, setMediaTarget] = useState(null); // Để biết đang chọn ảnh cho logo hay ảnh bìa...
 
   // === FETCH DATA ===
   const fetchPoints = async () => {
@@ -66,22 +73,24 @@ export default function PointManager() {
 
   // === HANDLERS ===
   const handleEditPointClick = (point) => {
+    // Xử lý lấy toạ độ từ array hoặc field lẻ
     let x = 0, y = 0, z = 0;
     if (Array.isArray(point.position) && point.position.length >= 3) {
       x = point.position[0]; y = point.position[1]; z = point.position[2];
+    } else {
+      x = point.posX || 0; y = point.posY || 0; z = point.posZ || 0;
     }
     
-    // Logic enableSchedule
-    const currentEnableSchedule = point.enableSchedule !== undefined ? point.enableSchedule : true;
-
+    // Merge dữ liệu cũ với default để tránh lỗi undefined khi render
     const editingData = {
       ...initialPointState,
       ...point,
       posX: x, posY: y, posZ: z,
-      enableSchedule: currentEnableSchedule, 
+      enableSchedule: point.enableSchedule !== undefined ? point.enableSchedule : true, 
       schedule: point.schedule || initialPointState.schedule,
       contact: point.contact || initialPointState.contact,
     };
+
     setPointForm(editingData);
     setIsEditingPoint(true);
     setMessage(null);
@@ -98,22 +107,35 @@ export default function PointManager() {
     setPointForm(prev => ({ ...prev, description: val }));
   };
 
+  // --- HÀM LƯU QUAN TRỌNG (ĐÃ FIX LỖI 500) ---
   const handleSavePoint = async (e) => {
     e.preventDefault();
     setLoading(true); setMessage(null);
 
+    // 1. Validate cơ bản
     if (!pointForm.id || !pointForm.title) {
       setMessage({ type: "error", text: "Vui lòng điền ID và Tiêu đề." });
       setLoading(false); return;
     }
 
     try {
+      // 2. Hàm làm sạch số (Chuyển dấu phẩy thành chấm, ép kiểu Number)
+      const cleanNumber = (val) => {
+        if (!val) return 0;
+        const strVal = String(val).replace(',', '.'); // Nếu lỡ nhập 10,5 -> 10.5
+        const num = Number(strVal);
+        return isNaN(num) ? 0 : num;
+      };
+
+      // 3. Chuẩn bị Payload sạch sẽ
       const payload = {
         ...pointForm,
-        posX: Number(pointForm.posX),
-        posY: Number(pointForm.posY),
-        posZ: Number(pointForm.posZ),
+        posX: cleanNumber(pointForm.posX),
+        posY: cleanNumber(pointForm.posY),
+        posZ: cleanNumber(pointForm.posZ),
       };
+
+      console.log("📤 Sending Payload:", payload); // Debug xem gửi gì đi
 
       const method = isEditingPoint ? "PUT" : "POST";
       const url = isEditingPoint ? `${API_POINT_URL}/${pointForm.id}` : API_POINT_URL;
@@ -125,12 +147,20 @@ export default function PointManager() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || `Lỗi HTTP ${response.status}`);
+      
+      if (!response.ok) {
+        throw new Error(data.message || `Lỗi HTTP ${response.status}`);
+      }
 
-      setMessage({ type: "success", text: `${isEditingPoint ? "Đã cập nhật" : "Đã lưu"} thành công!` });
-      if (!isEditingPoint) setPointForm(initialPointState);
-      fetchPoints();
+      // Thành công
+      setMessage({ type: "success", text: `${isEditingPoint ? "Đã cập nhật" : "Đã tạo mới"} thành công!` });
+      
+      if (!isEditingPoint) {
+        setPointForm(initialPointState); // Reset form nếu là thêm mới
+      }
+      fetchPoints(); // Load lại danh sách
     } catch (error) {
+      console.error("Save Error:", error);
       setMessage({ type: "error", text: `LỖI: ${error.message}` });
     } finally {
       setLoading(false);
@@ -141,21 +171,25 @@ export default function PointManager() {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa điểm ${pointId}?`)) return;
     setLoading(true);
     try {
-      await fetch(`${API_POINT_URL}/${pointId}`, { method: "DELETE" });
+      const res = await fetch(`${API_POINT_URL}/${pointId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Xóa thất bại");
+
       setMessage({ type: "success", text: "Đã xóa thành công." });
       fetchPoints();
       if (pointForm.id === pointId) handleCancelEditPoint();
     } catch (error) {
-      setMessage({ type: "error", text: "Lỗi khi xóa." });
+      setMessage({ type: "error", text: "Lỗi khi xóa: " + error.message });
     } finally {
       setLoading(false);
     }
   };
 
+  // Helper hiển thị toạ độ đẹp
   const displayXYZ = (val) => (val !== undefined && val !== null) ? Number(val).toFixed(3) : "0.000";
 
   return (
     <>
+      {/* Thông báo lỗi/thành công */}
       {message && (
         <div className={message.type === 'success' ? 'message-box msg-success' : 'message-box msg-error'}>
           {message.text}
@@ -167,7 +201,7 @@ export default function PointManager() {
         {/* CỘT TRÁI: DANH SÁCH ĐIỂM */}
         <aside className="panel">
           <div className="panel-header">
-            <span> Danh Sách Điểm</span>
+            <span>Danh Sách Điểm ({points.length})</span>
           </div>
           <div className="list-group">
             {points.map(point => (
@@ -191,15 +225,35 @@ export default function PointManager() {
             <div className="panel-header panel-header-actions">
               <span>{isEditingPoint ? `Đang sửa: ${pointForm.title}` : "Thêm Điểm Mới"}</span>
               {isEditingPoint && (
-                <button onClick={handleCancelEditPoint} className="btn btn-sm btn-secondary">
-                  Hủy
-                </button>
+                <button onClick={handleCancelEditPoint} className="btn btn-sm btn-secondary">Hủy</button>
               )}
             </div>
 
             <div className="form-section">
               <form onSubmit={handleSavePoint}>
                 
+                {/* ID & Title */}
+                <div className="form-row-id-title">
+                  <div className="form-group">
+                    <label className="form-label">ID (Duy nhất)</label>
+                    <input 
+                      type="text" className="form-control" required
+                      value={pointForm.id} disabled={isEditingPoint}
+                      onChange={(e) => setPointForm(prev => ({ ...prev, id: e.target.value }))} 
+                      placeholder="VD: P01"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Tiêu đề hiển thị</label>
+                    <input 
+                      type="text" className="form-control" required
+                      value={pointForm.title} 
+                      onChange={(e) => setPointForm(prev => ({ ...prev, title: e.target.value }))} 
+                      placeholder="VD: Khu vực A"
+                    />
+                  </div>
+                </div>
+
                 {/* Map Picker Button */}
                 <div className="form-group">
                   <label className="form-label">Vị trí trong không gian 3D</label>
@@ -210,26 +264,6 @@ export default function PointManager() {
                     <button type="button" className="btn btn-primary" onClick={() => setIsPickerOpen(true)}>
                       Chọn trên bản đồ
                     </button>
-                  </div>
-                </div>
-
-                {/* ID & Title */}
-                <div className="form-row-id-title">
-                  <div className="form-group">
-                    <label className="form-label">ID (Duy nhất)</label>
-                    <input 
-                      type="text" className="form-control" required
-                      value={pointForm.id} disabled={isEditingPoint}
-                      onChange={(e) => setPointForm(prev => ({ ...prev, id: e.target.value }))} 
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Tiêu đề hiển thị</label>
-                    <input 
-                      type="text" className="form-control" required
-                      value={pointForm.title} 
-                      onChange={(e) => setPointForm(prev => ({ ...prev, title: e.target.value }))} 
-                    />
                   </div>
                 </div>
 
@@ -260,17 +294,19 @@ export default function PointManager() {
                 <div className="form-group">
                   <label className="form-label">Logo & Ảnh đại diện</label>
                   <div className="media-row">
+                    {/* Logo */}
                     <div className="media-col">
                       <div className="input-group">
                         <input type="text" className="form-control" value={pointForm.logoSrc} readOnly style={{fontSize: 12}}/>
-                        <button type="button" className="btn btn-primary" onClick={() => { setMediaTarget("logoSrc"); setIsMediaModalOpen(true); }}>Chọn Logo</button>
+                        <button type="button" className="btn btn-primary" onClick={() => { setMediaTarget("logoSrc"); setIsMediaModalOpen(true); }}>Logo</button>
                       </div>
                       {pointForm.logoSrc && <img src={pointForm.logoSrc} alt="" className="media-thumb-preview" />}
                     </div>
+                    {/* Image */}
                     <div className="media-col">
                       <div className="input-group">
                         <input type="text" className="form-control" value={pointForm.imageSrc} readOnly style={{fontSize: 12}}/>
-                        <button type="button" className="btn btn-primary" onClick={() => { setMediaTarget("imageSrc"); setIsMediaModalOpen(true); }}>Chọn Ảnh</button>
+                        <button type="button" className="btn btn-primary" onClick={() => { setMediaTarget("imageSrc"); setIsMediaModalOpen(true); }}>Ảnh</button>
                       </div>
                       {pointForm.imageSrc && <img src={pointForm.imageSrc} alt="" className="media-thumb-preview" />}
                     </div>
@@ -292,15 +328,13 @@ export default function PointManager() {
                     type="text" className="form-control"
                     value={pointForm.website || ''} 
                     onChange={(e) => setPointForm(prev => ({ ...prev, website: e.target.value }))} 
-                    placeholder="https://"
+                    placeholder="https://..."
                   />
                 </div>
 
                 {/* Schedule Toggle */}
                 <div className="section-header-toggle">
-                  <h3 className="section-title" style={{border: 'none', margin: 0, padding: 0}}>
-                    Giờ mở cửa
-                  </h3>
+                  <h3 className="section-title" style={{border: 'none', margin: 0, padding: 0}}>Giờ mở cửa</h3>
                   <div style={{display: 'flex', alignItems: 'center'}}>
                     <span className={`toggle-status-label ${pointForm.enableSchedule ? 'on' : ''}`}>
                       {pointForm.enableSchedule ? 'Đang Hiển thị' : 'Đang Ẩn'}
@@ -317,10 +351,10 @@ export default function PointManager() {
                 </div>
 
                 {pointForm.enableSchedule ? (
-                  <div className="schedule-grid" style={{ marginBottom: '24px', animation: 'fadeIn 0.3s' }}>
+                  <div className="schedule-grid" style={{ marginBottom: '24px' }}>
                     {Object.keys(pointForm.schedule).map(day => (
                       <div key={day} className="schedule-item">
-                        <span className="schedule-label">{day}:</span>
+                        <span className="schedule-label" style={{textTransform: 'capitalize'}}>{day}:</span>
                         <input 
                           type="text" className="form-control schedule-input"
                           value={pointForm.schedule[day]} 
@@ -330,8 +364,8 @@ export default function PointManager() {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ padding: '15px', background: '#f9fafb', border: '1px dashed #ccc', borderRadius: '8px', marginBottom: '20px', color: '#666', fontStyle: 'italic', fontSize: '13px', textAlign: 'center' }}>
-                      Thông tin giờ mở cửa sẽ bị ẩn trên trang hiển thị.
+                  <div style={{ padding: '15px', background: '#f9fafb', border: '1px dashed #ccc', borderRadius: '8px', marginBottom: '20px', color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
+                      Thông tin giờ mở cửa sẽ bị ẩn.
                   </div>
                 )}
 
@@ -343,10 +377,7 @@ export default function PointManager() {
                     <input 
                       type="text" className="form-control"
                       value={pointForm.contact?.phone || ''} 
-                      onChange={(e) => setPointForm(prev => ({
-                        ...prev, 
-                        contact: {...prev.contact, phone: e.target.value}
-                      }))} 
+                      onChange={(e) => setPointForm(prev => ({ ...prev, contact: {...prev.contact, phone: e.target.value} }))} 
                     />
                   </div>
                   <div className="form-group">
@@ -354,10 +385,7 @@ export default function PointManager() {
                     <input 
                       type="email" className="form-control"
                       value={pointForm.contact?.email || ''} 
-                      onChange={(e) => setPointForm(prev => ({
-                        ...prev, 
-                        contact: {...prev.contact, email: e.target.value}
-                      }))} 
+                      onChange={(e) => setPointForm(prev => ({ ...prev, contact: {...prev.contact, email: e.target.value} }))} 
                     />
                   </div>
                 </div>
@@ -376,10 +404,8 @@ export default function PointManager() {
           {/* CỘT PHẢI: LIVE PREVIEW */}
           <aside className="panel preview-sticky-sidebar">
             <div className="panel-header preview-header-gradient">
-              <span style={{fontSize: '20px'}}></span>
               <span>Xem trước trực tiếp</span>
             </div>
-            
             <div className="preview-content-wrapper">
               <PointPreview formData={pointForm} />
             </div>
@@ -388,15 +414,18 @@ export default function PointManager() {
         </div>
       </div>
 
-      {/* --- MODALS (Đã chuyển vào trong Component này để gọn Admin.jsx) --- */}
+      {/* --- MODALS --- */}
       {isPickerOpen && (
         <div className="modal-overlay">
           <div className="modal-content" style={{width: '90vw', height: '90vh', maxWidth: 'none'}}>
             <Suspense fallback={<div>Đang tải bản đồ...</div>}>
-              <MapPicker onPick={(x,y,z) => { 
+              <MapPicker 
+                onPick={(x,y,z) => { 
                   setPointForm(prev => ({ ...prev, posX: x, posY: y, posZ: z })); 
                   setIsPickerOpen(false); 
-              }} onClose={() => setIsPickerOpen(false)} />
+                }} 
+                onClose={() => setIsPickerOpen(false)} 
+              />
             </Suspense>
           </div>
         </div>
@@ -407,9 +436,12 @@ export default function PointManager() {
           <div className="modal-content" style={{width: '800px'}}>
              <div className="modal-header">Chọn hình ảnh</div>
              <MediaSelector 
-                onSelect={(url) => { setPointForm(prev => ({ ...prev, [mediaTarget]: url })); setIsMediaModalOpen(false); }} 
-                onClose={() => setIsMediaModalOpen(false)} 
-                mediaBaseUrl={MEDIA_BASE_URL} 
+               onSelect={(url) => { 
+                 setPointForm(prev => ({ ...prev, [mediaTarget]: url })); 
+                 setIsMediaModalOpen(false); 
+               }} 
+               onClose={() => setIsMediaModalOpen(false)} 
+               mediaBaseUrl={MEDIA_BASE_URL} 
              />
           </div>
         </div>
