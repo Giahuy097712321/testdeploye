@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
-const { verifyToken, verifyAdmin } = require('../middleware/verifyToken');
+const { verifyToken, verifyAdmin, verifyStudent } = require('../middleware/verifyToken');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 
@@ -38,17 +38,10 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ============================================================
-// --- GET: Lấy thông tin Profile chi tiết (User cá nhân) ---
-// ============================================================
-router.get("/:id/profile", verifyToken, async (req, res) => {
+
+router.get("/:id/profile", verifyStudent, async (req, res) => {
   try {
     const requestedId = req.params.id;
-    const tokenUserId = req.user.id;
-
-    if (req.user.role !== 'admin' && tokenUserId !== Number(requestedId)) {
-      return res.status(403).json({ error: "Bạn không có quyền xem profile này" });
-    }
 
     const [rows] = await db.query(`
       SELECT
@@ -108,29 +101,33 @@ router.post("/", async (req, res) => {
   }
 });
 
-// --- PUT: Cập nhật thông tin người dùng ---
-router.put("/:id", async (req, res) => {
+// --- PUT: Cập nhật thông tin người dùng (chỉ email, phone, address) ---
+router.put("/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
-  const { full_name, email, phone, gender, birth_date, address } = req.body;
+  const { email, phone, address } = req.body;
 
   try {
-    // Cập nhật bảng users
+    // Kiểm tra quyền: chỉ chính chủ hoặc admin mới được cập nhật
+    if (req.user.role !== 'admin' && req.user.id !== Number(id)) {
+      return res.status(403).json({ error: "Bạn không có quyền cập nhật thông tin này" });
+    }
+
+    // Cập nhật email, phone trong bảng users
     await db.query(
       `UPDATE users 
-       SET full_name=?, email=?, phone=? 
-       WHERE id=?`,
-      [full_name, email, phone, id]
+       SET email = COALESCE(?, email), 
+           phone = COALESCE(?, phone)
+       WHERE id = ?`,
+      [email, phone, id]
     );
 
-    // Cập nhật bảng user_profiles (gender, birth_date, address)
-    if (gender !== undefined || birth_date !== undefined || address !== undefined) {
+    // Cập nhật address trong bảng user_profiles
+    if (address !== undefined) {
       await db.query(
         `UPDATE user_profiles 
-         SET gender = COALESCE(?, gender), 
-             birth_date = COALESCE(?, birth_date), 
-             address = COALESCE(?, address)
+         SET address = ?
          WHERE user_id = ?`,
-        [gender, birth_date, address, id]
+        [address, id]
       );
     }
 
