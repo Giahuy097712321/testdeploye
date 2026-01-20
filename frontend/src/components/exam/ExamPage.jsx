@@ -16,6 +16,7 @@ const ExamPage = () => {
   const [loading, setLoading] = useState(true);
   const [studyMaterials, setStudyMaterials] = useState([]);
   const [faqList, setFaqList] = useState([]);
+  const [footerConfig, setFooterConfig] = useState({ phone: "", email: "", workingHours: "" });
   const formRef = useRef(null);
   useEffect(() => {
     window.scrollTo({
@@ -62,7 +63,13 @@ const ExamPage = () => {
         } catch (err) {
           console.error("Error fetching FAQs:", err);
         }
-
+        // Fetch footer config (for phone and email)
+        try {
+          const footerResponse = await apiClient.get("/display/footer-config");
+          setFooterConfig(footerResponse.data);
+        } catch (err) {
+          console.error("Error fetching footer config:", err);
+        }
         // --- PHẦN SỬA LỖI 401 ---
         if (user) {
           try {
@@ -85,6 +92,7 @@ const ExamPage = () => {
 
     fetchData();
   }, []);
+
   const scrollToExams = () => {
     const section = document.getElementById("exam-list-section");
     if (section) section.scrollIntoView({ behavior: "smooth" });
@@ -228,17 +236,21 @@ const ExamPage = () => {
                 {/* Hiển thị Hạng A - nếu đã đăng ký A HOẶC đang chọn A */}
                 {((registeredTier === 'A') || (!registeredTier && selectedCertificate === "hang-a")) && (
                   <div className="p-6 border rounded-lg" style={{
+<<<<<<< HEAD
                     // borderColor: registeredTier === 'A' ? '#0050b8' : '#555555',
                     background: registeredTier === 'A' ? 'rgba(255, 202, 5, 0.05)' : 'transparent'
+=======
+                    borderColor: registeredTier === 'A' ? '#0050b8' : '#555555',
+                    background: 'transparent'
+>>>>>>> a372f982c21e1a4170968623de70d1636883b7f8
                   }}>
                     <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
                       <div>
                         {registeredTier === 'A' && (
                           <div className="flex items-center gap-2 mb-2">
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold" style={{
-                              background: 'rgba(255, 202, 5, 0.2)',
-                              color: '#0050b8',
-                              border: '1px solid rgba(255, 202, 5, 0.4)'
+                              background: 'transparent',
+                              color: '#0050b8'
                             }}>
                               <CheckCircle2 className="w-3 h-3" /> ĐÃ ĐĂNG KÝ
                             </span>
@@ -337,17 +349,21 @@ const ExamPage = () => {
                 {/* Hiển thị Hạng B - nếu đã đăng ký B HOẶC đang chọn B */}
                 {((registeredTier === 'B') || (!registeredTier && selectedCertificate === "hang-b")) && (
                   <div className="p-6 border rounded-lg" style={{
+<<<<<<< HEAD
                     // borderColor: registeredTier === 'B' ? '#0050b8' : '#555555',
                     background: registeredTier === 'B' ? 'rgba(255, 202, 5, 0.05)' : 'transparent'
+=======
+                    borderColor: registeredTier === 'B' ? '#0050b8' : '#555555',
+                    background: 'transparent'
+>>>>>>> a372f982c21e1a4170968623de70d1636883b7f8
                   }}>
                     <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
                       <div>
                         {registeredTier === 'B' && (
                           <div className="flex items-center gap-2 mb-2">
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold" style={{
-                              background: 'rgba(255, 202, 5, 0.2)',
-                              color: '#0050b8',
-                              border: '1px solid rgba(255, 202, 5, 0.4)'
+                              background: 'transparent',
+                              color: '#0050b8'
                             }}>
                               <CheckCircle2 className="w-3 h-3" /> ĐÃ ĐĂNG KÝ
                             </span>
@@ -481,7 +497,7 @@ const ExamPage = () => {
                       <span className="font-semibold">Bạn đã đăng ký học</span>
                     </div>
                     <p className="text-sm text-muted-foreground">Chứng chỉ Hạng {registeredTier}</p>
-                    <button onClick={scrollToExams} className="w-full mt-4 bg-primary text-black hover:bg-primary/90 py-3 rounded-lg font-bold transition-all">
+                    <button onClick={scrollToExams} className="w-full mt-4 btn-view-schedule">
                       Xem lịch thi
                     </button>
                   </div>
@@ -636,25 +652,28 @@ const ExamPage = () => {
               </div>
 
               {/* Support */}
-              <div className="card p-6">
-                <h3 className="font-bold mb-4 text-lg">Liên hệ hỗ trợ</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Phone className="w-4 h-4 text-primary" />
+              <div className="card p-6" style={{ border: '1px solid #e0e0e0', backgroundColor: '#fafafa' }}>
+                <h3 className="font-bold mb-6 text-lg" style={{ color: '#000' }}>Liên hệ hỗ trợ</h3>
+                <div className="space-y-5">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#d4e4f7' }}>
+                      <Phone className="w-5 h-5" style={{ color: '#0050b8' }} />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Tổng đài hỗ trợ</p>
-                      <p className="font-semibold text-sm text-white">1900 xxxx (8h-17h, T2-T6)</p>
+                      <p className="text-xs font-medium" style={{ color: '#666' }}>Tổng đài hỗ trợ</p>
+                      <p className="font-semibold text-sm" style={{ color: '#000', marginTop: '4px' }}>{footerConfig.phone || '1900 xxxx'}</p>
+                      {footerConfig.workingHours && (
+                        <p className="text-xs" style={{ color: '#666', marginTop: '4px' }}>{footerConfig.workingHours}</p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Mail className="w-4 h-4 text-primary" />
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#d4e4f7' }}>
+                      <Mail className="w-5 h-5" style={{ color: '#0050b8' }} />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Email hỗ trợ</p>
-                      <p className="font-semibold text-sm text-white">support@uav.vn</p>
+                      <p className="text-xs font-medium" style={{ color: '#666' }}>Email hỗ trợ</p>
+                      <p className="font-semibold text-sm" style={{ color: '#0050b8', marginTop: '4px' }}>{footerConfig.email || 'support@UAVcert.gov.vn'}</p>
                     </div>
                   </div>
                 </div>
