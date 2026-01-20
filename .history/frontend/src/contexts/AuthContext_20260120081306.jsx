@@ -12,24 +12,17 @@ export const AuthProvider = ({ children }) => {
     // === Kiểm tra token khi app load ===
     useEffect(() => {
         const verifyToken = async () => {
-            console.log('[AuthContext] Starting token verification...');
             try {
                 const savedToken = localStorage.getItem('user_token');
                 const savedUser = localStorage.getItem('user');
 
-                console.log('[AuthContext] savedToken exists:', !!savedToken);
-                console.log('[AuthContext] savedUser exists:', !!savedUser);
-
                 if (!savedToken) {
-                    console.log('[AuthContext] No token found, setting isLoading=false');
                     setIsLoading(false);
                     return;
                 }
 
                 // Gọi API verify token qua apiClient (có interceptor refresh token)
-                console.log('[AuthContext] Calling /auth/verify...');
                 const res = await apiClient.get('/auth/verify');
-                console.log('[AuthContext] Verify response:', res.data);
 
                 if (res.data?.success) {
                     // Lấy token mới nhất từ localStorage (có thể đã được refresh)
@@ -37,25 +30,21 @@ export const AuthProvider = ({ children }) => {
                     setToken(currentToken);
                     setUser(res.data.user || JSON.parse(savedUser));
                     setIsAuthenticated(true);
-                    console.log('[AuthContext] User authenticated successfully');
                 } else {
                     // Fallback: dùng user từ localStorage
                     if (savedUser) {
                         setToken(savedToken);
                         setUser(JSON.parse(savedUser));
                         setIsAuthenticated(true);
-                        console.log('[AuthContext] Using cached user from localStorage');
                     } else {
                         setIsAuthenticated(false);
-                        console.log('[AuthContext] No cached user, not authenticated');
                     }
                 }
             } catch (error) {
-                console.error('[AuthContext] Lỗi xác thực token:', error);
+                console.error('Lỗi xác thực token:', error);
 
                 // Nếu interceptor đã logout (redirect), không cần xử lý thêm
                 if (window.location.search.includes('expired=true')) {
-                    console.log('[AuthContext] Token expired, session ended');
                     setIsAuthenticated(false);
                     setIsLoading(false);
                     return;
@@ -68,16 +57,13 @@ export const AuthProvider = ({ children }) => {
                     setToken(savedToken);
                     setUser(JSON.parse(savedUser));
                     setIsAuthenticated(true);
-                    console.log('[AuthContext] API error, using cached user');
                 } else {
                     localStorage.removeItem('user_token');
                     localStorage.removeItem('refresh_token');
                     localStorage.removeItem('user');
                     setIsAuthenticated(false);
-                    console.log('[AuthContext] No cached data, clearing session');
                 }
             } finally {
-                console.log('[AuthContext] Setting isLoading=false');
                 setIsLoading(false);
             }
         };
@@ -85,11 +71,8 @@ export const AuthProvider = ({ children }) => {
         verifyToken();
     }, []);
 
-    const login = (newToken, userData, refreshToken) => {
+    const login = (newToken, userData) => {
         localStorage.setItem('user_token', newToken);
-        if (refreshToken) {
-            localStorage.setItem('refresh_token', refreshToken);
-        }
         localStorage.setItem('user', JSON.stringify(userData));
         setToken(newToken);
         setUser(userData);

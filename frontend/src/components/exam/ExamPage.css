@@ -586,7 +586,7 @@
 
 /* Đảm bảo text trong hero màu vàng */
 .bg-gradient-to-br h1 {
-  color: var(--primary-yellow) !important;
+  color: #ffffff !important;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 

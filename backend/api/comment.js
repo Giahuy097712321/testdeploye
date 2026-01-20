@@ -32,11 +32,13 @@ router.post("/", verifyToken, async (req, res) => {
       return res.status(404).json({ error: "Khóa học không tồn tại" });
     }
 
-    // Insert comment
+    // Insert comment - Lưu theo múi giờ Việt Nam (UTC+7)
+    const vietnamTime = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(' ', 'T');
+    
     const [result] = await db.query(
-      `INSERT INTO comments (user_id, course_id, content, rating) 
-       VALUES (?, ?, ?, ?)`,
-      [user_id, course_id, content.trim(), validRating]
+      `INSERT INTO comments (user_id, course_id, content, rating, created_at) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [user_id, course_id, content.trim(), validRating, vietnamTime]
     );
 
     res.status(201).json({
@@ -47,7 +49,7 @@ router.post("/", verifyToken, async (req, res) => {
         course_id,
         content: content.trim(),
         rating: validRating,
-        created_at: new Date().toISOString()
+        created_at: vietnamTime
       }
     });
 
