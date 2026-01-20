@@ -101,6 +101,51 @@ router.post("/", async (req, res) => {
   }
 });
 
+// --- PUT: Đổi mật khẩu (lấy user từ token) ---
+// ⚠️ Route này PHẢI đặt TRƯỚC /:id để Express match đúng
+router.put("/change-password", verifyStudent, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ error: "Vui lòng nhập đầy đủ thông tin" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: "Mật khẩu mới không khớp" });
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({ 
+        error: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt" 
+      });
+    }
+
+    const [users] = await db.query("SELECT password_hash FROM users WHERE id = ?", [userId]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ error: "Không tìm thấy người dùng" });
+    }
+
+    const validPassword = await bcrypt.compare(currentPassword, users[0].password_hash);
+    if (!validPassword) {
+      return res.status(400).json({ error: "Mật khẩu hiện tại không đúng" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(newPassword, salt);
+
+    await db.query("UPDATE users SET password_hash = ? WHERE id = ?", [newPasswordHash, userId]);
+
+    res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: "Lỗi khi đổi mật khẩu" });
+  }
+});
+
 // --- PUT: Cập nhật thông tin người dùng (chỉ email, phone, address) ---
 router.put("/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
