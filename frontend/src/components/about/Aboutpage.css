@@ -1,4 +1,4 @@
-/* === AboutPage.css - CLEAN BLUE THEME (NO GLOW) === */
+/* === AboutPage.css - CLEAN BLUE THEME (NO GLOW/YELLOW) === */
 
 /* 1. KHAI BÁO BIẾN */
 :root {
@@ -10,7 +10,7 @@
   --about-bg-darker: #ffffff;     /* Nền trắng */
   --about-text-main: #000000;     /* Chữ đen */
   --about-text-sub: #0a0a0a;      /* Chữ xám */
-  --about-text-white: #ffffff;    /* Chữ trắng */
+  --about-text-white: #1a1919;    /* Chữ trắng */
   --about-border: #555555;        /* Viền xám */
   --about-font: 'Roboto', sans-serif;
 }
@@ -164,12 +164,14 @@
 
 .legal-tab:hover {
   color: var(--about-text-main);
+  border-color: var(--about-primary-hover);
 }
 
+/* ĐÃ SỬA: Loại bỏ màu vàng, chuyển sang Active màu Xanh */
 .legal-tab.active {
-  background: var(--about-primary);
-  color: var(--about-text-main);
-  border-color: var(--about-primary);
+  background: var(--about-primary);   /* Nền xanh */
+  color: #ffffff;                     /* Chữ trắng */
+  border-color: var(--about-primary); /* Viền xanh */
   font-weight: 700;
 }
 
@@ -213,7 +215,7 @@
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--about-primary);
-  margin: 1;
+  margin: 1px;
   margin-right: 50px;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -309,13 +311,15 @@
 
 .form-item {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding: 10px;
   background: #ffffff;
   border-radius: 6px;
   transition: 0.3s;
   border: 1px solid var(--about-border);
+  gap: 10px;
 }
 
 .form-item:hover {
@@ -326,8 +330,8 @@
   font-size: 1rem;
   font-weight: 500;
   margin: 0;
-  flex: 1;
   color: var(--about-text-main);
+  text-align: center;
 }
 
 .form-download {
@@ -455,7 +459,6 @@
     max-height: 0;
     transform: translateY(-15px);
   }
-
   to {
     opacity: 1;
     max-height: 500px;
@@ -464,13 +467,8 @@
 }
 
 @keyframes faqArrowRotate {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(180deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(180deg); }
 }
 
 .faq-container {
@@ -488,8 +486,7 @@
 }
 
 .faq-item:hover {
-  border-color: #FFC107;
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
+  border-color: var(--about-border);
   transform: translateY(-2px);
 }
 
@@ -508,11 +505,9 @@
   text-align: left;
   font-family: var(--about-font);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
 }
 
 .faq-question:hover {
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
   padding-left: 25px;
 }
 
@@ -576,11 +571,12 @@
   display: flex;
   justify-content: center;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 /* Nút bấm chung */
 .btn {
-  padding: 12px 30px;
+  padding: 14px 40px;
   border-radius: 6px;
   font-weight: 700;
   cursor: pointer;
@@ -589,16 +585,20 @@
   transition: 0.3s;
   text-decoration: none;
   display: inline-block;
+  min-width: 200px;
+  text-align: center;
 }
 
-/* --- NÚT PRIMARY (Đã sửa: Không còn Glow Vàng) --- */
+/* --- NÚT PRIMARY (Đã Clean: Không Glow) --- */
 .btn-primary.btn-primary:hover {
   background: var(--about-primary-hover);
   border-color: var(--about-primary-hover);
   transform: translateY(-2px);
   /* Màu trắng cho chính nó */
   color: #ffffff !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow đen nhẹ thông thường */
 }
+
 .btn-primary.btn-primary:hover a,
 .btn-primary.btn-primary:hover span,
 .btn-primary.btn-primary:hover i,
@@ -615,7 +615,7 @@
 
 .btn-secondary:hover {
   background: var(--about-primary);
-  color: var(--about-text-main);
+  color: #ffffff; /* Sửa thành trắng để dễ đọc trên nền xanh */
   transform: translateY(-2px);
 }
 

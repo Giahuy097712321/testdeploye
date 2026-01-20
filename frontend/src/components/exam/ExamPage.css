@@ -579,27 +579,14 @@
    HERO SECTION
    ========================================= */
 .bg-gradient-to-br {
-  background: linear-gradient(135deg,
-      rgba(20, 20, 20, 0.95) 0%,
-      rgba(40, 40, 40, 0.9) 100%),
-    url("/images/hero_background.webp") no-repeat center center/cover;
+  background-color: #1c68cc;
+  color: white;
   position: relative;
-}
-
-.bg-gradient-to-br::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 202, 5, 0.05);
-  pointer-events: none;
 }
 
 /* Đảm bảo text trong hero màu vàng */
 .bg-gradient-to-br h1 {
-  color: var(--primary-yellow) !important;
+  color: #ffffff !important;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
@@ -680,6 +667,22 @@ a.bg-primary:hover {
   transform: translateY(-2px);
 }
 
+/* Specific view-schedule button (blue background, white text) */
+.btn-view-schedule {
+  background-color: #0050b8;
+  color: #ffffff !important;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  display: inline-block;
+  text-align: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-view-schedule:hover {
+  background-color: #003b8e;
+  transform: translateY(-2px);
+}
 /* Secondary Button - Viền */
 button.bg-transparent,
 button.border {
@@ -858,8 +861,7 @@ svg.text-primary {
 }
 
 .faq-item:hover {
-  border-color: var(--primary-yellow);
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
+  border-color: var(--border-color);
   transform: translateY(-2px);
 }
 
@@ -875,7 +877,6 @@ svg.text-primary {
 }
 
 .faq-question:hover {
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.05), rgba(255, 193, 7, 0.02));
   padding-left: 1.5rem;
 }
 
