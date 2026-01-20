@@ -248,7 +248,7 @@ function PersonalInfo() {
                 {!isEditing ? (
                   <>
                     <div className="info-row">
-                      <span className="info-label">Tài khoản</span>
+                      <span className="info-label">Họ tên</span>
                       <span className="info-value">{profile.full_name}</span>
                     </div>
 
@@ -304,15 +304,8 @@ function PersonalInfo() {
                 ) : (
                   <>
                     <div className="info-row">
-                      <span className="info-label">Tài khoản</span>
-                      <input
-                        type="text"
-                        name="full_name"
-                        value={form.full_name}
-                        onChange={handleChange}
-                        className="form-input"
-                        style={{ flex: 1 }}
-                      />
+                      <span className="info-label">Họ tên</span>
+                      <span className="info-value">{profile.full_name}</span>
                     </div>
 
                     <div className="info-row">
@@ -341,29 +334,14 @@ function PersonalInfo() {
 
                     <div className="info-row">
                       <span className="info-label">Giới tính</span>
-                      <select
-                        name="gender"
-                        value={form.gender || ''}
-                        onChange={handleChange}
-                        className="form-input"
-                        style={{ flex: 1 }}
-                      >
-                        {/* <option value="">--Chọn--</option> */}
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                      </select>
+                      <span className="info-value">{profile.gender || '--'}</span>
                     </div>
 
                     <div className="info-row">
                       <span className="info-label">Ngày sinh</span>
-                      <input
-                        type="date"
-                        name="birth_date"
-                        value={form.birth_date}
-                        onChange={handleChange}
-                        className="form-input"
-                        style={{ flex: 1 }}
-                      />
+                      <span className="info-value">
+                        {profile.birth_date ? formatDate(profile.birth_date) : '--'}
+                      </span>
                     </div>
 
                     <div className="info-row">
@@ -389,8 +367,8 @@ function PersonalInfo() {
                         >
                           <option value="">
                             {form.cityName && !form.cityId
-                              ? `${form.cityName} (nhấn để đổi)`
-                              : '-- Chọn tỉnh/thành --'}
+                              ? `${form.cityName}`
+                              : 'Chọn tỉnh/thành '}
                           </option>
                           {provinces.map(p => (
                             <option key={p.id} value={p.id}>
@@ -413,8 +391,8 @@ function PersonalInfo() {
                         >
                           <option value="">
                             {form.wardName && !form.wardId
-                              ? `${form.wardName} (chọn tỉnh để đổi)`
-                              : '-- Chọn xã/phường --'}
+                              ? `${form.wardName}`
+                              : 'Chọn xã/phường'}
                           </option>
                           {wards.map(w => (
                             <option key={w.id} value={w.id}>
