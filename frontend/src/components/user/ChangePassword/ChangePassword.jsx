@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ChangePassword.css";
+import { apiClient } from "../../../lib/apiInterceptor";
 
 function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -7,8 +8,9 @@ function ChangePassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -23,13 +25,25 @@ function ChangePassword() {
       return;
     }
 
-    // 🔒 Tạm thời chưa gọi API
-    setSuccess("Đổi mật khẩu thành công (demo).");
+    setLoading(true);
+    try {
+      const response = await apiClient.put("/users/change-password", {
+        currentPassword,
+        newPassword,
+        confirmPassword
+      });
 
-    // Reset form
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+      setSuccess(response.data.message || "Đổi mật khẩu thành công!");
+      
+      // Reset form
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setError(err.response?.data?.error || "Đổi mật khẩu thất bại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,6 +71,9 @@ function ChangePassword() {
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="Nhập mật khẩu mới"
           />
+          <small className="password-hint">
+            Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+          </small>
         </div>
 
         {/* Xác nhận mật khẩu */}
@@ -76,8 +93,8 @@ function ChangePassword() {
         {/* Success */}
         {success && <div className="success-text">{success}</div>}
 
-        <button type="submit" className="btn-submit">
-          Đổi mật khẩu
+        <button type="submit" className="btn-submit" disabled={loading}>
+          {loading ? "Đang xử lý..." : "Đổi mật khẩu"}
         </button>
       </form>
     </div>
