@@ -1292,7 +1292,7 @@ filter: invert(15%) sepia(95%) saturate(3474%) hue-rotate(211deg) brightness(93%
   /* 4. CHỨNG CHỈ - 2 CỘT & MỞ RỘNG KHÔNG GIAN */
   .uav-cert-grid {
     display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
     gap: 5px !important;
     /* Gap cực nhỏ để tiết kiệm chỗ */
     margin: 20px 0 !important;
