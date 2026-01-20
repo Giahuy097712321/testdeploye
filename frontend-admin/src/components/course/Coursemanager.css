@@ -436,20 +436,18 @@
 }
 
 .cm-course-badge {
-    position: absolute;
-    top: var(--cm-spacing-md);
-    right: var(--cm-spacing-md);
     padding: 6px 12px;
     border-radius: 50px;
     font-size: 12px;
     font-weight: 700;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-
     box-shadow: var(--cm-shadow-md);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    width: fit-content;
+    margin-top: 8px;
 }
 
 .cm-badge-a {

@@ -532,7 +532,7 @@ export default function CourseManager() {
             <div>
               <h1 className="cm-title">Quản lý Khóa học</h1>
               <p className="cm-subtitle">
-                Dữ liệu được đồng bộ trực tiếp từ Database
+                Tạo các khoá học và soạn thảo giáo trình cho học viên
               </p>
             </div>
           </div>
@@ -563,6 +563,9 @@ export default function CourseManager() {
                       "https://placehold.co/600x400?text=No+Image")
                     }
                   />
+                </div>
+                <div className="cm-course-content">
+                  <h3 className="cm-course-title">{course.title}</h3>
                   <div
                     className={`cm-course-badge ${course.type === "A" ? "cm-badge-a" : "cm-badge-b"
                       }`}
@@ -572,11 +575,8 @@ export default function CourseManager() {
                     ) : (
                       <Award size={14} />
                     )}
-                    <span>{course.type === "A" ? "Cơ bản" : "Nâng cao"}</span>
+                    <span>{course.type === "A" ? "Hạng A" : "Hạng B"}</span>
                   </div>
-                </div>
-                <div className="cm-course-content">
-                  <h3 className="cm-course-title">{course.title}</h3>
                   <div className="cm-course-actions">
                     <button
                       onClick={() => handleOpenCurriculum(course)}
