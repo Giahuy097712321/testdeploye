@@ -14,7 +14,7 @@ const PanoramaViewer = ({ panoramaUrl }) => {
   const viewerContainerRef = useRef(null);
   const viewerInstanceRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   useEffect(() => {
     if (!viewerContainerRef.current) return;
 
