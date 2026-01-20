@@ -565,17 +565,19 @@ export default function CourseManager() {
                   />
                 </div>
                 <div className="cm-course-content">
-                  <h3 className="cm-course-title">{course.title}</h3>
-                  <div
-                    className={`cm-course-badge ${course.type === "A" ? "cm-badge-a" : "cm-badge-b"
-                      }`}
-                  >
-                    {course.type === "A" ? (
-                      <BookOpen size={14} />
-                    ) : (
-                      <Award size={14} />
-                    )}
-                    <span>{course.type === "A" ? "Hạng A" : "Hạng B"}</span>
+                  <div className="cm-course-header">
+                    <h3 className="cm-course-title">{course.title}</h3>
+                    <div
+                      className={`cm-course-badge ${course.type === "A" ? "cm-badge-a" : "cm-badge-b"
+                        }`}
+                    >
+                      {course.type === "A" ? (
+                        <BookOpen size={14} />
+                      ) : (
+                        <Award size={14} />
+                      )}
+                      <span>{course.type === "A" ? "Hạng A" : "Hạng B"}</span>
+                    </div>
                   </div>
                   <div className="cm-course-actions">
                     <button
