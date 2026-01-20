@@ -8,7 +8,7 @@ const fsExtra = require('fs-extra');
 const path = require('path');
 
 // Import local upload helpers
-const { resolvePath, getFileType, generateThumbnail } = require('../utils/fileHelpers');
+const { resolvePath } = require('../utils/fileHelpers');
 
 // Config Cloudinary
 cloudinary.config({
