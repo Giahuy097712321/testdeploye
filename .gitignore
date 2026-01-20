@@ -7,6 +7,7 @@ build
 .vscode
 .history
 
+
 # Chặn các file Media nặng
 *.mp4
 *.mov
