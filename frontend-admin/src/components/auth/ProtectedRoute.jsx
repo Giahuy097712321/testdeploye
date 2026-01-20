@@ -1,5 +1,6 @@
 import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { apiClient } from "../../lib/apiInterceptor";
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("admin_token");
@@ -15,29 +16,25 @@ const ProtectedRoute = ({ children }) => {
           return;
         }
 
-        // Gọi API verify token
-        const res = await fetch("http://localhost:5000/api/auth/verify", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
+        // Gọi API verify token qua apiClient (có interceptor refresh token)
+        const res = await apiClient.get("/auth/verify");
 
-        if (res.ok) {
-          const data = await res.json();
-          // Token hợp lệ
+        if (res.data?.success) {
+          // Token hợp lệ (hoặc đã được refresh tự động)
           setIsValidated(true);
-        } else if (res.status === 401) {
-          // Token hết hạn hoặc không hợp lệ
-          localStorage.removeItem("admin_token");
-          localStorage.removeItem("admin_user");
-          setIsValidated(false);
         } else {
           setIsValidated(false);
         }
       } catch (error) {
         console.error("Lỗi xác thực token:", error);
+
+        // Nếu interceptor đã redirect, không cần xử lý thêm
+        if (window.location.search.includes('expired=true')) {
+          setIsValidated(false);
+          setIsLoading(false);
+          return;
+        }
+
         setIsValidated(false);
       } finally {
         setIsLoading(false);

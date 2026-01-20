@@ -8,6 +8,44 @@ import { useActivate } from "react-activation";
 import "./UAVLandingPage.css";
 
 // =====================================================================
+// 0. WEBGL SUPPORT CHECK
+// =====================================================================
+const checkWebGLSupport = () => {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    return !!gl;
+  } catch (e) {
+    return false;
+  }
+};
+
+// Fallback component khi WebGL không khả dụng
+const WebGLFallback = () => (
+  <div style={{
+    width: '100%',
+    height: '100%',
+    minHeight: '400px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+    borderRadius: '12px',
+    color: '#fff',
+    textAlign: 'center',
+    padding: '40px'
+  }}>
+    <div style={{ fontSize: '48px', marginBottom: '20px' }}>🏢</div>
+    <h3 style={{ margin: '0 0 10px', fontSize: '20px' }}>Mô hình 3D không khả dụng</h3>
+    <p style={{ margin: 0, opacity: 0.7, fontSize: '14px', maxWidth: '300px' }}>
+      Trình duyệt của bạn không hỗ trợ WebGL hoặc GPU đang bận.
+      Vui lòng thử refresh trang hoặc sử dụng trình duyệt khác (Chrome, Firefox, Edge).
+    </p>
+  </div>
+);
+
+// =====================================================================
 // 1. COMPONENT PANORAMA VIEWER (FINAL FIX: LOADING LOGIC)
 // =====================================================================
 const PanoramaViewer = ({ panoramaUrl }) => {
@@ -149,6 +187,12 @@ function UAVLandingPage() {
   const [selectedPointData, setSelectedPointData] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeCertTab, setActiveCertTab] = useState("map");
+  const [webglSupported, setWebglSupported] = useState(true); // WebGL support state
+
+  // Kiểm tra WebGL support khi component mount
+  useEffect(() => {
+    setWebglSupported(checkWebGLSupport());
+  }, []);
 
   useActivate(() => {
     window.dispatchEvent(new Event("resize"));
@@ -338,13 +382,13 @@ function UAVLandingPage() {
             <div className="step-item">
               <div className="step-icon"><img src="/images/icons/register.svg" alt="Đăng ký" onError={(e) => (e.target.src = "https://img.icons8.com/ios-filled/50/ffffff/open-book.png")} /></div>
               <div className="step-title">Đăng ký tài khoản</div>
-              <div className="step-desc">Tạo tài khoản với thông tin cá nhân <br/>và xác thực qua CCCD/CMND</div>
+              <div className="step-desc">Tạo tài khoản với thông tin cá nhân <br />và xác thực qua CCCD/CMND</div>
             </div>
             <img className="step-arrow-img" src="/images/icons/arrow.svg" alt="arrow" />
             <div className="step-item">
               <div className="step-icon"><img src="/images/icons/course.svg" alt="Học" onError={(e) => (e.target.src = "https://img.icons8.com/ios-filled/50/ffffff/learning.png")} /></div>
               <div className="step-title">Hoàn thành khóa học</div>
-              <div className="step-desc">Học các bài giảng trực tuyến <br/> và hoàn thành bài tập</div>
+              <div className="step-desc">Học các bài giảng trực tuyến <br /> và hoàn thành bài tập</div>
             </div>
             <img className="step-arrow-img" src="/images/icons/arrow.svg" alt="arrow" />
             <div className="step-item">
@@ -356,7 +400,7 @@ function UAVLandingPage() {
             <div className="step-item">
               <div className="step-icon"><img src="/images/icons/license.svg" alt="Giấy phép" onError={(e) => (e.target.src = "https://img.icons8.com/ios-filled/50/ffffff/medal.png")} /></div>
               <div className="step-title">Giấy phép điều khiển</div>
-              <div className="step-desc">Nhận chứng chỉ số sau 10 ngày <br/>từ lúc xác nhận kết quả</div>
+              <div className="step-desc">Nhận chứng chỉ số sau 10 ngày <br />từ lúc xác nhận kết quả</div>
             </div>
           </div>
         </div>
@@ -481,9 +525,15 @@ function UAVLandingPage() {
         </div>
         <div className={`map-3d-container ${isFullscreen ? "fullscreen" : ""}`} id="map3d">
           <button className="fullscreen-btn" onClick={toggleFullscreen}>{isFullscreen ? "✕" : "⛶"}</button>
-          <Canvas shadows camera={{ position: [15, 15, 15], fov: 25 }}>
-            <Experience points={points} onPointClick={handlePointClick} modelUrl={modelUrl} cameraSettings={cameraSettings} />
-          </Canvas>
+
+          {/* Kiểm tra WebGL trước khi render Canvas */}
+          {webglSupported ? (
+            <Canvas shadows camera={{ position: [15, 15, 15], fov: 25 }}>
+              <Experience points={points} onPointClick={handlePointClick} modelUrl={modelUrl} cameraSettings={cameraSettings} />
+            </Canvas>
+          ) : (
+            <WebGLFallback />
+          )}
 
           {/* INFO PANEL */}
           <div className={`map-info-panel ${isPanelOpen ? "active" : ""}`} id="infoPanel">

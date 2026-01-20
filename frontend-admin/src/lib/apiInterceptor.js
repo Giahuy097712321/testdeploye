@@ -20,7 +20,7 @@ const processQueue = (error, token = null) => {
             prom.resolve(token);
         }
     });
-    
+
     isRefreshing = false;
     failedQueue = [];
 };
@@ -46,9 +46,10 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
         const originalRequest = error.config;
+        const errorCode = error.response?.data?.code;
 
-        // Nếu là lỗi 401 (Unauthorized) và chưa retry
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // Nếu là lỗi 401 hoặc TOKEN_EXPIRED và chưa retry
+        if ((error.response?.status === 401 || errorCode === 'TOKEN_EXPIRED') && !originalRequest._retry) {
             // Nếu đang refresh, chờ trong queue
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {

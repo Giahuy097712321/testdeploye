@@ -31,9 +31,9 @@ router.post("/register", async (req, res) => {
 
     const {
       phone, email, password, fullName,
-      birthDate, cccd, gender, 
+      birthDate, cccd, gender,
       finalPermanentAddress, finalCurrentAddress,
-      address, ward, district, city, 
+      address, ward, district, city,
       permanentAddress, permanentWard, permanentDistrict, permanentCity,
       emergencyName, emergencyPhone, emergencyRelation,
       uavTypes, uavPurpose, activityArea, experience, certificateType
@@ -94,11 +94,11 @@ router.post("/register", async (req, res) => {
 
 // --- 3. API ĐĂNG NHẬP (User thường) ---
 router.post("/login", async (req, res) => {
-  const { identifier, password } = req.body; 
+  const { identifier, password } = req.body;
   try {
     const [rows] = await db.query("SELECT * FROM users WHERE email = ? OR phone = ?", [identifier, identifier]);
     if (rows.length === 0) return res.status(400).json({ error: "Tài khoản không tồn tại" });
-    
+
     const user = rows[0];
     const validPass = await bcrypt.compare(password, user.password_hash);
     if (!validPass) return res.status(400).json({ error: "Mật khẩu không đúng" });
@@ -106,7 +106,7 @@ router.post("/login", async (req, res) => {
 
     const token = generateToken({ id: user.id, role: user.role, fullName: user.full_name, email: user.email }, 'access');
     const refreshToken = generateToken({ id: user.id, role: user.role }, 'refresh');
-    
+
     let responseData = { id: user.id, full_name: user.full_name, email: user.email, phone: user.phone, role: user.role, avatar: user.avatar };
     if (user.role === 'admin') responseData.permissions = ['manage_users', 'manage_courses', 'manage_exams', 'manage_settings'];
 
@@ -163,14 +163,15 @@ router.post("/refresh-token", async (req, res) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(400).json({ success: false, error: "Thiếu token", code: 'NO_REFRESH_TOKEN' });
-    
+
     const decoded = verifyTokenData(refreshToken, 'refresh');
     const [rows] = await db.query("SELECT id, role, full_name, email FROM users WHERE id = ?", [decoded.id]);
-    
+
     if (rows.length === 0) return res.status(401).json({ success: false, error: "User không tồn tại", code: 'USER_NOT_FOUND' });
-    
-    const newToken = generateToken({ id: rows[0].id, role: rows[0].role, fullName: rows[0].full_name, email: rows[0].email }, 'access');
-    res.json({ success: true, token: newToken });
+
+    const newAccessToken = generateToken({ id: rows[0].id, role: rows[0].role, fullName: rows[0].full_name, email: rows[0].email }, 'access');
+    const newRefreshToken = generateToken({ id: rows[0].id, role: rows[0].role }, 'refresh');
+    res.json({ success: true, token: newAccessToken, refreshToken: newRefreshToken });
   } catch (error) { res.status(401).json({ success: false, error: "Token lỗi", code: 'INVALID_REFRESH_TOKEN' }); }
 });
 
@@ -179,10 +180,10 @@ router.get("/verify", async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ success: false, error: "No token", code: 'NO_TOKEN' });
-    
+
     const decoded = verifyTokenData(token, 'access');
     const [rows] = await db.query("SELECT id, full_name, email, phone, role, avatar FROM users WHERE id = ?", [decoded.id]);
-    
+
     if (rows.length === 0) return res.status(404).json({ success: false, error: "Not found", code: 'USER_NOT_FOUND' });
     res.json({ success: true, user: rows[0] });
   } catch (error) { res.status(401).json({ success: false, error: "Invalid token", code: 'INVALID_TOKEN' }); }

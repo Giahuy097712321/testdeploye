@@ -1,12 +1,48 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Html } from "@react-three/drei";
-import { AlertTriangle, Loader2, Box } from "lucide-react"; // 1. IMPORT ICON LUCIDE
+import { AlertTriangle, Loader2, Box, MonitorX } from "lucide-react"; // 1. IMPORT ICON LUCIDE
 import MediaSelector from "../mediaSelector/MediaSelector";
 import "./Model3DManager.css";
 
 const API_SETTINGS = "http://localhost:5000/api/settings";
 const API_POINTS = "http://localhost:5000/api/points";
+
+// === 0. WEBGL SUPPORT CHECK ===
+const checkWebGLSupport = () => {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    return !!gl;
+  } catch (e) {
+    return false;
+  }
+};
+
+// Fallback component khi WebGL không khả dụng
+const WebGLFallback = () => (
+  <div style={{
+    width: '100%',
+    height: '100%',
+    minHeight: '400px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+    borderRadius: '12px',
+    color: '#92400e',
+    textAlign: 'center',
+    padding: '40px'
+  }}>
+    <MonitorX size={48} strokeWidth={1.5} style={{ marginBottom: '20px' }} />
+    <h3 style={{ margin: '0 0 10px', fontSize: '18px', fontWeight: 'bold' }}>WebGL Không Khả Dụng</h3>
+    <p style={{ margin: 0, opacity: 0.8, fontSize: '13px', maxWidth: '300px', lineHeight: '1.5' }}>
+      Trình duyệt không hỗ trợ WebGL hoặc GPU đang bận.<br />
+      Thử refresh trang hoặc đóng các tab khác.
+    </p>
+  </div>
+);
 
 // === 1. ERROR BOUNDARY (DÙNG ICON LUCIDE) ===
 class ErrorBoundary3D extends React.Component {
@@ -47,7 +83,7 @@ class ErrorBoundary3D extends React.Component {
           >
             {/* Thay emoji ⚠️ bằng icon AlertTriangle */}
             <AlertTriangle size={48} strokeWidth={1.5} style={{ marginBottom: 15 }} />
-            
+
             <h3 style={{ margin: "0 0 8px 0", fontSize: "18px", fontWeight: "bold" }}>
               Không tải được Model!
             </h3>
@@ -67,34 +103,34 @@ class ErrorBoundary3D extends React.Component {
 const LoadingFallback = () => (
   <Html center zIndexRange={[1000, 0]}>
     <div style={{
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        background: 'rgba(255, 255, 255, 0.95)', 
-        padding: '20px 40px', 
-        borderRadius: '12px', 
-        boxShadow: '0 10px 30px rgba(0,0,0,0.15)', 
-        backdropFilter: 'blur(5px)',
-        minWidth: '250px',
-        pointerEvents: 'none'
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(255, 255, 255, 0.95)',
+      padding: '20px 40px',
+      borderRadius: '12px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+      backdropFilter: 'blur(5px)',
+      minWidth: '250px',
+      pointerEvents: 'none'
     }}>
       {/* Thay Spinner CSS bằng icon Loader2 có animation xoay */}
-      <Loader2 
-        size={40} 
-        color="#0066cc" 
-        style={{ marginBottom: '10px', animation: 'spin 1s linear infinite' }} 
+      <Loader2
+        size={40}
+        color="#0066cc"
+        style={{ marginBottom: '10px', animation: 'spin 1s linear infinite' }}
       />
-      
+
       <div style={{
-          color: '#0066cc', 
-          fontSize: '15px', 
-          fontWeight: '600',
-          whiteSpace: 'nowrap'
+        color: '#0066cc',
+        fontSize: '15px',
+        fontWeight: '600',
+        whiteSpace: 'nowrap'
       }}>
-          Đang tải dữ liệu 3D...
+        Đang tải dữ liệu 3D...
       </div>
-      
+
       <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
     </div>
   </Html>
@@ -183,7 +219,7 @@ export default function Model3DManager() {
         if (data.value) {
           try {
             setDefaultView(JSON.parse(data.value));
-          } catch (e) {}
+          } catch (e) { }
         }
       })
       .catch((e) => console.error("Lỗi camera:", e));
@@ -254,9 +290,8 @@ export default function Model3DManager() {
         <div className="form-section">
           {message && (
             <div
-              className={`message-box ${
-                message.type === "success" ? "msg-success" : "msg-error"
-              }`}
+              className={`message-box ${message.type === "success" ? "msg-success" : "msg-error"
+                }`}
             >
               {message.text}
             </div>
@@ -279,7 +314,7 @@ export default function Model3DManager() {
                 style={{ width: "100%", fontWeight: "bold" }}
                 disabled={!currentModel || loading}
               >
-                 Lưu Góc Nhìn Hiện Tại
+                Lưu Góc Nhìn Hiện Tại
               </button>
             </div>
           </div>
@@ -290,7 +325,7 @@ export default function Model3DManager() {
               className="btn btn-primary"
               style={{ width: "100%" }}
             >
-               Chọn File Từ Thư Viện
+              Chọn File Từ Thư Viện
             </button>
           </div>
         </div>
@@ -300,7 +335,9 @@ export default function Model3DManager() {
       <div className="panel">
         <div className="panel-header">Xem Trước & Chỉnh Góc</div>
         <div className="preview-3d-container">
-          {currentModel ? (
+          {!checkWebGLSupport() ? (
+            <WebGLFallback />
+          ) : currentModel ? (
             <Canvas shadows dpr={[1, 2]} camera={{ fov: 25 }}>
               <ErrorBoundary3D>
                 <Suspense fallback={<LoadingFallback />}>
