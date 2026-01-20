@@ -229,16 +229,15 @@ const ExamPage = () => {
                 {((registeredTier === 'A') || (!registeredTier && selectedCertificate === "hang-a")) && (
                   <div className="p-6 border rounded-lg" style={{
                     borderColor: registeredTier === 'A' ? '#0050b8' : '#555555',
-                    background: registeredTier === 'A' ? 'rgba(255, 202, 5, 0.05)' : 'transparent'
+                    background: 'transparent'
                   }}>
                     <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
                       <div>
                         {registeredTier === 'A' && (
                           <div className="flex items-center gap-2 mb-2">
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold" style={{
-                              background: 'rgba(255, 202, 5, 0.2)',
-                              color: '#0050b8',
-                              border: '1px solid rgba(255, 202, 5, 0.4)'
+                              background: 'transparent',
+                              color: '#0050b8'
                             }}>
                               <CheckCircle2 className="w-3 h-3" /> ĐÃ ĐĂNG KÝ
                             </span>
@@ -338,16 +337,15 @@ const ExamPage = () => {
                 {((registeredTier === 'B') || (!registeredTier && selectedCertificate === "hang-b")) && (
                   <div className="p-6 border rounded-lg" style={{
                     borderColor: registeredTier === 'B' ? '#0050b8' : '#555555',
-                    background: registeredTier === 'B' ? 'rgba(255, 202, 5, 0.05)' : 'transparent'
+                    background: 'transparent'
                   }}>
                     <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
                       <div>
                         {registeredTier === 'B' && (
                           <div className="flex items-center gap-2 mb-2">
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold" style={{
-                              background: 'rgba(255, 202, 5, 0.2)',
-                              color: '#0050b8',
-                              border: '1px solid rgba(255, 202, 5, 0.4)'
+                              background: 'transparent',
+                              color: '#0050b8'
                             }}>
                               <CheckCircle2 className="w-3 h-3" /> ĐÃ ĐĂNG KÝ
                             </span>
@@ -481,7 +479,7 @@ const ExamPage = () => {
                       <span className="font-semibold">Bạn đã đăng ký học</span>
                     </div>
                     <p className="text-sm text-muted-foreground">Chứng chỉ Hạng {registeredTier}</p>
-                    <button onClick={scrollToExams} className="w-full mt-4 bg-primary text-black hover:bg-primary/90 py-3 rounded-lg font-bold transition-all">
+                    <button onClick={scrollToExams} className="w-full mt-4 btn-view-schedule">
                       Xem lịch thi
                     </button>
                   </div>
