@@ -30,7 +30,7 @@ const upload = multer({
  */
 router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
   try {
-    console.log("🚀 Upload request received");
+    console.log("Upload request received");
     console.log("File object:", req.file);
     console.log("File size:", req.file?.size);
     console.log("File buffer length:", req.file?.buffer?.length);
@@ -57,8 +57,8 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
     // Get filename from request body first (if sent by frontend), otherwise from multer
     let displayName = req.body.displayName || req.body.originalFilename || req.file.originalname;
 
-    console.log("📄 Raw displayName:", displayName);
-    console.log("📄 Raw bytes:", Buffer.from(displayName).toString('hex'));
+    console.log("Raw displayName:", displayName);
+    console.log("Raw bytes:", Buffer.from(displayName).toString('hex'));
 
     // Fix UTF-8 encoding issue if filename is corrupted
     // When UTF-8 bytes are misinterpreted as Latin1, Vietnamese chars become garbled
@@ -159,7 +159,7 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
         const port = req.socket.localPort || process.env.PORT || 5000;
         const relPath = `${uploadFolder}/${filename}`;
 
-        console.log("💾 Saved to local storage:", relPath);
+        console.log("Saved to local storage:", relPath);
 
         uploadResult = {
           secure_url: `http://localhost:${port}/uploads/${relPath}`,
