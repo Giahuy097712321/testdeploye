@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cloudinary = require('cloudinary').v2;
-const { verifyToken } = require('../middleware/verifyToken');
+const { verifyToken, verifyAdmin } = require('../middleware/verifyToken');
 const multer = require('multer');
 const fs = require('fs');
 const fsExtra = require('fs-extra');
@@ -30,7 +30,7 @@ const upload = multer({
  */
 router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
   try {
-    console.log("🚀 Upload request received");
+    console.log("Upload request received");
     console.log("File object:", req.file);
     console.log("File size:", req.file?.size);
     console.log("File buffer length:", req.file?.buffer?.length);
@@ -57,8 +57,8 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
     // Get filename from request body first (if sent by frontend), otherwise from multer
     let displayName = req.body.displayName || req.body.originalFilename || req.file.originalname;
 
-    console.log("📄 Raw displayName:", displayName);
-    console.log("📄 Raw bytes:", Buffer.from(displayName).toString('hex'));
+    console.log("Raw displayName:", displayName);
+    console.log("Raw bytes:", Buffer.from(displayName).toString('hex'));
 
     // Fix UTF-8 encoding issue if filename is corrupted
     // When UTF-8 bytes are misinterpreted as Latin1, Vietnamese chars become garbled
@@ -70,15 +70,15 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
         const corrected = Buffer.from(displayName, 'latin1').toString('utf8');
         // Verify the fix worked (should have Vietnamese chars now)
         if (corrected !== displayName && !corrected.includes('�')) {
-          console.log("🔧 Fixed corrupted filename:", displayName, "→", corrected);
+          console.log("Fixed corrupted filename:", displayName, "→", corrected);
           displayName = corrected;
         }
       }
     } catch (e) {
-      console.log("⚠️ Encoding fix failed:", e.message);
+      console.log("Encoding fix failed:", e.message);
     }
 
-    console.log("📄 Final displayName:", displayName);
+    console.log("Final displayName:", displayName);
 
     // Sanitize for Cloudinary public_id (alphanumeric + dash/underscore only)
     const fileNameWithoutExt = displayName.substring(0, displayName.lastIndexOf('.')) || displayName;
@@ -91,7 +91,7 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
       .replace(/-+/g, '-') // Collapse multiple dashes
       .toLowerCase();
 
-    console.log("📤 Uploading to Cloudinary...", {
+    console.log("Uploading to Cloudinary...", {
       folder,
       resourceType,
       displayName,
@@ -101,7 +101,7 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
     });
 
     if (!req.file.buffer || req.file.buffer.length === 0) {
-      console.error("❌ Buffer is empty!");
+      console.error("Buffer is empty!");
       throw new Error('File buffer is empty - cannot upload');
     }
 
@@ -126,21 +126,21 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
           (error, result) => {
             clearTimeout(timeoutId);
             if (error) {
-              console.error("❌ Cloudinary error:", error);
+              console.error("Cloudinary error:", error);
               reject(error);
             }
             else {
-              console.log("✅ Upload success:", result.public_id);
+              console.log("Upload success:", result.public_id);
               resolve(result);
             }
           }
         );
 
-        console.log("📝 Writing buffer to upload stream, size:", req.file.buffer.length);
+        console.log("Writing buffer to upload stream, size:", req.file.buffer.length);
         uploadStream.end(req.file.buffer);
       });
     } catch (err) {
-      console.warn("⚠️ Cloudinary failed, falling back to local storage:", err.message);
+      console.warn("Cloudinary failed, falling back to local storage:", err.message);
       uploadError = err;
 
       // Fallback: Save to local storage
@@ -159,7 +159,7 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
         const port = req.socket.localPort || process.env.PORT || 5000;
         const relPath = `${uploadFolder}/${filename}`;
 
-        console.log("💾 Saved to local storage:", relPath);
+        console.log("Saved to local storage:", relPath);
 
         uploadResult = {
           secure_url: `http://localhost:${port}/uploads/${relPath}`,
@@ -168,7 +168,7 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
           display_name: displayName
         };
       } catch (localErr) {
-        console.error("❌ Local fallback also failed:", localErr);
+        console.error("Local fallback also failed:", localErr);
         throw new Error(`Both Cloudinary and local upload failed: ${uploadError.message}`);
       }
     }
@@ -194,7 +194,7 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
  * POST /api/cloudinary/delete
  * Xóa file khỏi Cloudinary
  */
-router.post('/delete', verifyToken, async (req, res) => {
+router.post('/delete', verifyAdmin, async (req, res) => {
   try {
     const { publicId } = req.body;
     if (!publicId) {

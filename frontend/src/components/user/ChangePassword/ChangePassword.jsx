@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./ChangePassword.css";
 import { apiClient } from "../../../lib/apiInterceptor";
+import { Eye, EyeOff } from "lucide-react";
 
 function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -9,6 +10,11 @@ function ChangePassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // State cho hiển thị/ẩn mật khẩu
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,23 +60,43 @@ function ChangePassword() {
         {/* Mật khẩu hiện tại */}
         <div className="form-group">
           <label>Mật khẩu hiện tại</label>
-          <input
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="Nhập mật khẩu hiện tại"
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showCurrentPassword ? "text" : "password"}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Nhập mật khẩu hiện tại"
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              aria-label={showCurrentPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            >
+              {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
         </div>
 
         {/* Mật khẩu mới */}
         <div className="form-group">
           <label>Mật khẩu mới</label>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Nhập mật khẩu mới"
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Nhập mật khẩu mới"
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              aria-label={showNewPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            >
+              {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
           <small className="password-hint">
             Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
           </small>
@@ -79,12 +105,22 @@ function ChangePassword() {
         {/* Xác nhận mật khẩu */}
         <div className="form-group">
           <label>Xác nhận mật khẩu mới</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Nhập lại mật khẩu mới"
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Nhập lại mật khẩu mới"
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            >
+              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
         </div>
 
         {/* Error */}
