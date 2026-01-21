@@ -2,6 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../../lib/apiInterceptor";
 import "./ExamPage.css";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+
 import {
   FileText, CheckCircle2, Plane, Award, ChevronDown, Phone, Mail, FileDown,
   MapPin, Calendar, Clock, BookOpen, AlertCircle, UserCheck, ShieldCheck,
@@ -646,20 +653,42 @@ const ExamPage = () => {
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Đang tải...</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-8">
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={24}
+              slidesPerView={1}
+              navigation
+              pagination={{ clickable: true }}
+              autoplay={{ delay: 5000, disableOnInteraction: false }}
+              breakpoints={{
+                768: {
+                  slidesPerView: 2,
+                },
+                1280: {
+                  slidesPerView: 3,
+                },
+              }}
+              className="max-w-6xl mx-auto mb-8"
+            >
               {upcomingExams.map((exam, idx) => {
                 const tier = getTierFromType(exam.type);
                 let ButtonRender;
 
                 if (exam.is_registered === 1) {
                   ButtonRender = (
-                    <button disabled className="w-full py-2 bg-green-100 text-green-700 font-bold rounded cursor-not-allowed flex items-center justify-center gap-2">
+                    <button
+                      disabled
+                      className="w-full py-2 bg-green-100 text-green-700 font-bold rounded cursor-not-allowed flex items-center justify-center gap-2"
+                    >
                       <CheckCircle2 size={18} /> Đã đăng ký
                     </button>
                   );
                 } else if (exam.spots_left <= 0) {
                   ButtonRender = (
-                    <button disabled className="w-full py-2 bg-gray-200 text-gray-500 font-bold rounded cursor-not-allowed">
+                    <button
+                      disabled
+                      className="w-full py-2 bg-gray-200 text-gray-500 font-bold rounded cursor-not-allowed"
+                    >
                       Đã hết chỗ
                     </button>
                   );
@@ -671,10 +700,10 @@ const ExamPage = () => {
                         preSelectedTier: tier,
                         examId: exam.id,
                         examLocation: exam.location,
-                        examInfo: `${exam.type} - ${formatDate(exam.exam_date)}`
+                        examInfo: `${exam.type} - ${formatDate(exam.exam_date)}`,
                       }}
                       className="block w-full text-center bg-primary hover:bg-primary/90 py-2 rounded font-bold transition-all"
-                      style={{ textDecoration: 'none' }}
+                      style={{ textDecoration: "none" }}
                     >
                       Đăng ký ngay
                     </Link>
@@ -682,37 +711,45 @@ const ExamPage = () => {
                 }
 
                 return (
-                  <div key={idx} className="card p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="font-bold text-lg text-white">{exam.type}</h3>
-                      <div className={`badge ${getSpotBadgeColor(exam.spots_left)}`}>
-                        {exam.spots_left > 0 ? `Còn ${exam.spots_left} chỗ` : "Hết chỗ"}
+                  <SwiperSlide key={idx}>
+                    <div className="card p-6 hover:shadow-lg transition-shadow h-full flex flex-col">
+                      <div className="flex items-start justify-between mb-4">
+                        <h3 className="font-bold text-lg text-white">{exam.type}</h3>
+                        <div className={`badge ${getSpotBadgeColor(exam.spots_left)}`}>
+                          {exam.spots_left > 0
+                            ? `Còn ${exam.spots_left} chỗ`
+                            : "Hết chỗ"}
+                        </div>
                       </div>
+
+                      <div className="space-y-3 mb-6 flex-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="w-4 h-4 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium text-white">{exam.location}</p>
+                            <p className="text-xs text-muted-foreground">{exam.address}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Calendar className="w-4 h-4" />
+                            <span>{formatDate(exam.exam_date)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            <span>{exam.exam_time}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {ButtonRender}
                     </div>
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-white">{exam.location}</p>
-                          <p className="text-xs text-muted-foreground">{exam.address}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(exam.exam_date)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span>{exam.exam_time}</span>
-                        </div>
-                      </div>
-                    </div>
-                    {ButtonRender}
-                  </div>
+                  </SwiperSlide>
                 );
               })}
-            </div>
+            </Swiper>
+
           )}
         </div>
       </section>
