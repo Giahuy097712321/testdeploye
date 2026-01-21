@@ -20,7 +20,7 @@ const avatarUpload = multer({
 });
 
 // --- GET: Lấy danh sách người dùng (Kèm thông tin chi tiết) ---
-router.get("/", async (req, res) => {
+router.get("/", verifyAdmin, async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT 
@@ -37,7 +37,6 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Lỗi server khi lấy danh sách người dùng" });
   }
 });
-
 
 router.get("/:id/profile", verifyStudent, async (req, res) => {
   try {
@@ -74,7 +73,6 @@ router.get("/:id/profile", verifyStudent, async (req, res) => {
   }
 });
 
-
 // --- POST: Tạo người dùng mới (Admin) ---
 router.post("/", async (req, res) => {
   const { full_name, email, phone, password, role, is_active } = req.body;
@@ -102,7 +100,6 @@ router.post("/", async (req, res) => {
 });
 
 // --- PUT: Đổi mật khẩu (lấy user từ token) ---
-// ⚠️ Route này PHẢI đặt TRƯỚC /:id để Express match đúng
 router.put("/change-password", verifyStudent, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -147,7 +144,7 @@ router.put("/change-password", verifyStudent, async (req, res) => {
 });
 
 // --- PUT: Cập nhật thông tin người dùng (chỉ email, phone, address) ---
-router.put("/:id", verifyToken, async (req, res) => {
+router.put("/:id", verifyStudent, async (req, res) => {
   const { id } = req.params;
   const { email, phone, address } = req.body;
 
@@ -184,7 +181,7 @@ router.put("/:id", verifyToken, async (req, res) => {
 });
 
 // --- DELETE: Xóa người dùng ---
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyAdmin, async (req, res) => {
   try {
     await db.query("DELETE FROM users WHERE id = ?", [req.params.id]);
     res.json({ message: "Đã xóa người dùng" });
@@ -195,12 +192,12 @@ router.delete("/:id", async (req, res) => {
 });
 
 // --- POST: Upload avatar ---
-router.post("/:id/avatar", verifyToken, avatarUpload.single('avatar'), async (req, res) => {
+router.post("/:id/avatar", verifyStudent, avatarUpload.single('avatar'), async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Chỉ chính chủ hoặc admin mới được upload
-    if (req.user.role !== 'admin' && req.user.id !== Number(id)) {
+    // Chỉ chính chủ 
+    if (req.user.id !== Number(id)) {
       return res.status(403).json({ error: "Bạn không có quyền cập nhật avatar này" });
     }
 

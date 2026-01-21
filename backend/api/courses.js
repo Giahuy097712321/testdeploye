@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../config/db');
-const { verifyToken, verifyAdmin } = require('../middleware/verifyToken');
+const { verifyToken, verifyAdmin, verifyStudent } = require('../middleware/verifyToken');
 
 // --- GET: Lấy tổng lượt xem khóa học ---
 router.get("/:id/view-stats", async (req, res) => {
@@ -44,7 +44,7 @@ router.get("/:id/view-stats", async (req, res) => {
 });
 
 // --- POST: Ghi nhận lượt xem khóa học (Debounce 10 phút, không yêu cầu đăng nhập) ---
-router.post("/:id/record-view", async (req, res) => {
+router.post("/:id/record-view", verifyStudent, async (req, res) => {
   try {
     const courseId = req.params.id;
     // Lấy user.id từ token nếu có, không thì dùng NULL (anonymous user)

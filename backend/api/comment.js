@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../config/db');
-const { verifyToken } = require('../middleware/verifyToken');
+const { verifyToken, verifyStudent, verifyAdmin } = require('../middleware/verifyToken');
 
-// --- CREATE: Thêm comment mới (Chỉ user đã đăng nhập) ---
-router.post("/", verifyToken, async (req, res) => {
+// --- CREATE: Thêm comment mới 
+router.post("/", verifyStudent, async (req, res) => {
   const connection = await db.getConnection();
   try {
     const { course_id, content, rating } = req.body;
@@ -62,7 +62,7 @@ router.post("/", verifyToken, async (req, res) => {
 });
 
 // --- READ: Lấy danh sách comments của 1 khóa học ---
-router.get("/course/:course_id", async (req, res) => {
+router.get("/course/:course_id", verifyToken, async (req, res) => {
   try {
     const { course_id } = req.params;
     const { page = 1, limit } = req.query;
@@ -117,8 +117,9 @@ router.get("/course/:course_id", async (req, res) => {
     res.status(500).json({ error: "Lỗi server khi lấy comments" });
   }
 });
+
 // --- READ: Lấy comments của user hiện tại (Chỉ user đã đăng nhập) ---
-router.get("/my-comments", verifyToken, async (req, res) => {
+router.get("/my-comments", verifyStudent, async (req, res) => {
   try {
     const user_id = req.user.id;
     const { page = 1, limit } = req.query;
@@ -166,7 +167,7 @@ router.get("/my-comments", verifyToken, async (req, res) => {
   }
 });
 // --- READ: Lấy comment theo ID ---
-router.get("/:id", async (req, res) => {
+router.get("/:id", verifyAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -202,7 +203,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // --- UPDATE: Cập nhật comment (Chỉ chủ comment được cập nhật) ---
-router.put("/:id", verifyToken, async (req, res) => {
+router.put("/:id", verifyStudent, async (req, res) => {
   const connection = await db.getConnection();
   try {
     const { id } = req.params;
@@ -263,7 +264,7 @@ router.put("/:id", verifyToken, async (req, res) => {
 });
 
 // --- DELETE: Xóa comment (Chỉ chủ comment hoặc admin được xóa) ---
-router.delete("/:id", verifyToken, async (req, res) => {
+router.delete("/:id", verifyStudent, async (req, res) => {
   const connection = await db.getConnection();
   try {
     const { id } = req.params;
