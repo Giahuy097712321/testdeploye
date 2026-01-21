@@ -124,7 +124,77 @@ function AboutPage() {
                     </div>
                 </div>
             </section>
+            {/* 3. Lý do nên chọn trung tâm */}
+            <section className="section section-white">
+                <div className="container">
+                    <h2 className="section-title">Lý do nên chọn trung tâm</h2>
+                    <div className="objectives-grid">
+                        {/* Card 1 */}
+                        <div className="objective-card">
+                            <div className="objective-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 14l9-5-9-5-9 5 9 5z" /><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /><path d="M12 14v7" /></svg>
+                            </div>
+                            <h3 className="objective-title">Đào tạo kiến thức</h3>
+                            <ul className="objective-list">
+                                <li>Cung cấp kiến thức cần thiết về pháp luật, kỹ thuật và an toàn bay cho người điều khiển UAV.</li>
+                            </ul>
+                        </div>
 
+                        {/* Card 2 */}
+                        <div className="objective-card">
+                            <div className="objective-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                            </div>
+                            <h3 className="objective-title">Nâng cao ý thức</h3>
+                            <ul className="objective-list">
+                                <li>Nâng cao ý thức tuân thủ quy định về an toàn, bảo mật và pháp luật.</li>
+                            </ul>
+                        </div>
+
+                        {/* Card 3 */}
+                        <div className="objective-card">
+                            <div className="objective-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+                            </div>
+                            <h3 className="objective-title">Quản lý hoạt động bay</h3>
+                            <ul className="objective-list">
+                                <li>Xây dựng hệ thống quản lý hoạt động bay UAV hiệu quả theo quy định.</li>
+
+                            </ul>
+                        </div>
+                         <div className="objective-card">
+                            <div className="objective-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+                            </div>
+                            <h3 className="objective-title">Quản lý hoạt động bay</h3>
+                            <ul className="objective-list">
+                                <li>Xây dựng hệ thống quản lý hoạt động bay UAV hiệu quả theo quy định.</li>
+
+                            </ul>
+                        </div>
+                         <div className="objective-card">
+                            <div className="objective-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+                            </div>
+                            <h3 className="objective-title">Quản lý hoạt động bay</h3>
+                            <ul className="objective-list">
+                                <li>Xây dựng hệ thống quản lý hoạt động bay UAV hiệu quả theo quy định.</li>
+
+                            </ul>
+                        </div>
+                         <div className="objective-card">
+                            <div className="objective-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+                            </div>
+                            <h3 className="objective-title">Quản lý hoạt động bay</h3>
+                            <ul className="objective-list">
+                                <li>Xây dựng hệ thống quản lý hoạt động bay UAV hiệu quả theo quy định.</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
             {/* 3. Cơ sở pháp lý */}
             <section className="section section-gray">
                 <div className="container">
@@ -225,7 +295,7 @@ function AboutPage() {
                                     <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                                     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                 </svg>
-                            </div> 
+                            </div>
                             <h3 className="organization-title">Đào tạo và ứng dụng công nghệ</h3>
                             <p className="organization-subtitle">Công ty TNHH Khoa Học Roboboss</p>
                             <p className="organization-desc">Chịu trách nhiệm quản lý, giám sát và cấp chứng chỉ cho người điều khiển thiết bị bay không người lái.</p>
@@ -331,7 +401,6 @@ function AboutPage() {
                     <div className="cta-buttons">
                         {/* Sử dụng Link cho chuyển trang nội bộ */}
                         <Link to="/dang-ky" className="btn btn-primary">Đăng ký ngay</Link>
-                        <button className="btn btn-secondary">Tìm hiểu thêm</button>
                     </div>
                 </div>
             </section>

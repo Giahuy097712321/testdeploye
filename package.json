@@ -23,7 +23,8 @@
     "react-toastify": "^11.0.5",
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
-    "sweetalert2": "^11.26.17"
+    "sweetalert2": "^11.26.17",
+    "swiper": "^12.0.3"
   },
   "devDependencies": {
     "baseline-browser-mapping": "^2.9.15",

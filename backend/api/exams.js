@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../config/db'); 
-
+const { verifyToken, verifyAdmin, verifyStudent } = require('../middleware/verifyToken');
 // --- GET: Lấy danh sách lịch thi (Có kiểm tra trạng thái đăng ký của User) ---
 router.get("/", async (req, res) => {
   const userId = req.query.user_id; // Lấy user_id từ URL nếu có
@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
 });
 
 // --- POST: Tạo lịch thi mới (ADMIN) ---
-router.post("/", async (req, res) => {
+router.post("/", verifyAdmin, async (req, res) => {
   const { type, location, address, exam_date, exam_time, spots_left, is_active } = req.body;
   try {
     const [result] = await db.query(
@@ -47,7 +47,7 @@ router.post("/", async (req, res) => {
 });
 
 // --- PUT: Cập nhật lịch thi (ADMIN) ---
-router.put("/:id", async (req, res) => {
+router.put("/:id",verifyAdmin, async (req, res) => {
   const { id } = req.params;
   const { type, location, address, exam_date, exam_time, spots_left, is_active } = req.body;
   try {
@@ -65,7 +65,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // --- DELETE: Xóa lịch thi (ADMIN) ---
-router.delete("/:id", async (req, res) => {
+router.delete("/:id",  verifyAdmin, async (req, res) => {
   try {
     await db.query("DELETE FROM exam_schedules WHERE id = ?", [req.params.id]);
     res.json({ message: "Đã xóa thành công" });
@@ -78,7 +78,7 @@ router.delete("/:id", async (req, res) => {
 // ============================================================
 // --- POST: ĐĂNG KÝ THI (Dành cho User đã đăng nhập) ---
 // ============================================================
-router.post("/book", async (req, res) => {
+router.post("/book",verifyStudent ,async (req, res) => {
   const { user_id, exam_schedule_id } = req.body;
 
   const connection = await db.getConnection();
