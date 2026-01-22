@@ -126,18 +126,21 @@ export default function CourseManager() {
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
-        // Track upload progress
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            const percentComplete = (e.loaded / e.total) * 100;
-            setThumbnailUploadProgress(Math.round(percentComplete));
-          }
-        });
+        // Simulate progress từ 0% -> 99%
+        const progressInterval = setInterval(() => {
+          setThumbnailUploadProgress((prev) => {
+            if (prev >= 99) return 99;
+            return prev + Math.random() * 20;
+          });
+        }, 300);
 
         xhr.addEventListener("load", () => {
+          clearInterval(progressInterval);
+
           if (xhr.status === 200) {
             const response = JSON.parse(xhr.responseText);
             if (response.success) {
+              // Jump lên 100%
               setThumbnailUploadProgress(100);
               setTimeout(() => {
                 setIsThumbnailUploading(false);
@@ -153,6 +156,7 @@ export default function CourseManager() {
         });
 
         xhr.addEventListener("error", () => {
+          clearInterval(progressInterval);
           reject(new Error("Upload error"));
         });
 
@@ -253,8 +257,27 @@ export default function CourseManager() {
   // Hàm lấy chi tiết khóa học để soạn giáo trình
   const handleOpenCurriculum = async (course) => {
     try {
-      // Use the course data from the hook (already loaded)
-      const chaptersFromApi = course.chapters || [];
+      console.log("Opening curriculum for course:", course);
+
+      // Fetch chi tiết khóa học từ server để lấy chapters đầy đủ
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(`${API_ENDPOINTS.COURSES}/${course.id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể lấy chi tiết khóa học");
+      }
+
+      const courseDetail = await response.json();
+      console.log("Course detail from server:", courseDetail);
+      console.log("Chapters from API:", courseDetail.chapters);
+
+      // Use the course data from server response
+      const chaptersFromApi = courseDetail.chapters || [];
 
       const formattedChapters = chaptersFromApi.map((chap) => ({
         id: chap.id,
@@ -273,8 +296,11 @@ export default function CourseManager() {
         })),
       }));
 
+      console.log("Formatted chapters:", formattedChapters);
+
       // Tạo chương mặc định nếu trống
       if (formattedChapters.length === 0) {
+        console.log("No chapters found, creating default chapter");
         formattedChapters.push({
           id: Date.now(),
           title: "Chương 1: Khởi động",
@@ -282,7 +308,7 @@ export default function CourseManager() {
         });
       }
 
-      const fullCourseData = { ...course, chapters: formattedChapters };
+      const fullCourseData = { ...courseDetail, chapters: formattedChapters };
       setSelectedCourse(fullCourseData);
 
       if (formattedChapters.length > 0) {
@@ -311,10 +337,13 @@ export default function CourseManager() {
       })),
     }));
 
+    // Giữ lại ảnh gốc từ API (có thể là 'image' hoặc 'thumbnail')
+    const imageUrl = selectedCourse.image || selectedCourse.thumbnail;
+
     const payload = {
       title: selectedCourse.title,
       description: selectedCourse.description,
-      image: selectedCourse.thumbnail,
+      image: imageUrl,
       level: selectedCourse.level || "Cơ bản",
       price: 0,
       chapters: chaptersPayload,
@@ -327,7 +356,13 @@ export default function CourseManager() {
         data: payload,
       });
       alert("Đã lưu nội dung giáo trình thành công!");
+
+      // Chờ refreshCourses hoàn thành rồi mới quay lại danh sách
       await refreshCourses();
+
+      // Quay về danh sách
+      setViewMode("list");
+      setSelectedCourse(null);
     } catch (error) {
       alert("Lỗi lưu giáo trình: " + error.message);
     }
@@ -360,6 +395,14 @@ export default function CourseManager() {
 
   const toggleChapter = (chapterId) =>
     setExpandedChapters((prev) => ({ ...prev, [chapterId]: !prev[chapterId] }));
+
+  const deleteChapter = (chapterId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa chương này?")) return;
+    setSelectedCourse((prev) => ({
+      ...prev,
+      chapters: prev.chapters.filter((c) => c.id !== chapterId),
+    }));
+  };
 
   // Lesson
   const openAddLessonModal = (chapterId) => {
@@ -415,15 +458,15 @@ export default function CourseManager() {
     setIsLessonModalOpen(false);
   };
 
-  const deleteLesson = async (chapterId, lessonId) => {
+  const deleteLesson = (chapterId, lessonId) => {
     if (
       !window.confirm(
-        "Xóa bài học này? Hành động này không thể không phục !"
+        "Xóa bài học này? Hành động này không thể không phục!"
       )
     )
       return;
 
-    // 1. Cập nhật giao diện Admin trước cho nhanh
+    // Cập nhật giao diện - xóa bài học khỏi chương
     setSelectedCourse((prev) => ({
       ...prev,
       chapters: prev.chapters.map((c) =>
@@ -432,10 +475,6 @@ export default function CourseManager() {
           : c
       ),
     }));
-
-    setTimeout(() => {
-      saveCurriculum();
-    }, 100);
   };
 
   // Quiz
@@ -491,18 +530,21 @@ export default function CourseManager() {
       setIsVideoUploading(true);
       setVideoUploadProgress(0);
 
+      // Simulate progress từ 0% -> 99%
       const progressInterval = setInterval(() => {
-        setVideoUploadProgress((prev) =>
-          prev >= 90 ? prev : prev + Math.random() * 30
-        );
-      }, 500);
+        setVideoUploadProgress((prev) => {
+          if (prev >= 99) return 99;
+          return prev + Math.random() * 25;
+        });
+      }, 400);
 
       const result = await uploadVideo(file);
       clearInterval(progressInterval);
 
       if (result.success) {
-        setLessonFormData((prev) => ({ ...prev, content: result.url }));
+        // Jump lên 100%
         setVideoUploadProgress(100);
+        setLessonFormData((prev) => ({ ...prev, content: result.url }));
         setTimeout(() => {
           setIsVideoUploadingOpen(false);
           setVideoUploadProgress(0);
@@ -662,6 +704,13 @@ export default function CourseManager() {
                       className="cm-btn cm-btn-sm cm-btn-secondary"
                     >
                       <Plus size={14} /> Thêm bài học
+                    </button>
+                    <button
+                      onClick={() => deleteChapter(chapter.id)}
+                      className="cm-btn cm-btn-sm cm-btn-danger-ghost"
+                      title="Xóa chương"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
@@ -1143,37 +1192,71 @@ export default function CourseManager() {
               </button>
             </div>
             <div style={{ padding: "30px", textAlign: "center" }}>
-              <label
-                style={{
-                  display: "block",
-                  border: "2px dashed #d1d5db",
-                  borderRadius: "8px",
-                  padding: "30px",
-                  cursor: isVideoUploading ? "not-allowed" : "pointer",
-                }}
-              >
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={handleVideoUpload}
-                  disabled={isVideoUploading}
-                  style={{ display: "none" }}
-                />
-                {isVideoUploading ? (
-                  <>
-                    <Loader
-                      size={24}
-                      style={{
-                        animation: "spin 1s linear infinite",
-                        margin: "0 auto 10px",
-                      }}
-                    />
-                    <p>Đang upload... {Math.round(videoUploadProgress)}%</p>
-                  </>
-                ) : (
-                  <p>Chọn hoặc kéo video vào đây</p>
-                )}
-              </label>
+              {videoUploadProgress === 100 ? (
+                <div style={{ animation: "fadeIn 0.5s ease-out" }}>
+                  <CheckCircle
+                    size={64}
+                    color="#24a148"
+                    style={{ margin: "0 auto 20px" }}
+                  />
+                  <p style={{ fontSize: "18px", fontWeight: "600", color: "#24a148", margin: "0 0 20px 0" }}>
+                    Upload thành công! 🎉
+                  </p>
+                  <p style={{ fontSize: "14px", color: "#666", margin: "0 0 20px 0" }}>
+                    Video đã được tải lên thành công. Modal sẽ tự động đóng...
+                  </p>
+                </div>
+              ) : (
+                <label
+                  style={{
+                    display: "block",
+                    border: "2px dashed #d1d5db",
+                    borderRadius: "8px",
+                    padding: "30px",
+                    cursor: isVideoUploading ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={handleVideoUpload}
+                    disabled={isVideoUploading}
+                    style={{ display: "none" }}
+                  />
+                  {isVideoUploading ? (
+                    <>
+                      <Loader
+                        size={24}
+                        style={{
+                          animation: "spin 1s linear infinite",
+                          margin: "0 auto 10px",
+                        }}
+                      />
+                      <p style={{ margin: "10px 0", fontWeight: "600" }}>
+                        Đang upload... {Math.round(videoUploadProgress)}%
+                      </p>
+                      <div style={{
+                        width: "100%",
+                        height: "6px",
+                        background: "#e2e8f0",
+                        borderRadius: "3px",
+                        overflow: "hidden",
+                        marginTop: "15px"
+                      }}>
+                        <div style={{
+                          width: `${videoUploadProgress}%`,
+                          height: "100%",
+                          background: "linear-gradient(90deg, #0066cc, #0052a3)",
+                          transition: "width 0.3s ease",
+                          borderRadius: "3px"
+                        }} />
+                      </div>
+                    </>
+                  ) : (
+                    <p>Chọn hoặc kéo video vào đây</p>
+                  )}
+                </label>
+              )}
             </div>
           </div>
         </div>
