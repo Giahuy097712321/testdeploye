@@ -105,7 +105,8 @@ export default function CourseManager() {
   const handleEditCourseInfo = (course) => {
     setCourseFormData({
       ...course,
-      type: course.level === "Nâng cao" ? "B" : "A", // Map lại level
+      thumbnail: course.image || course.thumbnail,
+      type: course.level === "Nâng cao" ? "B" : "A",
     });
     setIsCourseFormOpen(true);
   };
@@ -179,6 +180,12 @@ export default function CourseManager() {
       if (!token) return alert("Phiên đăng nhập hết hạn");
 
       let thumbnailUrl = courseFormData.thumbnail;
+      let courseDetail = null;
+
+      // Nếu đang sửa, lấy thông tin khóa học cũ từ server để giữ ảnh
+      if (courseFormData.id) {
+        courseDetail = courses.find(c => c.id === courseFormData.id);
+      }
 
       // Upload ảnh nếu là blob local
       if (thumbnailUrl && thumbnailUrl.includes("localhost")) {
@@ -191,25 +198,31 @@ export default function CourseManager() {
           thumbnailUrl = await uploadImageWithProgress(file);
         } catch (err) {
           console.error("Error uploading thumbnail:", err);
+          // Nếu upload ảnh thất bại, giữ lại ảnh cũ
+          if (courseDetail && courseDetail.image) {
+            thumbnailUrl = courseDetail.image;
+          } else {
+            throw err;
+          }
         }
+      } else if (!thumbnailUrl && courseDetail) {
+        // Nếu không có ảnh mới, giữ lại ảnh cũ
+        thumbnailUrl = courseDetail.image || courseDetail.thumbnail || "";
       }
 
       // Nếu đang sửa, cần lấy chapters cũ để không bị mất
       let currentChapters = [];
-      if (courseFormData.id) {
-        const courseDetail = courses.find(c => c.id === courseFormData.id);
-        if (courseDetail?.chapters) {
-          currentChapters = courseDetail.chapters.map((c) => ({
-            title: c.title,
-            lessons: (c.lessons || []).map((l) => ({
-              title: l.title,
-              type: l.type,
-              video_url: l.video_url,
-              duration: l.duration,
-              quiz_data: l.quiz_data || (l.content_data ? JSON.parse(l.content_data) : []),
-            })),
-          }));
-        }
+      if (courseDetail?.chapters) {
+        currentChapters = courseDetail.chapters.map((c) => ({
+          title: c.title,
+          lessons: (c.lessons || []).map((l) => ({
+            title: l.title,
+            type: l.type,
+            video_url: l.video_url,
+            duration: l.duration,
+            quiz_data: l.quiz_data || (l.content_data ? JSON.parse(l.content_data) : []),
+          })),
+        }));
       }
 
       const payload = {
@@ -385,6 +398,10 @@ export default function CourseManager() {
   };
 
   const updateChapterTitle = (chapterId, newTitle) => {
+    if (!newTitle.trim()) {
+      alert("Tên chương không được để trống");
+      return;
+    }
     setSelectedCourse((prev) => ({
       ...prev,
       chapters: prev.chapters.map((c) =>
@@ -433,6 +450,18 @@ export default function CourseManager() {
 
   const handleSaveLesson = (e) => {
     e.preventDefault();
+
+    // Validate lesson data
+    if (!lessonFormData.title.trim()) {
+      alert("Vui lòng nhập tên bài học");
+      return;
+    }
+
+    if (lessonFormData.type !== "quiz" && !lessonFormData.content.trim()) {
+      alert("Vui lòng nhập URL nội dung hoặc upload video");
+      return;
+    }
+
     const newLesson = {
       ...lessonFormData,
       id: lessonFormData.id || Date.now(),
@@ -482,7 +511,18 @@ export default function CourseManager() {
     setTempQuestion({ text: "", options: ["", "", "", ""], correctIndex: 0 });
 
   const handleAddQuestionToQuiz = () => {
-    if (!tempQuestion.text.trim()) return alert("Chưa nhập câu hỏi");
+    if (!tempQuestion.text.trim()) {
+      alert("Vui lòng nhập câu hỏi");
+      return;
+    }
+
+    // Validate at least one option
+    const validOptions = tempQuestion.options.filter(opt => opt.trim());
+    if (validOptions.length < 2) {
+      alert("Vui lòng nhập ít nhất 2 đáp án");
+      return;
+    }
+
     setLessonFormData((prev) => ({
       ...prev,
       questions: [...prev.questions, { ...tempQuestion, id: Date.now() }],
@@ -525,6 +565,12 @@ export default function CourseManager() {
   const handleVideoUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Validate video file
+    if (!file.type.startsWith("video/")) {
+      alert("Vui lòng chọn file video");
+      return;
+    }
 
     try {
       setIsVideoUploading(true);
@@ -610,15 +656,15 @@ export default function CourseManager() {
                   <div className="cm-course-header">
                     <h3 className="cm-course-title">{course.title}</h3>
                     <div
-                      className={`cm-course-badge ${course.type === "A" ? "cm-badge-a" : "cm-badge-b"
+                      className={`cm-course-badge ${course.type === "A" || course.level === "Cơ bản" ? "cm-badge-a" : "cm-badge-b"
                         }`}
                     >
-                      {course.type === "A" ? (
+                      {course.type === "A" || course.level === "Cơ bản" ? (
                         <BookOpen size={14} />
                       ) : (
                         <Award size={14} />
                       )}
-                      <span>{course.type === "A" ? "Hạng A" : "Hạng B"}</span>
+                      <span>{course.type === "A" || course.level === "Cơ bản" ? "Hạng A" : "Hạng B"}</span>
                     </div>
                   </div>
                   <div className="cm-course-actions">
