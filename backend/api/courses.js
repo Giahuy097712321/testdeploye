@@ -80,15 +80,15 @@ router.post("/:id/record-view", verifyStudent, async (req, res) => {
         [courseId, userId, now]
       );
 
-      return res.json({ 
+      return res.json({
         message: "Ghi nhận lượt xem thành công",
-        recorded: true 
+        recorded: true
       });
     } else {
       // View đã được ghi nhận trong 10 phút gần đây
-      return res.json({ 
+      return res.json({
         message: "Lượt xem đã được ghi nhận gần đây, không ghi nhận lại",
-        recorded: false 
+        recorded: false
       });
     }
 
@@ -106,7 +106,7 @@ router.get("/related/level/:id", async (req, res) => {
 
     // 1. Lấy thông tin level của khóa học hiện tại
     const [currentCourse] = await db.query(
-      "SELECT level FROM courses WHERE id = ?", 
+      "SELECT level FROM courses WHERE id = ?",
       [courseId]
     );
 
@@ -120,7 +120,7 @@ router.get("/related/level/:id", async (req, res) => {
     let query = `SELECT * FROM courses 
        WHERE level = ? AND id != ? 
        ORDER BY created_at DESC`;
-    
+
     let queryParams = [courseLevel, courseId];
 
     if (limit) {
@@ -235,10 +235,10 @@ router.get("/my-accessible", verifyToken, async (req, res) => {
 router.get("/lesson/:id", async (req, res) => {
   try {
     const lessonId = req.params.id;
-    
+
     // Truy vấn bảng lessons
     const [rows] = await db.query("SELECT * FROM lessons WHERE id = ?", [lessonId]);
-    
+
     if (rows.length === 0) {
       return res.status(404).json({ error: "Không tìm thấy bài học" });
     }
@@ -268,7 +268,7 @@ router.get("/:id", verifyToken, async (req, res) => {
   try {
     const courseId = req.params.id;
     const userId = req.user.id;
-    
+
     console.log("[course/:id] courseId:", courseId, "userId:", userId, "role:", req.user.role);
 
     // 1. Lấy thông tin khóa học
@@ -293,7 +293,7 @@ router.get("/:id", verifyToken, async (req, res) => {
     // - Hạng B: xem được cả khóa học level A và B
     // - Admin luôn được xem tất cả
     // - Nếu user chưa đăng ký hạng nào thì không xem được
-    
+
     // Admin bypass tất cả
     if (req.user.role === 'admin') {
       // Admin được xem tất cả, không cần kiểm tra tier
@@ -302,18 +302,18 @@ router.get("/:id", verifyToken, async (req, res) => {
       const isLevelB = courseLevel === 'B' || (course.level && course.level.toLowerCase().includes('nâng cao'));
       // Kiểm tra level A hoặc "Cơ bản"
       const isLevelA = courseLevel === 'A' || (course.level && course.level.toLowerCase().includes('cơ bản'));
-      
+
       if (isLevelB && userTier !== 'B') {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: "Bạn cần đăng ký hạng B để xem khóa học này",
           code: 'TIER_REQUIRED',
           requiredTier: 'B',
           currentTier: userTier || 'Chưa đăng ký'
         });
       }
-      
+
       if (isLevelA && !userTier) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: "Bạn cần đăng ký khóa học để xem nội dung này",
           code: 'TIER_REQUIRED',
           requiredTier: 'A',
@@ -324,7 +324,7 @@ router.get("/:id", verifyToken, async (req, res) => {
 
     // 4. Lấy danh sách CHƯƠNG (Chapters)
     const [chapterRows] = await db.query(
-      "SELECT * FROM chapters WHERE course_id = ? ORDER BY order_index ASC", 
+      "SELECT * FROM chapters WHERE course_id = ? ORDER BY order_index ASC",
       [courseId]
     );
 
@@ -334,7 +334,7 @@ router.get("/:id", verifyToken, async (req, res) => {
       `SELECT l.* FROM lessons l 
        JOIN chapters c ON l.chapter_id = c.id 
        WHERE c.course_id = ? 
-       ORDER BY l.order_index ASC`, 
+       ORDER BY l.order_index ASC`,
       [courseId]
     );
 
@@ -342,7 +342,7 @@ router.get("/:id", verifyToken, async (req, res) => {
     const chapters = chapterRows.map(chapter => {
       // Lọc các bài học thuộc chương này
       const lessonsInChapter = lessonRows.filter(l => l.chapter_id === chapter.id);
-      
+
       // Format lại dữ liệu bài học (parse JSON quiz nếu cần)
       const formattedLessons = lessonsInChapter.map(lesson => ({
         ...lesson,
@@ -368,9 +368,9 @@ router.get("/:id", verifyToken, async (req, res) => {
 router.post("/", async (req, res) => {
   // Dữ liệu nhận vào bây giờ có dạng: { ..., chapters: [ { title: "Chương 1", lessons: [] } ] }
   const { title, image, description, level, price, chapters } = req.body;
-  
-  const priceA = price || 0; 
-  const priceB = price || 0; 
+
+  const priceA = price || 0;
+  const priceB = price || 0;
 
   const connection = await db.getConnection();
   try {
@@ -388,7 +388,7 @@ router.post("/", async (req, res) => {
     if (chapters && chapters.length > 0) {
       for (let i = 0; i < chapters.length; i++) {
         const chap = chapters[i];
-        
+
         // Insert từng chương
         const [chapResult] = await connection.query(
           `INSERT INTO chapters (course_id, title, order_index) VALUES (?, ?, ?)`,
@@ -401,11 +401,13 @@ router.post("/", async (req, res) => {
           for (let j = 0; j < chap.lessons.length; j++) {
             const l = chap.lessons[j];
             const contentData = l.type === 'quiz' ? JSON.stringify(l.quiz_data) : null;
+            // Lấy video_url từ video_url hoặc content
+            const videoUrl = l.video_url || l.content || '';
 
             await connection.query(
               `INSERT INTO lessons (course_id, chapter_id, title, type, video_url, duration, content_data, order_index, required_tier)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              [newCourseId, newChapterId, l.title, l.type, l.video_url, l.duration || 0, contentData, j, 'A'] 
+              [newCourseId, newChapterId, l.title, l.type, videoUrl, l.duration || 0, contentData, j, 'A']
             );
           }
         }
@@ -429,8 +431,8 @@ router.put("/:id", async (req, res) => {
   const courseId = req.params.id;
   // Payload nhận vào cũng phải có cấu trúc chapters lồng nhau
   const { title, image, description, level, price, chapters } = req.body;
-  const priceA = price || 0; 
-  const priceB = price || 0; 
+  const priceA = price || 0;
+  const priceB = price || 0;
 
   const connection = await db.getConnection();
   try {
@@ -453,7 +455,7 @@ router.put("/:id", async (req, res) => {
     if (chapters && chapters.length > 0) {
       for (let i = 0; i < chapters.length; i++) {
         const chap = chapters[i];
-        
+
         // Tạo chương mới
         const [chapResult] = await connection.query(
           `INSERT INTO chapters (course_id, title, order_index) VALUES (?, ?, ?)`,
@@ -466,11 +468,13 @@ router.put("/:id", async (req, res) => {
           for (let j = 0; j < chap.lessons.length; j++) {
             const l = chap.lessons[j];
             const contentData = l.type === 'quiz' ? JSON.stringify(l.quiz_data) : null;
+            // Lấy video_url từ video_url hoặc content
+            const videoUrl = l.video_url || l.content || '';
 
             await connection.query(
               `INSERT INTO lessons (course_id, chapter_id, title, type, video_url, duration, content_data, order_index, required_tier)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              [courseId, newChapterId, l.title, l.type, l.video_url, l.duration || 0, contentData, j, 'A']
+              [courseId, newChapterId, l.title, l.type, videoUrl, l.duration || 0, contentData, j, 'A']
             );
           }
         }
