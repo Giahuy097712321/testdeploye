@@ -335,7 +335,6 @@ export default function UserManager() {
                       <option value="">Chưa chọn</option>
                       <option value="A">A</option>
                       <option value="B">B</option>
-                      <option value="C">C</option>
                     </select>
                   </div>
 
@@ -350,7 +349,6 @@ export default function UserManager() {
                             {provinces.map(p => (<option key={p.id} value={p.id}>{p.name}</option>))}
                           </select>
                         </div>
-
                         <div>
                           <label className="form-label">Xã/Phường</label>
                           <select className="form-control" value={selectedWard || ''} onChange={(e) => { setSelectedWard(e.target.value); applySelectedAddress(undefined, e.target.value); }} disabled={!selectedProvince}>
@@ -364,16 +362,11 @@ export default function UserManager() {
                           <input className="form-control" value={street} onChange={(e) => { setStreet(e.target.value); }} placeholder="Ví dụ: 123 Đường ABC" />
                         </div>
 
-                        <div style={{ display: 'flex', gap: 8, gridColumn: '1 / -1', justifyContent: 'flex-end' }}>
-                          <button type="button" className="btn btn-sm btn-primary" onClick={() => { applySelectedAddress(); setAddressMode('select'); }}>Áp dụng</button>
-                        </div>
                       </div>
                     ) : (
                       <textarea className="form-control" rows={2} value={form.address || ''} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Địa chỉ liên hệ" />
                     )}
                   </div>
-
-                  {/* Loại UAV field removed */}
                 </div>
               </div>
             )}
