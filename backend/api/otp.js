@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
 const Brevo = require('@getbrevo/brevo');
+const bcrypt = require('bcryptjs');
 
 // Lưu trữ OTP tạm thời (trong production nên dùng Redis)
 const otpStore = new Map();
@@ -58,6 +59,129 @@ const sendEmailWithBrevo = async (toEmail, otp) => {
   
   return await apiInstance.sendTransacEmail(sendSmtpEmail);
 };
+
+// Hàm gửi email OTP cho reset mật khẩu
+const sendPasswordResetEmail = async (toEmail, otp) => {
+  const sendSmtpEmail = new Brevo.SendSmtpEmail();
+  sendSmtpEmail.subject = "Mã OTP đặt lại mật khẩu";
+  sendSmtpEmail.htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #0066cc 0%, #004499 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">Đặt lại mật khẩu</h1>
+      </div>
+      <div style="background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; color: #333;">Bạn đã yêu cầu đặt lại mật khẩu. Mã OTP của bạn là:</p>
+        <div style="background: #0066cc; color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; letter-spacing: 8px; margin: 20px 0;">
+          ${otp}
+        </div>
+        <p style="font-size: 14px; color: #666;">⏱️ Mã này sẽ hết hạn sau <strong>5 phút</strong>.</p>
+        <p style="font-size: 14px; color: #666;">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">
+          Trung tâm đào tạo điều khiển UAV<br>
+          Email này được gửi tự động, vui lòng không trả lời.
+        </p>
+      </div>
+    </div>
+  `;
+  sendSmtpEmail.sender = { 
+    name: "Trung tâm đào tạo UAV", 
+    email: process.env.BREVO_SENDER_EMAIL || "noreply@uavtraining.vn" 
+  };
+  sendSmtpEmail.to = [{ email: toEmail }];
+  return await apiInstance.sendTransacEmail(sendSmtpEmail);
+};
+
+/**
+ * POST /api/otp/send-password
+ * Gửi OTP để reset mật khẩu (theo email)
+ */
+router.post('/send-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Vui lòng cung cấp email' });
+
+    // Kiểm tra user tồn tại
+    const [users] = await db.query('SELECT id, email FROM users WHERE email = ?', [email]);
+    if (users.length === 0) return res.status(404).json({ error: 'Không tìm thấy tài khoản với email này' });
+
+    const otpKey = `password_${email}`;
+    const stored = otpStore.get(otpKey);
+    // rate limit: 60s
+    if (stored && stored.lastSent && (Date.now() - stored.lastSent) < 60000) {
+      const wait = Math.ceil((60000 - (Date.now() - stored.lastSent)) / 1000);
+      return res.status(429).json({ error: `Vui lòng đợi ${wait} giây trước khi gửi lại.` });
+    }
+
+    const otp = generateOTP();
+    const expiresAt = Date.now() + 5 * 60 * 1000;
+
+    otpStore.set(otpKey, {
+      otp,
+      expiresAt,
+      email,
+      attempts: 0,
+      lastSent: Date.now()
+    });
+
+    await sendPasswordResetEmail(email, otp);
+    console.log(`[API] Password OTP sent to ${maskEmail(email)}`);
+    res.json({ success: true, message: 'Đã gửi mã OTP tới email', maskedEmail: maskEmail(email) });
+  } catch (error) {
+    console.error('Send password OTP error:', error);
+    res.status(500).json({ error: 'Lỗi khi gửi mã OTP' });
+  }
+});
+
+/**
+ * POST /api/otp/reset-password
+ * Reset mật khẩu sau khi xác thực OTP
+ */
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword, confirmPassword } = req.body;
+    if (!email || !otp || !newPassword || !confirmPassword) return res.status(400).json({ error: 'Vui lòng cung cấp đầy đủ thông tin' });
+
+    if (newPassword !== confirmPassword) return res.status(400).json({ error: 'Mật khẩu mới không khớp' });
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt' });
+
+    const otpKey = `password_${email}`;
+    const stored = otpStore.get(otpKey);
+    if (!stored) return res.status(400).json({ error: 'Mã OTP không tồn tại hoặc đã hết hạn' });
+
+    if (stored.attempts >= 5) {
+      otpStore.delete(otpKey);
+      return res.status(400).json({ error: 'Đã vượt quá số lần thử. Vui lòng gửi mã mới.' });
+    }
+
+    if (Date.now() > stored.expiresAt) {
+      otpStore.delete(otpKey);
+      return res.status(400).json({ error: 'Mã OTP đã hết hạn. Vui lòng gửi lại.' });
+    }
+
+    if (stored.otp !== otp) {
+      stored.attempts++;
+      otpStore.set(otpKey, stored);
+      return res.status(400).json({ error: `Mã OTP không đúng. Còn ${5 - stored.attempts} lần thử.` });
+    }
+
+    // OTP hợp lệ -> cập nhật mật khẩu
+    const [users] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (users.length === 0) return res.status(404).json({ error: 'Không tìm thấy tài khoản' });
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(newPassword, salt);
+    await db.query('UPDATE users SET password_hash = ? WHERE email = ?', [hash, email]);
+
+    otpStore.delete(otpKey);
+    res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Lỗi khi đổi mật khẩu' });
+  }
+});
 
 /**
  * POST /api/otp/send
@@ -292,3 +416,4 @@ router.post("/resend", async (req, res) => {
 });
 
 module.exports = router;
+

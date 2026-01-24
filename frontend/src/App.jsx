@@ -15,6 +15,7 @@ import ExamPage from "./components/exam/ExamPage";
 import LookupPage from "./components/lookup/LookupPage";
 import LoginPage from "./components/login/LoginPage";
 import RegisterPage from "./components/Registration/RegisterPage";
+import ForgotPassword from "./components/login/ForgotPassword";
 import CoursesPage from "./components/course/CoursePage";
 import CourseDetailPage from "./components/course/CoursedetailPage";
 import ExamBookingPage from "./components/exam/ExamBookingPage";
@@ -60,6 +61,7 @@ function App() {
                   <Route path="/tra-cuu" element={<LookupPage />} />
                   <Route path="/dang-nhap" element={<LoginPage />} />
                   <Route path="/dang-ky" element={<RegisterPage />} />
+                  <Route path="/quen-mat-khau" element={<ForgotPassword />} />
                   <Route path="/dat-lich-thi" element={<ExamBookingPage />} />
                   <Route path="/chinh-sach-bao-mat" element={<PrivacyPolicyPage />} />
                   <Route path="/dieu-khoan-su-dung" element={<TermsOfServicePage />} />
