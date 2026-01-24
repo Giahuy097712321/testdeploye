@@ -1,16 +1,16 @@
 // API Endpoints - use environment variables with fallback for development
 const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-  return 'http://localhost:5000/api';
+    if (import.meta.env.VITE_API_BASE_URL) {
+        return import.meta.env.VITE_API_BASE_URL;
+    }
+    return 'http://localhost:5000/api';
 };
 
 const getMediaBaseUrl = () => {
-  if (import.meta.env.VITE_MEDIA_BASE_URL) {
-    return import.meta.env.VITE_MEDIA_BASE_URL;
-  }
-  return 'http://localhost:5000';
+    if (import.meta.env.VITE_MEDIA_BASE_URL) {
+        return import.meta.env.VITE_MEDIA_BASE_URL;
+    }
+    return 'http://localhost:5000';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
