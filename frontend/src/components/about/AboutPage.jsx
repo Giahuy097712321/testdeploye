@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
-import './AboutPage.css';
+import './Aboutpage.css';
 import { ChevronDown, Download } from "lucide-react";
 
 const API_URL = "http://localhost:5000/api/display";
