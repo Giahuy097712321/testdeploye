@@ -31,10 +31,11 @@ const verifyTokenData = (token, type = 'access') => {
 };
 
 /**
- * Middleware: Verify Access Token
- * Xác thực người dùng đã đăng nhập
+ * Middleware: Verify Access Token + Check Session (Single Device Login)
+ * Xác thực người dùng đã đăng nhập và kiểm tra session còn hiệu lực không
  */
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
+  const db = require('../config/db');
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1];
@@ -48,6 +49,25 @@ const verifyToken = (req, res, next) => {
     }
 
     const decoded = verifyTokenData(token, 'access');
+
+    // === KIỂM TRA SESSION (Single Device Login) ===
+    try {
+      const [sessions] = await db.query(
+        "SELECT * FROM user_sessions WHERE user_id = ? AND token = ? AND is_active = TRUE",
+        [decoded.id, token]
+      );
+
+      if (sessions.length === 0) {
+        return res.status(401).json({
+          success: false,
+          error: "Phiên đăng nhập của bạn đã hết hạn hoặc bạn đã đăng nhập từ thiết bị khác",
+          code: 'SESSION_INVALID'
+        });
+      }
+    } catch (dbError) {
+      console.log('Lỗi kiểm tra session (bảng chưa tồn tại):', dbError.message);
+      // Nếu bảng user_sessions chưa tồn tại thì bỏ qua kiểm tra
+    }
 
     req.user = {
       id: decoded.id,

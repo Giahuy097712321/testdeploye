@@ -118,7 +118,7 @@ apiClient.interceptors.request.use(
 );
 
 /**
- * Response Interceptor: Xử lý khi token hết hạn
+ * Response Interceptor: Xử lý khi token hết hạn hoặc session invalid
  */
 apiClient.interceptors.response.use(
     (response) => response,
@@ -128,6 +128,17 @@ apiClient.interceptors.response.use(
         const statusCode = error.response?.status;
 
         console.log(`❌ [apiClient] Response error - Status: ${statusCode}, Code: ${errorCode}, URL: ${error.config?.url}`);
+
+        // === Kiểm tra SESSION_INVALID (đăng nhập từ thiết bị khác) ===
+        if (errorCode === 'SESSION_INVALID') {
+            console.log("🔐 [apiClient] Session invalid - Logged in from another device");
+            localStorage.removeItem('user_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('deviceId');
+            window.location.href = '/dang-nhap?session_invalid=true';
+            return Promise.reject(error);
+        }
 
         // CHỈ xử lý 401 hoặc TOKEN_EXPIRED nếu người dùng ĐÃ ĐĂNG NHẬP
         // Nếu người dùng chưa đăng nhập (không có token), không nên redirect
@@ -159,6 +170,7 @@ apiClient.interceptors.response.use(
                 localStorage.removeItem('user_token');
                 localStorage.removeItem('refresh_token');
                 localStorage.removeItem('user');
+                localStorage.removeItem('deviceId');
                 window.location.href = '/dang-nhap?expired=true';
                 return Promise.reject(error);
             }
