@@ -10,7 +10,7 @@ import AuthInitializer from "./components/auth/AuthInitializer";
 
 /* === IMPORT CÁC COMPONENTS === */
 import UAVLandingPage from "./app/page";
-import AboutPage from "./components/about/Aboutpage.jsx";
+import AboutPage from "./components/about/AboutPage.jsx";
 import ExamPage from "./components/exam/ExamPage";
 import LookupPage from "./components/lookup/LookupPage";
 import LoginPage from "./components/login/LoginPage";
