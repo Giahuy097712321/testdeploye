@@ -1,7 +1,8 @@
 // Cloudinary Upload Service - Upload through Backend
 import { apiClient } from './apiInterceptor';
 
-const API_BASE = "http://localhost:5000/api";
+const getApiBase = () => import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE = getApiBase();
 
 export const uploadToCloudinary = async (file, folder = "uav-training") => {
   try {

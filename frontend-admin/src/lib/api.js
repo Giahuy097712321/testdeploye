@@ -2,8 +2,11 @@ import axios from 'axios';
 
 // === CẬP NHẬT QUAN TRỌNG: Cả API và MEDIA đều dùng cổng 5000 ===
 // Đảm bảo rằng bạn không còn dùng cổng 5001 nữa
-const API_BASE = 'http://localhost:5000/api';
-const MEDIA_BASE = 'http://localhost:5000/api'; 
+const getApiBase = () => import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const getMediaBase = () => import.meta.env.VITE_MEDIA_BASE_URL || 'http://localhost:5000/api';
+
+const API_BASE = getApiBase();
+const MEDIA_BASE = getMediaBase(); 
 
 export const api = {
   // POI APIs (Các điểm 3D)
