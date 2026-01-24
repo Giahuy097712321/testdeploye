@@ -10,7 +10,7 @@ import AuthInitializer from "./components/auth/AuthInitializer";
 
 /* === IMPORT CÁC COMPONENTS === */
 import UAVLandingPage from "./app/page";
-import AboutPage from "./components/about/Aboutpage.jsx";
+import AboutPage from "./components/about/AboutPage.jsx";
 import ExamPage from "./components/exam/ExamPage";
 import LookupPage from "./components/lookup/LookupPage";
 import LoginPage from "./components/login/LoginPage";
@@ -25,10 +25,10 @@ import PrivacyPolicyPage from './components/privacy-policy/PrivacyPolicyPage';
 import TermsOfServicePage from './components/TermsOfServicePage/TermsOfServicePage';
 import UserProfile from "./components/user/UserProfile";
 import PersonalInfo from './components/user/PersonalInfo';
-import MyComments from "./components/user/Comments/MyComments.jsx";
-import ChangePassword from "./components/user/ChangePassword/changePassword.jsx";
-import ExamHistory from './components/user/ExamHistory';
 import LearningHistory from './components/user/LearningHistory';
+import ExamHistory from './components/user/ExamHistory';
+import MyComments from './components/user/Comments/MyComments';
+import ChangePassword from './components/user/ChangePassword/ChangePassword';
 // Import Component 404 (Nếu có) hoặc dùng tạm div
 const NotFound = () => <div className="p-20 text-center">404 - Không tìm thấy trang</div>;
 
@@ -45,7 +45,6 @@ function App() {
             <AliveScope>
               <Routes>
                 <Route element={<MainLayout />}>
-
                   {/* 1. TRANG CHỦ (Ưu tiên cao nhất) */}
                   <Route
                     path="/"
@@ -71,28 +70,20 @@ function App() {
                   <Route path="/khoa-hoc" element={<CoursesPage />} />
                   <Route path="/khoa-hoc/:id" element={<CourseDetailPage />} />
 
-                  {/* 3. ROUTE GIẢI PHÁP (Dynamic Slug) 
-            {/* Route Thông tin user */}
+                  {/* Route Thông tin user */}
                   <Route path="/profile/:id" element={<UserProfile />}>
                     <Route index element={<PersonalInfo />} />
                     <Route path="learning-history" element={<LearningHistory />} />
-
+                    <Route path="exam-history" element={<ExamHistory />} />
+                    <Route path="comments" element={<MyComments />} />
+                    <Route path="doi-mat-khau" element={<ChangePassword />} />
                   </Route>
 
-
-                  {/* 3. ROUTE GIẢI PHÁP (Dynamic Slug) 
-               - Lưu ý: Vì SQL bạn lưu link là "/khai-khoang", "/lam-nghiep"... 
-                 nên ta dùng path="/:id" để bắt các link này.
-               - Quan trọng: Route này bắt buộc đặt CUỐI CÙNG trong danh sách để tránh
-                 nó nhận nhầm các trang như "/gioi-thieu" là một "id" giải pháp.
-            */}
+                  {/* 3. ROUTE GIẢI PHÁP (Dynamic Slug) - Phải đặt CUỐI CÙNG */}
                   <Route path="/:id" element={<SolutionDetail />} />
 
-                  {/* 4. Route 404 (Dành cho các link linh tinh không khớp cái nào ở trên) */}
-                  {/* React Router v6 thông minh hơn trong việc matching, nhưng nếu cần 
-                catch-all thực sự thì có thể dùng path="*" */}
+                  {/* 4. Route 404 */}
                   <Route path="*" element={<NotFound />} />
-
                 </Route>
               </Routes>
             </AliveScope>

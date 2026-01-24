@@ -4,8 +4,9 @@ import { Experience } from '../../../../components/Experience';
 import UI from '../../../../components/UI';
 import ErrorBoundary from '../../../../ErrorBoundary';
 import { Link } from 'react-router-dom';
+import { API_ENDPOINTS } from '../../config/apiConfig';
 
-const API_URL = 'http://localhost:5000/api/points';
+const API_URL = API_ENDPOINTS.POINTS;
 
 // Component Scene 3D (Được 'memo' và định nghĩa BÊN NGOÀI App)
 const Scene = memo(({ onPointClick, points }) => {

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Award, TrendingUp, BookOpen, Trophy, AlertCircle } from 'lucide-react';
 import './CourseScoreboard.css';
+import { API_ENDPOINTS } from '../../config/apiConfig';
 
-const API_BASE = "http://localhost:5000/api/courses";
+const API_BASE = API_ENDPOINTS.COURSES;
 
 const CourseScoreboard = ({ courseId, userId, refreshTrigger }) => {
     const [scoreData, setScoreData] = useState(null);

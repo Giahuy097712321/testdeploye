@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Award, BookOpen } from "lucide-react";
 import "./CoursePage.css";
+import { API_ENDPOINTS, MEDIA_BASE_URL } from "../../config/apiConfig";
 
 // --- CẤU HÌNH API ---
-const API_URL = "http://localhost:5000/api/courses";
-const COMMENTS_API = "http://localhost:5000/api/comments";
-const MEDIA_BASE_URL = "http://localhost:5000";
+const API_URL = API_ENDPOINTS.COURSES;
+const COMMENTS_API = API_ENDPOINTS.COMMENTS;
 
 // --- DANH SÁCH ẢNH BANNER SLIDER ---
 // Bạn thay thế bằng link ảnh thực tế của bạn nhé

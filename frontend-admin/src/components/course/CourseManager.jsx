@@ -22,7 +22,7 @@ import MediaSelector from "../mediaSelector/MediaSelector";
 import { uploadImage, uploadVideo, uploadDocument } from "../../lib/cloudinaryService";
 import { useApi, useApiMutation } from "../../hooks/useApi";
 import { API_ENDPOINTS, MESSAGES, VALIDATION, MEDIA_BASE_URL } from "../../constants/api";
-import "./CourseManager.css";
+import "./Coursemanager.css";
 
 export default function CourseManager() {
   // --- 1. STATES ---
@@ -168,7 +168,7 @@ export default function CourseManager() {
           reject(new Error("Upload error"));
         });
 
-        xhr.open("POST", "http://localhost:5000/api/cloudinary/upload");
+        xhr.open("POST", API_ENDPOINTS.CLOUDINARY + "/upload");
         xhr.setRequestHeader("Authorization", `Bearer ${token}`);
         xhr.send(formData);
       });

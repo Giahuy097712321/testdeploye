@@ -15,14 +15,14 @@ const PORT = process.env.PORT || 5000;
 // === Parse CORS origins từ .env ===
 const getCorsOrigins = () => {
   const origins = [];
-  
+
   // Development origins
   origins.push("http://localhost:5173");
   origins.push("http://localhost:5174");
   origins.push("http://localhost:3000");
   origins.push("http://127.0.0.1:5173");
   origins.push("http://127.0.0.1:5174");
-  
+
   // Production origins từ .env
   if (process.env.FRONTEND_URL) {
     origins.push(process.env.FRONTEND_URL);
@@ -30,39 +30,36 @@ const getCorsOrigins = () => {
   if (process.env.ADMIN_URL) {
     origins.push(process.env.ADMIN_URL);
   }
-  
+
   // Additional origins từ CORS_ORIGINS env var (comma-separated)
   if (process.env.CORS_ORIGINS) {
     const customOrigins = process.env.CORS_ORIGINS.split(',').map(o => o.trim());
     origins.push(...customOrigins);
   }
-  
+
+  // FALLBACK: Always allow Vercel domains and common frontend hosts
+  origins.push('*.vercel.app');
+  origins.push('https://testdeploye.vercel.app');
+  origins.push('https://localhost:3000');
+
   return origins;
 };
 
 const allowedOrigins = getCorsOrigins();
 
+console.log('📋 CORS Configuration:');
+console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
+console.log('CORS_ORIGINS:', process.env.CORS_ORIGINS);
+console.log('✅ Allowed Origins:', allowedOrigins);
+
 // --- CẤU HÌNH CORS ---
+// Simple CORS: Allow all origins with credentials
+// This ensures headers are always sent and frontend can receive data
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    
-    // Kiểm tra trong danh sách allowed origins
-    if (allowedOrigins.some(allowed => {
-      if (allowed.includes('*')) {
-        // Wildcard support (VD: *.vercel.app)
-        const pattern = allowed.replace(/\*/g, '.*');
-        return new RegExp(`^${pattern}$`).test(origin);
-      }
-      return origin === allowed;
-    })) {
-      return callback(null, true);
-    }
-    
-    console.log("⚠️ Blocked CORS from origin:", origin);
-    return callback(new Error('CORS not allowed'), false);
-  },
+  origin: true,  // Allow all origins
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(compression());

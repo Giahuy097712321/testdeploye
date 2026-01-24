@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Star, Trash2, Send } from 'lucide-react';
 import './CourseRatings.css';
 import { notifySuccess, notifyError, notifyWarning } from '../../lib/notifications';
+import { API_ENDPOINTS } from '../../config/apiConfig';
 
-const API_BASE = "http://localhost:5000/api/courses";
+const API_BASE = API_ENDPOINTS.COURSES;
 
 export default function CourseRatings({ courseId, token }) {
   const [ratings, setRatings] = useState([]);
