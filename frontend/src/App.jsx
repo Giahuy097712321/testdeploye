@@ -26,6 +26,9 @@ import TermsOfServicePage from './components/TermsOfServicePage/TermsOfServicePa
 import UserProfile from "./components/user/UserProfile";
 import PersonalInfo from './components/user/PersonalInfo';
 import LearningHistory from './components/user/LearningHistory';
+import ExamHistory from './components/user/ExamHistory';
+import MyComments from './components/user/Comments/MyComments';
+import ChangePassword from './components/user/ChangePassword/ChangePassword';
 // Import Component 404 (Nếu có) hoặc dùng tạm div
 const NotFound = () => <div className="p-20 text-center">404 - Không tìm thấy trang</div>;
 
@@ -71,6 +74,9 @@ function App() {
                   <Route path="/profile/:id" element={<UserProfile />}>
                     <Route index element={<PersonalInfo />} />
                     <Route path="learning-history" element={<LearningHistory />} />
+                    <Route path="exam-history" element={<ExamHistory />} />
+                    <Route path="comments" element={<MyComments />} />
+                    <Route path="doi-mat-khau" element={<ChangePassword />} />
                   </Route>
 
                   {/* 3. ROUTE GIẢI PHÁP (Dynamic Slug) - Phải đặt CUỐI CÙNG */}
