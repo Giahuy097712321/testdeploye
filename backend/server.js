@@ -53,31 +53,18 @@ console.log('CORS_ORIGINS:', process.env.CORS_ORIGINS);
 console.log('✅ Allowed Origins:', allowedOrigins);
 
 // --- CẤU HÌNH CORS ---
+// Simple CORS: Allow all origins with credentials
+// This ensures headers are always sent and frontend can receive data
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-
-    // Kiểm tra trong danh sách allowed origins
-    if (allowedOrigins.some(allowed => {
-      if (allowed.includes('*')) {
-        // Wildcard support (VD: *.vercel.app)
-        const pattern = allowed.replace(/\*/g, '.*');
-        return new RegExp(`^${pattern}$`).test(origin);
-      }
-      return origin === allowed;
-    })) {
-      return callback(null, true);
-    }
-
-    console.log("⚠️ Blocked CORS from origin:", origin);
-    return callback(new Error('CORS not allowed'), false);
-  },
+  origin: true,  // Allow all origins
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(compression());
 app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" });
 
 // Set UTF-8 encoding for all responses
 app.use((req, res, next) => {
