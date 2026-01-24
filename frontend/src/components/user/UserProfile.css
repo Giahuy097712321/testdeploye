@@ -8,7 +8,7 @@
 
 .profile-container {
   display: grid;
-  grid-template-columns: 200px 1fr ;
+  grid-template-columns: 200px 1fr;
   gap: 30px;
   max-width: 1400px;
   margin: 0 auto;
@@ -33,7 +33,7 @@
   padding: 20px;
   text-align: center;
   border-bottom: 1px solid #f0f0f0;
-  height:190px
+  height: 190px
 }
 
 .user-avatar {
@@ -56,13 +56,16 @@
   margin: 0 0 5px;
   color: #000;
 
-  max-width: 14ch;        /* ~2 chữ / dòng */
+  max-width: 14ch;
+  /* ~2 chữ / dòng */
   white-space: normal;
   word-break: break-word;
   line-height: 1.4;
 
-  text-align: center;    /* 👉 CENTER CHỮ */
-  margin-left: auto;     /* 👉 CENTER KHỐI */
+  text-align: center;
+  /* 👉 CENTER CHỮ */
+  margin-left: auto;
+  /* 👉 CENTER KHỐI */
   margin-right: auto;
 }
 
@@ -583,11 +586,13 @@
   padding: 10px 16px;
   border-radius: 10px;
   border: 1px solid #91caff;
-  background: #e6f4ff;      /* xanh rất nhạt */
-  color: #262626;           /* xanh đậm chữ */
+  background: #e6f4ff;
+  /* xanh rất nhạt */
+  color: #262626;
+  /* xanh đậm chữ */
   font-weight: 600;
   cursor: pointer;
-  user-select: none;
+
   transition: all 0.2s ease;
   display: block;
   margin: 16px auto;
@@ -603,8 +608,10 @@
 }
 
 .btn-large {
-  width: 100%;          /* dài bằng container */
-  height: 48px;         /* nút cao hơn */
+  width: 100%;
+  /* dài bằng container */
+  height: 48px;
+  /* nút cao hơn */
   font-size: 16px;
   font-weight: 600;
   border-radius: 8px;
@@ -616,8 +623,10 @@
 }
 
 .action-row .btn-large {
-  flex: 1;              /* Hủy & Lưu mỗi nút chiếm 50% */
+  flex: 1;
+  /* Hủy & Lưu mỗi nút chiếm 50% */
 }
+
 .btn-cancel {
   background: #ff0101;
   color: #ffffff;
@@ -626,7 +635,8 @@
 }
 
 .btn-cancel:hover {
-  background: #ff0004;   /* đỏ cảnh báo */
+  background: #ff0004;
+  /* đỏ cảnh báo */
   border-color: #000000;
   color: #fff;
 }
