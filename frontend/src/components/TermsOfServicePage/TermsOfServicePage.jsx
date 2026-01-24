@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './TermsOfServicePage.css';
+import { API_ENDPOINTS } from '../../config/apiConfig';
 
-const API_URL = "http://localhost:5000/api/display";
+const API_URL = API_ENDPOINTS.DISPLAY;
 
 const TermsOfServicePage = () => {
     const [terms, setTerms] = useState('');

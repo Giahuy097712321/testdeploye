@@ -1,10 +1,9 @@
 import axios from 'axios';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE_URL } from '../config/apiConfig.js';
 
 // Tạo instance axios độc lập
 export const apiClient = axios.create({
-    baseURL: API_BASE,
+    baseURL: API_BASE_URL,
     timeout: 10000,
 });
 

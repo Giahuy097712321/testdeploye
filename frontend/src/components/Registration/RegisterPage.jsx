@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./RegisterPage.css";
 import { toast } from "sonner";
+import { API_ENDPOINTS } from "../../config/apiConfig";
 
 import {
   ArrowLeft,
@@ -17,8 +18,8 @@ import {
 } from "lucide-react";
 
 // URL API
-const API_URL = "http://localhost:5000/api/auth/register";
-const CHECK_EXISTENCE_URL = "http://localhost:5000/api/auth/check-existence";
+const API_URL = API_ENDPOINTS.AUTH + "/register";
+const CHECK_EXISTENCE_URL = API_ENDPOINTS.AUTH + "/check-existence";
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ function RegisterPage() {
   });
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/location/provinces')
+    fetch(API_ENDPOINTS.LOCATION + '/provinces')
       .then(res => res.json()).then(setProvinces).catch(console.error);
   }, []);
 
@@ -118,14 +119,14 @@ function RegisterPage() {
     const provinceId = e.target.value;
     const province = provinces.find(p => p.id == provinceId);
     setFormData(prev => ({ ...prev, permanentCityId: provinceId, permanentCityName: province?.name || "", permanentWardId: "", permanentWardName: "", }));
-    if (provinceId) { fetch(`http://localhost:5000/api/location/wards?province_id=${provinceId}`).then(res => res.json()).then(setPermanentWards).catch(console.error); } else setPermanentWards([]);
+    if (provinceId) { fetch(`${API_ENDPOINTS.LOCATION}/wards?province_id=${provinceId}`).then(res => res.json()).then(setPermanentWards).catch(console.error); } else setPermanentWards([]);
   };
 
   const handleCurrentCityChange = (e) => {
     const provinceId = e.target.value;
     const province = provinces.find(p => p.id == provinceId);
     setFormData(prev => ({ ...prev, currentCityId: provinceId, currentCityName: province?.name || "", currentWardId: "", currentWardName: "", }));
-    if (provinceId) { fetch(`http://localhost:5000/api/location/wards?province_id=${provinceId}`).then(res => res.json()).then(setCurrentWards).catch(console.error); } else setCurrentWards([]);
+    if (provinceId) { fetch(`${API_ENDPOINTS.LOCATION}/wards?province_id=${provinceId}`).then(res => res.json()).then(setCurrentWards).catch(console.error); } else setCurrentWards([]);
   };
 
   // --- VALIDATION ---

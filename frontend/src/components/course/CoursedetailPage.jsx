@@ -5,6 +5,7 @@ import './CoursedetailPage.css'; // Đảm bảo import CSS mới
 import noVideoImage from "../assets/noVideoImage.png";
 import { notifySuccess, notifyError, notifyWarning } from '../../lib/notifications';
 import CourseScoreboard from './CourseScoreboard';
+import { API_ENDPOINTS, MEDIA_BASE_URL } from '../../config/apiConfig';
 
 import {
   Video, FileText, ChevronDown, ChevronUp,
@@ -12,9 +13,8 @@ import {
   Circle, CheckCircle2, Star, Award
 } from 'lucide-react';
 
-const API_BASE = "http://localhost:5000/api/courses";
-const COMMENTS_API = "http://localhost:5000/api/comments";
-const MEDIA_BASE = "http://localhost:5000";
+const API_BASE = API_ENDPOINTS.COURSES;
+const COMMENTS_API = API_ENDPOINTS.COMMENTS;
 
 function CourseDetailPage() {
   const { id } = useParams();

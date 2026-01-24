@@ -4,6 +4,7 @@ import { apiClient } from "../../lib/apiInterceptor";
 import "./ExamPage.css";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { API_ENDPOINTS } from "../../config/apiConfig";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -547,7 +548,7 @@ const ExamPage = () => {
                         </p>
                         {doc.file_url && (
                           <a
-                            href={`http://localhost:5000/api/study-materials/${doc.id}/download`}
+                            href={`${API_ENDPOINTS.STUDY_MATERIALS}/${doc.id}/download`}
                             title="Tải xuống"
                             style={{
                               color: 'var(--primary-color, #0050b8)',
@@ -597,7 +598,7 @@ const ExamPage = () => {
 
                         {doc.file_url && (
                           <a
-                            href={`http://localhost:5000/api/study-materials/${doc.id}/download`}
+                            href={`${API_ENDPOINTS.STUDY_MATERIALS}/${doc.id}/download`}
                             title="Tải xuống"
                             className="exam-doc-download"
                           >

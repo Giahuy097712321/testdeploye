@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation, Outlet } from 'react-router-dom';
 import { apiClient } from '../../lib/apiInterceptor';
 import { notifyWarning, notifyError } from '../../lib/notifications';
+import { API_ENDPOINTS } from '../../config/apiConfig';
 
 import './UserProfile.css';
 import formatDateDDMM from '../../lib/formatDate';
 
-const API_BASE = "http://localhost:5000/api/users";
+const API_BASE = API_ENDPOINTS.USERS;
 
 function UserProfile() {
   const { id } = useParams();

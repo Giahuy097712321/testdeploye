@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import '../Comments/MyComments.css';
 import { Link } from "react-router-dom";
 import { apiClient } from '../../../lib/apiInterceptor';
+import { API_ENDPOINTS } from '../../../config/apiConfig';
 
-const API_BASE = 'http://localhost:5000/api/comments';
+const API_BASE = API_ENDPOINTS.COMMENTS;
 
 function MyComments() {
   const [comments, setComments] = useState([]);

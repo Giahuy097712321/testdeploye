@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 import './Aboutpage.css';
 import { ChevronDown, Download } from "lucide-react";
+import { API_ENDPOINTS } from '../../config/apiConfig';
 
-const API_URL = "http://localhost:5000/api/display";
-const FAQ_API = "http://localhost:5000/api/faqs";
+const API_URL = API_ENDPOINTS.DISPLAY;
+const FAQ_API = API_ENDPOINTS.FAQS;
 
 function AboutPage() {
     useEffect(() => {

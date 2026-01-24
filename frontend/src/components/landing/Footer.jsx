@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_ENDPOINTS } from '../../config/apiConfig';
 
 const Footer = () => {
     // State mặc định
@@ -16,7 +17,7 @@ const Footer = () => {
 
     useEffect(() => {
         // Chỉ cần gọi 1 API footer-config là đủ
-        fetch('http://localhost:5000/api/display/footer-config')
+        fetch(API_ENDPOINTS.DISPLAY + '/footer-config')
             .then(res => res.json())
             .then(data => {
                 if (data.id) setConfig(data);

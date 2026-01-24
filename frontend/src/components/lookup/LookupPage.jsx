@@ -3,9 +3,7 @@ import './LookupPage.css';
 import { Search, FileText, CreditCard, Smartphone, Camera, CheckCircle, XCircle, Lock, RefreshCw, Download } from 'lucide-react';
 import jsQR from 'jsqr';
 import QRCode from 'qrcode';
-
-// API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE_URL } from '../../config/apiConfig';
 
 function LookupPage() {
     const [activeTab, setActiveTab] = useState('so-giay-phep');

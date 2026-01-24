@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import "./solutions_page.css"; 
+import "./solutions_page.css";
+import { API_ENDPOINTS } from "../../config/apiConfig";
 
 const SolutionDetail = () => {
   const { id } = useParams();
@@ -8,7 +9,7 @@ const SolutionDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/solutions/${id}`)
+    fetch(`${API_ENDPOINTS.SOLUTIONS}/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Not found");
         return res.json();
