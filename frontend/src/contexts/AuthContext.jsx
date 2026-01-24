@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [token, setToken] = useState(null);
+    const [sessionInvalidReason, setSessionInvalidReason] = useState(null);
 
     // === Kiểm tra token khi app load ===
     useEffect(() => {
@@ -52,6 +53,12 @@ export const AuthProvider = ({ children }) => {
                 }
             } catch (error) {
                 console.error('[AuthContext] Lỗi xác thực token:', error);
+
+                // === Kiểm tra lý do SESSION_INVALID (đăng nhập từ thiết bị khác) ===
+                if (error.response?.data?.code === 'SESSION_INVALID') {
+                    console.log('[AuthContext] Session invalid - logged in from another device');
+                    setSessionInvalidReason('SESSION_INVALID');
+                }
 
                 // Nếu interceptor đã logout (redirect), không cần xử lý thêm
                 if (window.location.search.includes('expired=true')) {
@@ -113,6 +120,15 @@ export const AuthProvider = ({ children }) => {
                 }
             } catch (error) {
                 console.warn('[AuthContext Refresh] Token check failed:', error.message);
+                
+                // === Kiểm tra lý do SESSION_INVALID (đăng nhập từ thiết bị khác) ===
+                if (error.response?.data?.code === 'SESSION_INVALID') {
+                    console.log('[AuthContext Refresh] Session invalid - logged in from another device');
+                    setSessionInvalidReason('SESSION_INVALID');
+                    logout();
+                    return;
+                }
+                
                 // Logout nếu token không hợp lệ
                 logout();
             }
@@ -136,9 +152,11 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('user_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('deviceId');
         setToken(null);
         setUser(null);
         setIsAuthenticated(false);
+        setSessionInvalidReason(null);
     };
 
     const value = {
@@ -146,6 +164,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         isLoading,
         token,
+        sessionInvalidReason,
         login,
         logout
     };
