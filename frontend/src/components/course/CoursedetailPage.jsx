@@ -437,7 +437,17 @@ function CourseDetailPage() {
   const getFullMediaPath = (path) => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    return `${MEDIA_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
+    return `${MEDIA_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
+  const getAvatarUrl = (avatar, userId) => {
+    if (!avatar) {
+      return `https://i.pravatar.cc/40?u=${userId}`;
+    }
+    if (avatar.startsWith('http')) {
+      return avatar;
+    }
+    return `${MEDIA_BASE_URL}${avatar.startsWith('/') ? '' : '/'}${avatar}`;
   };
 
   const handleLessonSelect = async (lesson) => {
@@ -1580,13 +1590,7 @@ function CourseDetailPage() {
                             <div className="comment-header">
                               <div className="comment-author-info">
                                 <img
-                                  src={
-                                    comment.user_avatar
-                                      ? (comment.user_avatar.startsWith('http')
-                                        ? comment.user_avatar
-                                        : `${MEDIA_BASE}${comment.user_avatar.startsWith('/') ? '' : '/'}${comment.user_avatar}`)
-                                      : `https://i.pravatar.cc/40?u=${comment.user_id}`
-                                  }
+                                  src={getAvatarUrl(comment.user_avatar, comment.user_id)}
                                   alt={comment.user_name}
                                   className="comment-avatar"
                                   onError={(e) => e.target.src = `https://i.pravatar.cc/40?u=${comment.user_id}`}
