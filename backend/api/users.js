@@ -166,6 +166,16 @@ router.put("/:id", verifyAdmin, async (req, res) => {
       [full_name, email, phone, role, isActiveParam, id]
     );
 
+    // Chuyển đổi string rỗng thành NULL để tránh lỗi với các trường DATE
+    const profileData = {
+      identity_number: identity_number || null,
+      gender: gender || null,
+      birth_date: birth_date || null,
+      address: address || null,
+      target_tier: target_tier || null,
+      uav_type: uav_type || null
+    };
+
     // Cập nhật/tao profile trong bảng user_profiles
     const [profileUpdateResult] = await db.query(
       `UPDATE user_profiles
@@ -176,7 +186,7 @@ router.put("/:id", verifyAdmin, async (req, res) => {
            target_tier = COALESCE(?, target_tier),
            uav_type = COALESCE(?, uav_type)
        WHERE user_id = ?`,
-      [identity_number, gender, birth_date, address, target_tier, uav_type, id]
+      [profileData.identity_number, profileData.gender, profileData.birth_date, profileData.address, profileData.target_tier, profileData.uav_type, id]
     );
 
     // Nếu chưa có profile (affectedRows === 0), tạo mới
