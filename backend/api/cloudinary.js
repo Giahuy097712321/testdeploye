@@ -183,13 +183,27 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
         // Write file
         await fsExtra.writeFile(filePath, req.file.buffer);
 
-        const port = req.socket.localPort || process.env.PORT || 5000;
         const relPath = `${uploadFolder}/${filename}`;
 
         console.log("Saved to local storage:", relPath);
 
+        // Xác định URL dựa vào environment
+        // Trên production (Render, Vercel): dùng BACKEND_URL env var
+        // Trên local: dùng http://localhost:port
+        let baseUrl;
+        if (process.env.BACKEND_URL) {
+          // Production: sử dụng BACKEND_URL từ environment variable
+          baseUrl = process.env.BACKEND_URL.replace(/\/$/, ''); // Remove trailing slash
+          console.log("Using production BACKEND_URL:", baseUrl);
+        } else {
+          // Local development
+          const port = req.socket.localPort || process.env.PORT || 5000;
+          baseUrl = `http://localhost:${port}`;
+          console.log("Using local baseUrl:", baseUrl);
+        }
+
         uploadResult = {
-          secure_url: `http://localhost:${port}/uploads/${relPath}`,
+          secure_url: `${baseUrl}/uploads/${relPath}`,
           public_id: `local-${sanitized}`,
           resource_type: resourceType,
           display_name: displayName
