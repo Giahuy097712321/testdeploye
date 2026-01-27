@@ -40,10 +40,21 @@ router.get("/", verifyAdmin, async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT 
-        u.id, u.full_name, u.email, u.phone, u.role, u.is_active, u.created_at,
-        p.identity_number, p.address, p.birth_date, p.gender, p.target_tier
+        u.id, u.full_name, u.email, u.phone, u.role, u.is_active, u.is_approved, u.created_at, u.avatar,
+        p.identity_number, p.address, p.birth_date, p.gender, p.target_tier,
+        p.job_title, p.work_place, p.current_address, p.permanent_address,
+        p.permanent_city_id, p.permanent_ward_id, p.current_city_id, p.current_ward_id,
+        prov_perm.name as permanent_city_name, ward_perm.name as permanent_ward_name,
+        prov_curr.name as current_city_name, ward_curr.name as current_ward_name,
+        p.emergency_contact_name, p.emergency_contact_phone, p.emergency_contact_relation,
+        p.uav_type, p.usage_purpose, p.operation_area, p.uav_experience,
+        p.identity_image_front, p.identity_image_back
       FROM users u
       LEFT JOIN user_profiles p ON u.id = p.user_id
+      LEFT JOIN provinces prov_perm ON p.permanent_city_id = prov_perm.id
+      LEFT JOIN provinces prov_curr ON p.current_city_id = prov_curr.id
+      LEFT JOIN wards ward_perm ON p.permanent_ward_id = ward_perm.id
+      LEFT JOIN wards ward_curr ON p.current_ward_id = ward_curr.id
       WHERE u.role = 'student'
       ORDER BY u.created_at DESC
     `);
@@ -71,10 +82,34 @@ router.get("/:id/profile", verifyStudent, async (req, res) => {
         p.birth_date,
         p.address,
         p.target_tier,
-        p.uav_type
+        p.uav_type,
+        p.job_title,
+        p.work_place,
+        p.current_address,
+        p.permanent_address,
+        p.permanent_city_id,
+        p.permanent_ward_id,
+        p.current_city_id,
+        p.current_ward_id,
+        prov_perm.name as permanent_city_name, 
+        ward_perm.name as permanent_ward_name,
+        prov_curr.name as current_city_name, 
+        ward_curr.name as current_ward_name,
+        p.emergency_contact_name,
+        p.emergency_contact_phone,
+        p.emergency_contact_relation,
+        p.usage_purpose,
+        p.operation_area,
+        p.uav_experience,
+        p.identity_image_front,
+        p.identity_image_back
         
       FROM users u
       LEFT JOIN user_profiles p ON u.id = p.user_id
+      LEFT JOIN provinces prov_perm ON p.permanent_city_id = prov_perm.id
+      LEFT JOIN provinces prov_curr ON p.current_city_id = prov_curr.id
+      LEFT JOIN wards ward_perm ON p.permanent_ward_id = ward_perm.id
+      LEFT JOIN wards ward_curr ON p.current_ward_id = ward_curr.id
       WHERE u.id = ?
     `, [requestedId]);
 
@@ -165,7 +200,12 @@ router.put("/:id", verifyAdmin, async (req, res) => {
   const {
     full_name, email, phone, role, is_active,
     identity_number, gender, birth_date, address,
-    target_tier, uav_type
+    target_tier, uav_type,
+    job_title, work_place, current_address, permanent_address,
+    permanent_city_id, permanent_ward_id, current_city_id, current_ward_id,
+    emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
+    usage_purpose, operation_area, uav_experience,
+    identity_image_front, identity_image_back
   } = req.body;
 
   try {
@@ -189,7 +229,23 @@ router.put("/:id", verifyAdmin, async (req, res) => {
       birth_date: birth_date || null,
       address: address || null,
       target_tier: target_tier || null,
-      uav_type: uav_type || null
+      uav_type: uav_type || null,
+      job_title: job_title || null,
+      work_place: work_place || null,
+      current_address: current_address || null,
+      permanent_address: permanent_address || null,
+      permanent_city_id: permanent_city_id || null,
+      permanent_ward_id: permanent_ward_id || null,
+      current_city_id: current_city_id || null,
+      current_ward_id: current_ward_id || null,
+      emergency_contact_name: emergency_contact_name || null,
+      emergency_contact_phone: emergency_contact_phone || null,
+      emergency_contact_relation: emergency_contact_relation || null,
+      usage_purpose: usage_purpose || null,
+      operation_area: operation_area || null,
+      uav_experience: uav_experience || null,
+      identity_image_front: identity_image_front || null,
+      identity_image_back: identity_image_back || null
     };
 
     // Cập nhật/tao profile trong bảng user_profiles
@@ -200,17 +256,57 @@ router.put("/:id", verifyAdmin, async (req, res) => {
            birth_date = COALESCE(?, birth_date),
            address = COALESCE(?, address),
            target_tier = COALESCE(?, target_tier),
-           uav_type = COALESCE(?, uav_type)
+           uav_type = COALESCE(?, uav_type),
+           job_title = COALESCE(?, job_title),
+           work_place = COALESCE(?, work_place),
+           current_address = COALESCE(?, current_address),
+           permanent_address = COALESCE(?, permanent_address),
+           permanent_city_id = COALESCE(?, permanent_city_id),
+           permanent_ward_id = COALESCE(?, permanent_ward_id),
+           current_city_id = COALESCE(?, current_city_id),
+           current_ward_id = COALESCE(?, current_ward_id),
+           emergency_contact_name = COALESCE(?, emergency_contact_name),
+           emergency_contact_phone = COALESCE(?, emergency_contact_phone),
+           emergency_contact_relation = COALESCE(?, emergency_contact_relation),
+           usage_purpose = COALESCE(?, usage_purpose),
+           operation_area = COALESCE(?, operation_area),
+           uav_experience = COALESCE(?, uav_experience),
+           identity_image_front = COALESCE(?, identity_image_front),
+           identity_image_back = COALESCE(?, identity_image_back)
        WHERE user_id = ?`,
-      [profileData.identity_number, profileData.gender, profileData.birth_date, profileData.address, profileData.target_tier, profileData.uav_type, id]
+      [
+        profileData.identity_number, 
+        profileData.gender, 
+        profileData.birth_date, 
+        profileData.address, 
+        profileData.target_tier, 
+        profileData.uav_type,
+        profileData.job_title,
+        profileData.work_place,
+        profileData.current_address,
+        profileData.permanent_address,
+        profileData.permanent_city_id,
+        profileData.permanent_ward_id,
+        profileData.current_city_id,
+        profileData.current_ward_id,
+        profileData.emergency_contact_name,
+        profileData.emergency_contact_phone,
+        profileData.emergency_contact_relation,
+        profileData.usage_purpose,
+        profileData.operation_area,
+        profileData.uav_experience,
+        profileData.identity_image_front,
+        profileData.identity_image_back,
+        id
+      ]
     );
 
     // Nếu chưa có profile (affectedRows === 0), tạo mới
     if (profileUpdateResult && profileUpdateResult.affectedRows === 0) {
       await db.query(
-        `INSERT INTO user_profiles (user_id, identity_number, gender, birth_date, address, target_tier, uav_type)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [id, identity_number || null, normalizeGenderForStorage(gender), birth_date || null, address || null, target_tier || null, uav_type || null]
+        `INSERT INTO user_profiles (user_id, identity_number, gender, birth_date, address, target_tier, uav_type, job_title, work_place, current_address, permanent_address, permanent_city_id, permanent_ward_id, current_city_id, current_ward_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relation, usage_purpose, operation_area, uav_experience, identity_image_front, identity_image_back)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, profileData.identity_number, profileData.gender, profileData.birth_date, profileData.address, profileData.target_tier, profileData.uav_type, profileData.job_title, profileData.work_place, profileData.current_address, profileData.permanent_address, profileData.permanent_city_id, profileData.permanent_ward_id, profileData.current_city_id, profileData.current_ward_id, profileData.emergency_contact_name, profileData.emergency_contact_phone, profileData.emergency_contact_relation, profileData.usage_purpose, profileData.operation_area, profileData.uav_experience, profileData.identity_image_front, profileData.identity_image_back]
       );
     }
 
@@ -429,6 +525,35 @@ router.get("/:id/scores", verifyAdmin, async (req, res) => {
   } catch (error) {
     console.error("Lỗi lấy điểm:", error);
     res.status(500).json({ error: "Lỗi server" });
+  }
+});
+
+// --- PUT: Phê duyệt người dùng ---
+router.put("/:id/approve", verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_approved } = req.body;
+
+    if (typeof is_approved !== 'boolean' && typeof is_approved !== 'number') {
+      return res.status(400).json({ error: "is_approved phải là boolean hoặc number (0/1)" });
+    }
+
+    const [result] = await db.query(
+      "UPDATE users SET is_approved = ? WHERE id = ? AND role = 'student'",
+      [is_approved ? 1 : 0, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Không tìm thấy người dùng" });
+    }
+
+    res.json({
+      message: `${is_approved ? 'Phê duyệt' : 'Hủy phê duyệt'} thành công`,
+      is_approved: is_approved ? 1 : 0
+    });
+  } catch (error) {
+    console.error("Lỗi phê duyệt người dùng:", error);
+    res.status(500).json({ error: "Lỗi server khi phê duyệt người dùng" });
   }
 });
 

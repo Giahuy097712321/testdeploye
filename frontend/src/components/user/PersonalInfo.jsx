@@ -135,12 +135,22 @@ function PersonalInfo() {
 
   // Handle avatar upload
   const handleAvatarClick = () => {
+    if (!profile?.is_approved) {
+      notifyWarning('Tài khoản của bạn chưa được phê duyệt. Vui lòng chờ admin phê duyệt để sử dụng tính năng này.');
+      return;
+    }
     fileInputRef.current?.click();
   };
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Check if user is approved
+    if (!profile?.is_approved) {
+      notifyWarning('Tài khoản của bạn chưa được phê duyệt. Vui lòng chờ admin phê duyệt để sử dụng tính năng này.');
+      return;
+    }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -433,11 +443,12 @@ function PersonalInfo() {
                 className="info-avatar-large"
                 onClick={handleAvatarClick}
                 style={{
-                  cursor: 'pointer',
+                  cursor: profile?.is_approved ? 'pointer' : 'not-allowed',
                   position: 'relative',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  opacity: profile?.is_approved ? 1 : 0.6
                 }}
-                title="Nhấn để thay đổi ảnh đại diện"
+                title={profile?.is_approved ? "Nhấn để thay đổi ảnh đại diện" : "Tài khoản chưa được phê duyệt"}
               >
                 {isUploadingAvatar ? (
                   <span style={{ fontSize: '14px' }}>...</span>

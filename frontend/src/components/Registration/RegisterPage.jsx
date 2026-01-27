@@ -53,8 +53,23 @@ function RegisterPage() {
   });
 
   useEffect(() => {
-    fetch(API_ENDPOINTS.LOCATION + '/provinces')
-      .then(res => res.json()).then(setProvinces).catch(console.error);
+    const fetchProvinces = async () => {
+      try {
+        const url = `${API_ENDPOINTS.LOCATION}/provinces`;
+        console.log('Fetching provinces from:', url);
+        const res = await fetch(url);
+        const data = await res.json();
+        console.log('Provinces loaded:', data?.length, 'items');
+        if (Array.isArray(data)) {
+          setProvinces(data);
+        } else {
+          console.error('Provinces data is not an array:', data);
+        }
+      } catch (error) {
+        console.error('Error loading provinces:', error);
+      }
+    };
+    fetchProvinces();
   }, []);
 
   useEffect(() => {
@@ -203,14 +218,46 @@ function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    const submitData = {
-      ...formData,
-      finalPermanentAddress: `${formData.permanentAddress}, ${formData.permanentWardName}, ${formData.permanentCityName}`,
-      finalCurrentAddress: formData.sameAsPermanent ? `${formData.permanentAddress}, ${formData.permanentWardName}, ${formData.permanentCityName}` : `${formData.currentAddress}, ${formData.currentWardName}, ${formData.currentCityName}`,
-    };
-    delete submitData.cccdFront; delete submitData.cccdBack;
-
     try {
+      let cccdFrontUrl = null;
+      let cccdBackUrl = null;
+
+      // Upload CCCD Front lên backend (proxy Cloudinary)
+      if (formData.cccdFront) {
+        const formDataFront = new FormData();
+        formDataFront.append('file', formData.cccdFront);
+
+        const resFront = await fetch(`${API_ENDPOINTS.CLOUDINARY}/upload-cccd`, {
+          method: 'POST',
+          body: formDataFront
+        });
+        const dataFront = await resFront.json();
+        if (!resFront.ok) throw new Error(dataFront.error || 'Không thể upload CCCD mặt trước');
+        cccdFrontUrl = dataFront.secure_url;
+      }
+
+      // Upload CCCD Back lên backend (proxy Cloudinary)
+      if (formData.cccdBack) {
+        const formDataBack = new FormData();
+        formDataBack.append('file', formData.cccdBack);
+
+        const resBack = await fetch(`${API_ENDPOINTS.CLOUDINARY}/upload-cccd`, {
+          method: 'POST',
+          body: formDataBack
+        });
+        const dataBack = await resBack.json();
+        if (!resBack.ok) throw new Error(dataBack.error || 'Không thể upload CCCD mặt sau');
+        cccdBackUrl = dataBack.secure_url;
+      }
+
+      const submitData = {
+        ...formData,
+        finalPermanentAddress: `${formData.permanentAddress}, ${formData.permanentWardName}, ${formData.permanentCityName}`,
+        finalCurrentAddress: formData.sameAsPermanent ? `${formData.permanentAddress}, ${formData.permanentWardName}, ${formData.permanentCityName}` : `${formData.currentAddress}, ${formData.currentWardName}, ${formData.currentCityName}`,
+        cccdFront: cccdFrontUrl,
+        cccdBack: cccdBackUrl
+      };
+
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -266,11 +313,169 @@ function RegisterPage() {
   const renderStep2 = () => (
     <div className="register-step">
       <h2 className="step-title">Thông tin cá nhân</h2>
-      <div className="form-section"><h3><CreditCard size={20} style={{ marginBottom: '-4px', marginRight: '8px' }} />Ảnh chụp CCCD/CMND</h3><p style={{ fontSize: '0.9rem', color: '#b0b0b0', marginBottom: '15px' }}>Vui lòng tải lên ảnh chụp rõ nét, không bị lóa.</p><div className="form-row"><div className="form-group"><label>Mặt trước <span style={{ color: 'red' }}>*</span></label><div className="camera-box" style={{ margin: 0 }}><label className="camera-placeholder" style={{ cursor: 'pointer', overflow: 'hidden', height: '180px' }}>{previewFront ? (<img src={previewFront} alt="CCCD Front" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />) : (<div style={{ textAlign: 'center' }}><Camera size={32} className="camera-icon" /><p className="camera-instruction">Tải lên mặt trước</p></div>)}<input type="file" name="cccdFront" accept="image/*" onChange={handleInputChange} style={{ display: 'none' }} /></label>{errors.cccdFront && <p className="error-text" style={{ textAlign: 'center' }}>{errors.cccdFront}</p>}</div></div><div className="form-group"><label>Mặt sau <span style={{ color: 'red' }}>*</span></label><div className="camera-box" style={{ margin: 0 }}><label className="camera-placeholder" style={{ cursor: 'pointer', overflow: 'hidden', height: '180px' }}>{previewBack ? (<img src={previewBack} alt="CCCD Back" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />) : (<div style={{ textAlign: 'center' }}><Camera size={32} className="camera-icon" /><p className="camera-instruction">Tải lên mặt sau</p></div>)}<input type="file" name="cccdBack" accept="image/*" onChange={handleInputChange} style={{ display: 'none' }} /></label>{errors.cccdBack && <p className="error-text" style={{ textAlign: 'center' }}>{errors.cccdBack}</p>}</div></div></div></div>
-      <div className="form-section"><h3>Thông tin cơ bản</h3><div className="form-row"><div className="form-group"><label>Họ và tên</label><input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} className={`form-input ${errors.fullName ? "input-error" : ""}`} placeholder="NHẬP CHỮ IN HOA" />{errors.fullName && <p className="error-text">{errors.fullName}</p>}</div><div className="form-group"><label>Ngày sinh</label><input type="date" name="birthDate" value={formData.birthDate} onChange={handleInputChange} className={`form-input ${errors.birthDate ? "input-error" : ""}`} />{errors.birthDate && <p className="error-text">{errors.birthDate}</p>}</div></div><div className="form-row"><div className="form-group"><label>Số CCCD/CMND</label><input type="text" name="cccd" value={formData.cccd} onChange={handleInputChange} className={`form-input ${errors.cccd ? "input-error" : ""}`} />{errors.cccd && <p className="error-text">{errors.cccd}</p>}</div><div className="form-group"><label>Giới tính</label><select name="gender" value={formData.gender} onChange={handleInputChange} className={`form-select ${errors.gender ? "input-error" : ""}`}><option value="">--Chọn--</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option></select>{errors.gender && <p className="error-text">{errors.gender}</p>}</div></div><div className="form-row"><div className="form-group"><label>Nghề nghiệp <span style={{ fontWeight: 'normal', fontSize: '12px' }}>(Tùy chọn)</span></label><input type="text" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} className="form-input" /></div><div className="form-group"><label>Đơn vị công tác <span style={{ fontWeight: 'normal', fontSize: '12px' }}>(Tùy chọn)</span></label><input type="text" name="workPlace" value={formData.workPlace} onChange={handleInputChange} className="form-input" /></div></div></div>
-      <div className="form-section"><h3><MapPin size={18} style={{ display: 'inline', marginBottom: '-3px' }} /> Hộ khẩu thường trú</h3><div className="form-row"><div className="form-group"><label>Tỉnh/Thành phố</label><select value={formData.permanentCityId} onChange={handlePermanentCityChange} className={`form-select ${errors.permanentCityId ? "input-error" : ""}`}><option value="">-- Chọn --</option>{provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>{errors.permanentCityId && <p className="error-text">{errors.permanentCityId}</p>}</div><div className="form-group"><label>Xã/Phường</label><select value={formData.permanentWardId} onChange={(e) => { const ward = permanentWards.find(w => w.id == e.target.value); setFormData(prev => ({ ...prev, permanentWardId: ward?.id, permanentWardName: ward?.name })); }} className={`form-select ${errors.permanentWardId ? "input-error" : ""}`} disabled={!permanentWards.length}><option value="">-- Chọn --</option>{permanentWards.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select>{errors.permanentWardId && <p className="error-text">{errors.permanentWardId}</p>}</div></div><div className="form-group"><label>Số nhà, tên đường, thôn/xóm</label><input type="text" name="permanentAddress" value={formData.permanentAddress} onChange={handleInputChange} className={`form-input ${errors.permanentAddress ? "input-error" : ""}`} />{errors.permanentAddress && <p className="error-text">{errors.permanentAddress}</p>}</div></div>
-      <div className="form-section" style={{ marginTop: '30px', borderTop: '1px dashed #555', paddingTop: '20px' }}><h3><MapPin size={18} style={{ display: 'inline', marginBottom: '-3px' }} /> Nơi ở hiện tại</h3><label className="checkbox-label" style={{ marginBottom: '20px' }}><input type="checkbox" name="sameAsPermanent" checked={formData.sameAsPermanent} onChange={handleInputChange} /><span>Giống hộ khẩu thường trú</span></label>{!formData.sameAsPermanent && (<><div className="form-row"><div className="form-group"><label>Tỉnh/Thành phố</label><select value={formData.currentCityId} onChange={handleCurrentCityChange} className={`form-select ${errors.currentCityId ? "input-error" : ""}`}><option value="">-- Chọn --</option>{provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>{errors.currentCityId && <p className="error-text">{errors.currentCityId}</p>}</div><div className="form-group"><label>Xã/Phường</label><select value={formData.currentWardId} onChange={(e) => { const ward = currentWards.find(w => w.id == e.target.value); setFormData(prev => ({ ...prev, currentWardId: ward?.id, currentWardName: ward?.name })); }} className={`form-select ${errors.currentWardId ? "input-error" : ""}`} disabled={!currentWards.length}><option value="">-- Chọn --</option>{currentWards.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select>{errors.currentWardId && <p className="error-text">{errors.currentWardId}</p>}</div></div><div className="form-group"><label>Số nhà, tên đường, thôn/xóm</label><input type="text" name="currentAddress" value={formData.currentAddress} onChange={handleInputChange} className={`form-input ${errors.currentAddress ? "input-error" : ""}`} />{errors.currentAddress && <p className="error-text">{errors.currentAddress}</p>}</div></>)}</div>
-      <div className="form-actions"><button type="button" onClick={handleBack} className="btn btn-secondary"><ArrowLeft size={20} /> Quay lại</button><button type="button" onClick={handleNext} className="btn btn-primary">Tiếp tục <ArrowRight size={20} /></button></div>
+
+      {/* CCCD SECTION */}
+      <div className="form-section">
+        <h3><CreditCard size={20} style={{ marginBottom: '-4px', marginRight: '8px' }} />Ảnh chụp CCCD/CMND</h3>
+        <p style={{ fontSize: '0.9rem', color: '#b0b0b0', marginBottom: '15px' }}>Vui lòng tải lên ảnh chụp rõ nét, không bị lóa.</p>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Mặt trước <span style={{ color: 'red' }}>*</span></label>
+            <div className="camera-box" style={{ margin: 0 }}>
+              <label className="camera-placeholder" style={{ cursor: 'pointer', overflow: 'hidden', height: '180px' }}>
+                {previewFront ? (
+                  <img src={previewFront} alt="CCCD Front" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <Camera size={32} className="camera-icon" />
+                    <p className="camera-instruction">Tải lên mặt trước</p>
+                  </div>
+                )}
+                <input type="file" name="cccdFront" accept="image/*" onChange={handleInputChange} style={{ display: 'none' }} />
+              </label>
+              {errors.cccdFront && <p className="error-text" style={{ textAlign: 'center' }}>{errors.cccdFront}</p>}
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Mặt sau <span style={{ color: 'red' }}>*</span></label>
+            <div className="camera-box" style={{ margin: 0 }}>
+              <label className="camera-placeholder" style={{ cursor: 'pointer', overflow: 'hidden', height: '180px' }}>
+                {previewBack ? (
+                  <img src={previewBack} alt="CCCD Back" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <Camera size={32} className="camera-icon" />
+                    <p className="camera-instruction">Tải lên mặt sau</p>
+                  </div>
+                )}
+                <input type="file" name="cccdBack" accept="image/*" onChange={handleInputChange} style={{ display: 'none' }} />
+              </label>
+              {errors.cccdBack && <p className="error-text" style={{ textAlign: 'center' }}>{errors.cccdBack}</p>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BASIC INFO SECTION */}
+      <div className="form-section">
+        <h3>Thông tin cơ bản</h3>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Họ và tên</label>
+            <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} className={`form-input ${errors.fullName ? "input-error" : ""}`} placeholder="NHẬP CHỮ IN HOA" />
+            {errors.fullName && <p className="error-text">{errors.fullName}</p>}
+          </div>
+          <div className="form-group">
+            <label>Ngày sinh</label>
+            <input type="date" name="birthDate" value={formData.birthDate} onChange={handleInputChange} className={`form-input ${errors.birthDate ? "input-error" : ""}`} />
+            {errors.birthDate && <p className="error-text">{errors.birthDate}</p>}
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Số CCCD/CMND</label>
+            <input type="text" name="cccd" value={formData.cccd} onChange={handleInputChange} className={`form-input ${errors.cccd ? "input-error" : ""}`} />
+            {errors.cccd && <p className="error-text">{errors.cccd}</p>}
+          </div>
+          <div className="form-group">
+            <label>Giới tính</label>
+            <select name="gender" value={formData.gender} onChange={handleInputChange} className={`form-select ${errors.gender ? "input-error" : ""}`}>
+              <option value="">--Chọn--</option>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+            {errors.gender && <p className="error-text">{errors.gender}</p>}
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Nghề nghiệp <span style={{ fontWeight: 'normal', fontSize: '12px' }}>(Tùy chọn)</span></label>
+            <input type="text" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} className="form-input" />
+          </div>
+          <div className="form-group">
+            <label>Đơn vị công tác <span style={{ fontWeight: 'normal', fontSize: '12px' }}>(Tùy chọn)</span></label>
+            <input type="text" name="workPlace" value={formData.workPlace} onChange={handleInputChange} className="form-input" />
+          </div>
+        </div>
+      </div>
+
+      {/* PERMANENT ADDRESS SECTION */}
+      <div className="form-section">
+        <h3><MapPin size={18} style={{ display: 'inline', marginBottom: '-3px' }} /> Hộ khẩu thường trú</h3>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Tỉnh/Thành phố</label>
+            <select value={formData.permanentCityId} onChange={handlePermanentCityChange} className={`form-select ${errors.permanentCityId ? "input-error" : ""}`}>
+              <option value="">-- Chọn --</option>
+              {provinces && provinces.length > 0 ? (
+                provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+              ) : (
+                <option disabled>Đang tải dữ liệu...</option>
+              )}
+            </select>
+            {errors.permanentCityId && <p className="error-text">{errors.permanentCityId}</p>}
+          </div>
+          <div className="form-group">
+            <label>Xã/Phường</label>
+            <select value={formData.permanentWardId} onChange={(e) => { const ward = permanentWards.find(w => w.id == e.target.value); setFormData(prev => ({ ...prev, permanentWardId: ward?.id, permanentWardName: ward?.name })); }} className={`form-select ${errors.permanentWardId ? "input-error" : ""}`} disabled={!permanentWards || permanentWards.length === 0}>
+              <option value="">-- Chọn --</option>
+              {permanentWards && permanentWards.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+            </select>
+            {errors.permanentWardId && <p className="error-text">{errors.permanentWardId}</p>}
+          </div>
+        </div>
+        <div className="form-group">
+          <label>Số nhà, tên đường, thôn/xóm</label>
+          <input type="text" name="permanentAddress" value={formData.permanentAddress} onChange={handleInputChange} className={`form-input ${errors.permanentAddress ? "input-error" : ""}`} />
+          {errors.permanentAddress && <p className="error-text">{errors.permanentAddress}</p>}
+        </div>
+      </div>
+
+      {/* CURRENT ADDRESS SECTION */}
+      <div className="form-section" style={{ marginTop: '30px', borderTop: '1px dashed #555', paddingTop: '20px' }}>
+        <h3><MapPin size={18} style={{ display: 'inline', marginBottom: '-3px' }} /> Nơi ở hiện tại</h3>
+        <label className="checkbox-label" style={{ marginBottom: '20px' }}>
+          <input type="checkbox" name="sameAsPermanent" checked={formData.sameAsPermanent} onChange={handleInputChange} />
+          <span>Giống hộ khẩu thường trú</span>
+        </label>
+        {!formData.sameAsPermanent && (
+          <>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Tỉnh/Thành phố</label>
+                <select value={formData.currentCityId} onChange={handleCurrentCityChange} className={`form-select ${errors.currentCityId ? "input-error" : ""}`}>
+                  <option value="">-- Chọn --</option>
+                  {provinces && provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                {errors.currentCityId && <p className="error-text">{errors.currentCityId}</p>}
+              </div>
+              <div className="form-group">
+                <label>Xã/Phường</label>
+                <select value={formData.currentWardId} onChange={(e) => { const ward = currentWards.find(w => w.id == e.target.value); setFormData(prev => ({ ...prev, currentWardId: ward?.id, currentWardName: ward?.name })); }} className={`form-select ${errors.currentWardId ? "input-error" : ""}`} disabled={!currentWards || currentWards.length === 0}>
+                  <option value="">-- Chọn --</option>
+                  {currentWards && currentWards.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                </select>
+                {errors.currentWardId && <p className="error-text">{errors.currentWardId}</p>}
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Số nhà, tên đường, thôn/xóm</label>
+              <input type="text" name="currentAddress" value={formData.currentAddress} onChange={handleInputChange} className={`form-input ${errors.currentAddress ? "input-error" : ""}`} />
+              {errors.currentAddress && <p className="error-text">{errors.currentAddress}</p>}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* FORM ACTIONS */}
+      <div className="form-actions">
+        <button type="button" onClick={handleBack} className="btn btn-secondary">
+          <ArrowLeft size={20} /> Quay lại
+        </button>
+        <button type="button" onClick={handleNext} className="btn btn-primary">
+          Tiếp tục <ArrowRight size={20} />
+        </button>
+      </div>
     </div>
   );
 
