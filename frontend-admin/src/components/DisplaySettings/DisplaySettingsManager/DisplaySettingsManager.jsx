@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './DisplaySettingsManager.css';
 import '../LegalManagement/LegalManagement.css'; // Thêm CSS cho legal management
 import { notifyWarning, notifyError } from '../../../lib/notifications';
+import { apiClient } from '../../../lib/apiInterceptor';
 import { API_ENDPOINTS } from '../../../config/apiConfig';
 
 const API_URL = API_ENDPOINTS.DISPLAY;
@@ -57,23 +58,23 @@ export default function DisplaySettingsManager() {
 
   const fetchNotis = async () => {
     try {
-      const res = await fetch(`${API_URL}/notifications`);
-      const data = await res.json();
+      // Dùng apiClient để tự động handle token
+      const res = await apiClient.get(`${API_URL}/notifications`);
+      const data = res.data;
       setNotis(Array.isArray(data) ? data : []);
     } catch (error) { console.error("Lỗi tải thông báo:", error); }
   };
 
   const fetchFooterConfig = async () => {
     try {
-      const res = await fetch(`${API_URL}/footer-config`);
-      if (res.ok) {
-        const data = await res.json();
-        setFooterConfig({
-          ...initialFooterState,
-          ...data,
-          legalDocuments: Array.isArray(data.legalDocuments) ? data.legalDocuments : []
-        });
-      }
+      // Dùng apiClient để tự động handle token
+      const res = await apiClient.get(`${API_URL}/footer-config`);
+      const data = res.data;
+      setFooterConfig({
+        ...initialFooterState,
+        ...data,
+        legalDocuments: Array.isArray(data.legalDocuments) ? data.legalDocuments : []
+      });
     } catch (error) { console.error("Lỗi tải config footer:", error); }
   };
 
@@ -82,17 +83,12 @@ export default function DisplaySettingsManager() {
     try {
       setPolicyLoading(true);
 
-      const privacyRes = await fetch(`${API_URL}/privacy-policy`);
-      if (privacyRes.ok) {
-        const privacyData = await privacyRes.json();
-        setPrivacyPolicy(privacyData.content || '');
-      }
+      // Dùng apiClient thay vì fetch
+      const privacyRes = await apiClient.get(`${API_URL}/privacy-policy`);
+      setPrivacyPolicy(privacyRes.data.content || '');
 
-      const termsRes = await fetch(`${API_URL}/terms-of-service`);
-      if (termsRes.ok) {
-        const termsData = await termsRes.json();
-        setTermsOfService(termsData.content || '');
-      }
+      const termsRes = await apiClient.get(`${API_URL}/terms-of-service`);
+      setTermsOfService(termsRes.data.content || '');
     } catch (error) {
       console.error("Lỗi tải chính sách:", error);
     } finally {
