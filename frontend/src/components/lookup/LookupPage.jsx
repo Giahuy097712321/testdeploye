@@ -188,12 +188,6 @@ function LookupPage() {
             return;
         }
 
-        // Kiểm tra ngày sinh cho CCCD
-        if (activeTab === 'cccd' && !formData.birthDate) {
-            alert('Vui lòng nhập ngày sinh');
-            return;
-        }
-
         setSearchQuery(searchValue);
         setOtp('');
         setOtpError('');
@@ -217,8 +211,7 @@ function LookupPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     searchType,
-                    searchValue,
-                    birthDate: formData.birthDate || null
+                    searchValue
                 })
             });
 
@@ -258,8 +251,7 @@ function LookupPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     searchType,
-                    searchValue: searchQuery,
-                    birthDate: formData.birthDate || null
+                    searchValue: searchQuery
                 })
             });
 
@@ -371,7 +363,7 @@ function LookupPage() {
                 response = await fetch(`${API_BASE_URL}/licenses/lookup/license/${searchQuery}`);
             } else if (activeTab === 'cccd') {
                 // Tra cứu theo CCCD
-                response = await fetch(`${API_BASE_URL}/licenses/lookup/cccd/${searchQuery}?birthDate=${formData.birthDate}`);
+                response = await fetch(`${API_BASE_URL}/licenses/lookup/cccd/${searchQuery}`);
             } else if (activeTab === 'ma-thiet-bi') {
                 // Tra cứu theo serial drone
                 response = await fetch(`${API_BASE_URL}/licenses/lookup/device/${searchQuery}`);
@@ -588,16 +580,6 @@ function LookupPage() {
                                                 className="form-input"
                                             />
                                         </div>
-                                        <div className="form-group">
-                                            <label>Ngày sinh</label>
-                                            <input
-                                                type="date"
-                                                name="birthDate"
-                                                value={formData.birthDate}
-                                                onChange={handleInputChange}
-                                                className="form-input"
-                                            />
-                                        </div>
                                     </div>
                                 )}
 
@@ -614,22 +596,6 @@ function LookupPage() {
                                                 onChange={handleInputChange}
                                                 className="form-input"
                                             />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Loại thiết bị</label>
-                                            <select
-                                                name="droneType"
-                                                value={formData.droneType}
-                                                onChange={handleInputChange}
-                                                className="form-select"
-                                            >
-                                                <option value="">Chọn loại thiết bị</option>
-                                                <option value="dji-mini">DJI Mini Series</option>
-                                                <option value="dji-air">DJI Air Series</option>
-                                                <option value="dji-mavic">DJI Mavic Series</option>
-                                                <option value="dji-phantom">DJI Phantom Series</option>
-                                                <option value="other">Khác</option>
-                                            </select>
                                         </div>
                                     </div>
                                 )}
