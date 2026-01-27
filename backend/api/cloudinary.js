@@ -25,6 +25,68 @@ const upload = multer({
 });
 
 /**
+ * POST /api/cloudinary/upload-cccd
+ * Upload CCCD lên Cloudinary (không cần token - cho form đăng ký)
+ */
+router.post('/upload-cccd', upload.single('file'), async (req, res) => {
+  try {
+    console.log("CCCD upload request received");
+    console.log("File:", req.file?.originalname, "Size:", req.file?.size);
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file provided'
+      });
+    }
+
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'File buffer is empty'
+      });
+    }
+
+    const resourceType = 'image';
+    const folder = 'uav-training/cccd';
+
+    // Upload to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: folder,
+          resource_type: resourceType,
+          timeout: 60000
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.on('error', (error) => {
+        reject(error);
+      });
+      stream.end(req.file.buffer);
+    });
+
+    console.log("✅ CCCD uploaded:", uploadResult.secure_url);
+
+    res.json({
+      success: true,
+      secure_url: uploadResult.secure_url,
+      public_id: uploadResult.public_id,
+      url: uploadResult.secure_url
+    });
+  } catch (error) {
+    console.error('CCCD upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Upload failed'
+    });
+  }
+});
+
+/**
  * POST /api/cloudinary/upload
  * Upload file lên Cloudinary qua backend
  */
