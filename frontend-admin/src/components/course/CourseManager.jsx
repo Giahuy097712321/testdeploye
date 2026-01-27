@@ -775,7 +775,7 @@ export default function CourseManager() {
                 <div className="cm-course-thumbnail">
                   <img
                     src={getFullUrl(course.image || course.thumbnail)}
-                    alt={course.title}
+                    alt={`Khóa học: ${course.title}`}
                     onError={(e) =>
                     (e.target.src =
                       "https://placehold.co/600x400?text=No+Image")
@@ -1068,7 +1068,7 @@ export default function CourseManager() {
                   <div style={{ marginTop: "15px", textAlign: "center" }}>
                     <img
                       src={courseFormData.thumbnail}
-                      alt="Preview"
+                      alt="Xem trước hình ảnh khóa học"
                       style={{
                         maxWidth: "100%",
                         maxHeight: "200px",

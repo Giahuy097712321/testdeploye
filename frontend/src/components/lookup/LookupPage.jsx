@@ -818,7 +818,7 @@ function LookupPage() {
                                             <div className="left-section">
                                                 <div className="photo-box">
                                                     <div className="license-photo">
-                                                        <img src={resultData.licenseImage} alt="User Photo" />
+                                                        <img src={resultData.licenseImage} alt={`Ảnh giấy phép của ${resultData.name}`} />
                                                     </div>
                                                 </div>
                                             </div>

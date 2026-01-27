@@ -1522,7 +1522,7 @@ function CourseDetailPage() {
 
             {!activeLesson && (
               <div className="no-lesson">
-                <img src={noVideoImage} alt="No Video" className="no-lesson-image" />
+                <img src={noVideoImage} alt="Không có video - Hình ảnh thế chỗ" className="no-lesson-image" />
               </div>
             )}
           </div>
@@ -1623,7 +1623,7 @@ function CourseDetailPage() {
                               <div className="comment-author-info">
                                 <img
                                   src={getAvatarUrl(comment.user_avatar, comment.user_id)}
-                                  alt={comment.user_name}
+                                  alt={`Avatar của ${comment.user_name}`}
                                   className="comment-avatar"
                                   onError={(e) => e.target.src = `https://i.pravatar.cc/40?u=${comment.user_id}`}
                                 />
@@ -1736,7 +1736,7 @@ function CourseDetailPage() {
                       <div className="related-item-inner">
                         <img
                           src={getFullMediaPath(rc.image)}
-                          alt={rc.title}
+                          alt={`Khóa học liên quan: ${rc.title}`}
                           className="related-thumb"
                           onError={(e) =>
                           (e.target.src =
