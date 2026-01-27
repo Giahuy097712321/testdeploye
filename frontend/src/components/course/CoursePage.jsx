@@ -201,7 +201,7 @@ function CoursesPage() {
         onClick={() => handleCourseClick(course.id)}
       >
         <div className="course-image-wrapper">
-          <img src={getImageUrl(course.image)} alt={course.title} />
+          <img src={getImageUrl(course.image)} alt={`Khóa học: ${course.title}`} />
         </div>
 
         <div className="course-content">

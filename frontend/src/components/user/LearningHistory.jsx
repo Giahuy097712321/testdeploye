@@ -135,7 +135,7 @@ function LearningHistory() {
                                     <div key={course.course_id} className="course-card">
                                         <div className="course-image">
                                             {course.course_image ? (
-                                                <img src={course.course_image} alt={course.course_title} />
+                                                <img src={course.course_image} alt={`Khóa học: ${course.course_title}`} />
                                             ) : (
                                                 <div className="placeholder-image">📚</div>
                                             )}

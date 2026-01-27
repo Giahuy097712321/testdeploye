@@ -136,7 +136,7 @@ function Scene({ onPointClick, points, modelUrl, cameraSettings }) {
                         className="point-image-marker" 
                         onClick={(e) => { e.stopPropagation(); onPointClick(point.id); }}
                     >
-                        <img src={point.logoSrc} alt={point.title} />
+                        <img src={point.logoSrc} alt={`Logo: ${point.title}`} />
                     </div>
                 </Html>
             ))}

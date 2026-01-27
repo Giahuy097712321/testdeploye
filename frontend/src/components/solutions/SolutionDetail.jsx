@@ -91,7 +91,7 @@ const SolutionDetail = () => {
       );
     }
     return (
-      <img src={imgUrl} alt={data.title} className="w-full h-auto drop-shadow-2xl" onError={(e) => { e.target.src = 'https://via.placeholder.com/600x400' }} />
+      <img src={imgUrl} alt={`Hình ảnh chẟ: ${data.title}`} className="w-full h-auto drop-shadow-2xl" onError={(e) => { e.target.src = 'https://via.placeholder.com/600x400' }} />
     );
   };
 
@@ -128,14 +128,14 @@ const SolutionDetail = () => {
                 validImages.length === 1 ? (
                   // Chỉ có 1 ảnh
                   <div className="service-single-image">
-                    <img src={validImages[0]} alt={section.title} />
+                    <img src={validImages[0]} alt={`Mỏ đầu phần: ${section.title}`} />
                   </div>
                 ) : (
                   // Có nhiều ảnh -> Grid 2x2 (tối đa hiển thị 4 ảnh đầu tiên)
                   <div className="service-images">
                     {validImages.slice(0, 4).map((imgUrl, i) => (
                       <div key={i} className="service-image-card">
-                        <img src={imgUrl} alt={`${section.title} ${i}`} />
+                        <img src={imgUrl} alt={`Slide ${i + 1} - ${section.title}`} />
                       </div>
                     ))}
                   </div>
@@ -168,7 +168,7 @@ const SolutionDetail = () => {
     return (
       <div className="clients-grid">
         {validClients.map((imgUrl, index) => (
-          <div key={index} className="client-logo"><img src={imgUrl} alt={`Client ${index}`} /></div>
+          <div key={index} className="client-logo"><img src={imgUrl} alt={`Logo khách hàng ${index + 1}`} /></div>
         ))}
       </div>
     );
