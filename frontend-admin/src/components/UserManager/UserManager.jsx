@@ -9,25 +9,40 @@ import { notifySuccess, notifyError } from "../../lib/notifications";
 import "../admin/Admin/Admin.css";
 
 const initialUserState = {
-  id: "", full_name: "", email: "", phone: "", role: "student", is_active: true, password: "",
+  id: "", full_name: "", email: "", phone: "", role: "student", is_active: true, is_approved: false, password: "", avatar: "", failed_login_attempts: 0,
   // Các trường profile (chỉ để hiển thị hoặc update sau này)
   identity_number: "", address: "", birth_date: "", gender: "", target_tier: "",
+  job_title: "", work_place: "", current_address: "", permanent_address: "",
+  permanent_city_id: "", permanent_ward_id: "", current_city_id: "", current_ward_id: "",
+  emergency_contact_name: "", emergency_contact_phone: "", emergency_contact_relation: "",
+  usage_purpose: "", operation_area: "", uav_experience: "", uav_types: [],
+  identity_image_front: "", identity_image_back: "",
 };
 
 export default function UserManager() {
   const [form, setForm] = useState(initialUserState);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [approvalFilter, setApprovalFilter] = useState('all'); // 'all' | 'approved' | 'pending'
 
   // State để mở rộng xem chi tiết
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [addressMode, setAddressMode] = useState('other'); // 'select' or 'other'
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageAlt, setSelectedImageAlt] = useState('');
   const [provinces, setProvinces] = useState([]);
-  const [wards, setWards] = useState([]);
+  const [permanentWards, setPermanentWards] = useState([]);
+  const [currentWards, setCurrentWards] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
+  const [selectedPermanentCity, setSelectedPermanentCity] = useState('');
+  const [selectedPermanentWard, setSelectedPermanentWard] = useState('');
+  const [selectedCurrentCity, setSelectedCurrentCity] = useState('');
+  const [selectedCurrentWard, setSelectedCurrentWard] = useState('');
   const [street, setStreet] = useState('');
+  const [errors, setErrors] = useState({});
 
   // === State cho điểm số ===
   const [userScores, setUserScores] = useState({});
@@ -40,14 +55,20 @@ export default function UserManager() {
   const users = useMemo(() => {
     return allUsers.filter(user => {
       const search = searchTerm.toLowerCase();
-      return (
+      const matchesSearch = (
         user.full_name?.toLowerCase().includes(search) ||
         user.email?.toLowerCase().includes(search) ||
         user.phone?.toLowerCase().includes(search) ||
         String(user.id).includes(search)
       );
+
+      const isApproved = (String(user.is_approved) === '1' || user.is_approved === true);
+      if (approvalFilter === 'approved' && !isApproved) return false;
+      if (approvalFilter === 'pending' && isApproved) return false;
+
+      return matchesSearch;
     });
-  }, [allUsers, searchTerm]);
+  }, [allUsers, searchTerm, approvalFilter]);
 
   const { mutate: saveUser } = useApiMutation();
 
@@ -80,6 +101,13 @@ export default function UserManager() {
     setSelectedProvince('');
     setSelectedWard('');
     setStreet('');
+    setSelectedPermanentCity('');
+    setSelectedPermanentWard('');
+    setSelectedCurrentCity('');
+    setSelectedCurrentWard('');
+    setPermanentWards([]);
+    setCurrentWards([]);
+    setErrors({}); // Reset errors
   }, []);
 
   const handleEditClick = (user) => {
@@ -116,55 +144,87 @@ export default function UserManager() {
 
     setForm({
       ...user,
-      is_active: user.is_active === 1 || user.is_active === true,
+      is_active: user.is_active !== 0 && user.is_active !== '0' && user.is_active !== false,
+      is_approved: user.is_approved !== 0 && user.is_approved !== '0' && user.is_approved !== false,
       password: "",
       gender: normalizeGender(user.gender),
       birth_date: formatBirthForInput(user.birth_date),
       // keep original address in form so it's available if needed
-      address: user.address || ''
+      address: user.address || '',
+      job_title: user.job_title || '',
+      work_place: user.work_place || '',
+      current_address: user.current_address || '',
+      permanent_address: user.permanent_address || '',
+      permanent_city_id: user.permanent_city_id || '',
+      permanent_ward_id: user.permanent_ward_id || '',
+      current_city_id: user.current_city_id || '',
+      current_ward_id: user.current_ward_id || '',
+      emergency_contact_name: user.emergency_contact_name || '',
+      emergency_contact_phone: user.emergency_contact_phone || '',
+      emergency_contact_relation: user.emergency_contact_relation || '',
+      usage_purpose: user.usage_purpose || '',
+      operation_area: user.operation_area || '',
+      uav_experience: user.uav_experience || '',
+      uav_types: user.uav_type ? user.uav_type.split(',').map(s => s.trim()) : [],
+      identity_image_front: user.identity_image_front || '',
+      identity_image_back: user.identity_image_back || '',
+      avatar: user.avatar || ''
     });
+    // Validate fields on load
+    setErrors(prev => ({
+      ...prev,
+      identity_number: form.identity_number && form.identity_number.length !== 12 ? 'CCCD phải có đúng 12 số' : '',
+      phone: form.phone && form.phone.length !== 10 ? 'Số điện thoại phải có đúng 10 số' : ''
+    }));
     // Immediately populate street and form.address so user sees existing address right away
     setStreet(user.address || '');
     setForm(prev => ({ ...prev, address: user.address || '' }));
-    setShowDetails(true);
-    const mode = user.address ? 'select' : 'other';
-    setAddressMode(mode);
-    if (mode === 'select') {
-      // load provinces and try to match existing address into selects
+    // Set location selects for permanent address
+    if (user.permanent_city_id) {
+      setSelectedPermanentCity(String(user.permanent_city_id));
+      // Load wards for permanent city
       (async () => {
-        const provs = await fetchProvinces();
-        if (!provs || provs.length === 0) return;
-        const addr = String(user.address || '').toLowerCase();
-        const matched = provs.find(p => addr.includes(String(p.name).toLowerCase()));
-        if (matched) {
-          // Keep selected IDs as strings so they match <select> option values
-          setSelectedProvince(String(matched.id));
-          const wardsData = await fetchWards(matched.id);
-          if (wardsData && wardsData.length) {
-            const matchedWard = wardsData.find(w => addr.includes(String(w.name).toLowerCase()));
-            if (matchedWard) setSelectedWard(String(matchedWard.id));
-            // extract street (text before ward name or province)
-            let idx = -1;
-            if (matchedWard) idx = addr.indexOf(String(matchedWard.name).toLowerCase());
-            if ((idx === -1 || idx === 0) && matched) idx = addr.indexOf(String(matched.name).toLowerCase());
-            if (idx > 0) {
-              setStreet(user.address.substring(0, idx).replace(/,\s*$/, ''));
-            } else {
-              // fallback: put entire address into street so input shows something
-              setStreet(user.address);
-            }
-          } else {
-            // no wards but province matched: put entire address into street
-            setStreet(user.address);
+        const base = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE)
+          ? import.meta.env.VITE_API_BASE
+          : `${window.location.protocol}//${window.location.hostname}:5000`;
+        const url = `${base}/api/location/wards?province_id=${user.permanent_city_id}`;
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            setPermanentWards(data || []);
           }
-          // also ensure form.address holds the original address so textarea shows when switching
-          setForm(prev => ({ ...prev, address: user.address || '' }));
-        } else {
-          // if no province matched, place whole address into street input so user sees it
-          setStreet(user.address || '');
-          setForm(prev => ({ ...prev, address: user.address || '' }));
+        } catch (e) {
+          console.error('Error loading permanent wards:', e);
         }
       })();
+      if (user.permanent_ward_id) {
+        setSelectedPermanentWard(String(user.permanent_ward_id));
+      }
+    }
+
+    // Set location selects for current address
+    if (user.current_city_id) {
+      setSelectedCurrentCity(String(user.current_city_id));
+      // Load wards for current city
+      (async () => {
+        const base = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE)
+          ? import.meta.env.VITE_API_BASE
+          : `${window.location.protocol}//${window.location.hostname}:5000`;
+        const url = `${base}/api/location/wards?province_id=${user.current_city_id}`;
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            setCurrentWards(data || []);
+          }
+        } catch (e) {
+          console.error('Error loading current wards:', e);
+        }
+      })();
+      if (user.current_ward_id) {
+        setSelectedCurrentWard(String(user.current_ward_id));
+      }
     }
     setIsEditing(true);
     // Cuộn lên đầu form
@@ -186,6 +246,18 @@ export default function UserManager() {
     if (s === 'nam') return 'Nam';
     if (s === 'nữ' || s === 'nu') return 'Nữ';
     return '--';
+  };
+
+  // Normalize gender value to storage format ('Nam'/'Nữ')
+  const normalizeGenderForStorage = (g) => {
+    if (!g) return null;
+    const s = String(g).trim();
+    if (!s) return null;
+    const lowered = s.toLowerCase();
+    const stripped = lowered.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (['nam', 'n', 'male', 'm'].includes(stripped)) return 'Nam';
+    if (['nu', 'nu', 'female', 'f'].includes(stripped) || stripped === 'nu') return 'Nữ';
+    return s.charAt(0).toUpperCase() + s.slice(1);
   };
 
   // location helpers
@@ -245,28 +317,102 @@ export default function UserManager() {
     if (composed) setForm(prev => ({ ...prev, address: composed }));
   };
 
-  // when addressMode changes to select, load provinces
-  useEffect(() => {
-    if (showDetails && addressMode === 'select') fetchProvinces();
-  }, [showDetails, addressMode]);
+  // Handler for permanent city (tỉnh hộ khẩu) selection
+  const handlePermanentCityChange = (e) => {
+    const provinceId = e.target.value;
+    setSelectedPermanentCity(provinceId);
+    setForm(prev => ({ ...prev, permanent_city_id: provinceId }));
+    setSelectedPermanentWard('');
+  };
 
-  // load wards when province changes
+  // Handler for permanent ward (phường hộ khẩu) selection
+  const handlePermanentWardChange = (e) => {
+    const wardId = e.target.value;
+    setSelectedPermanentWard(wardId);
+    setForm(prev => ({ ...prev, permanent_ward_id: wardId }));
+  };
+
+  // Handler for current city (tỉnh hiện tại) selection
+  const handleCurrentCityChange = (e) => {
+    const provinceId = e.target.value;
+    setSelectedCurrentCity(provinceId);
+    setForm(prev => ({ ...prev, current_city_id: provinceId }));
+    setSelectedCurrentWard('');
+  };
+
+  // Handler for current ward (phường hiện tại) selection
+  const handleCurrentWardChange = (e) => {
+    const wardId = e.target.value;
+    setSelectedCurrentWard(wardId);
+    setForm(prev => ({ ...prev, current_ward_id: wardId }));
+  };
+
+  // Load provinces on component mount
   useEffect(() => {
-    if (selectedProvince) fetchWards(selectedProvince);
-    else {
-      setWards([]);
-      setSelectedWard('');
+    fetchProvinces();
+  }, []);
+
+  // Load wards when permanent city changes
+  useEffect(() => {
+    if (selectedPermanentCity) {
+      (async () => {
+        await fetchWards(selectedPermanentCity);
+      })();
+    } else {
+      setPermanentWards([]);
+      setSelectedPermanentWard('');
     }
-  }, [selectedProvince]);
+  }, [selectedPermanentCity]);
+
+  // Load wards when current city changes
+  useEffect(() => {
+    if (selectedCurrentCity) {
+      (async () => {
+        const base = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE)
+          ? import.meta.env.VITE_API_BASE
+          : `${window.location.protocol}//${window.location.hostname}:5000`;
+        const url = `${base}/api/location/wards?province_id=${selectedCurrentCity}`;
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            setCurrentWards(data || []);
+          }
+        } catch (e) {
+          console.error('fetchCurrentWards', e);
+        }
+      })();
+    } else {
+      setCurrentWards([]);
+      setSelectedCurrentWard('');
+    }
+  }, [selectedCurrentCity]);
 
   const handleSave = async (e) => {
     e.preventDefault();
+    // Check for validation errors
+    if (errors.identity_number || errors.phone) {
+      notifyError('Vui lòng sửa các lỗi trong form trước khi lưu.');
+      return;
+    }
     try {
       const method = isEditing ? "PUT" : "POST";
       const url = isEditing ? `${API_ENDPOINTS.USERS}/${form.id}` : API_ENDPOINTS.USERS;
       const payload = { ...form, is_active: form.is_active };
-      // ensure we don't send removed fields
-      if (payload.hasOwnProperty('uav_type')) delete payload.uav_type;
+      
+      // If unlocking an account (is_active changed from false to true), reset failed attempts
+      if (isEditing && users.length > 0) {
+        const originalUser = users.find(u => u.id === form.id);
+        if (originalUser && !originalUser.is_active && form.is_active) {
+          payload.failed_login_attempts = 0;
+        }
+      }
+      
+      // ensure gender is stored in canonical capitalized form
+      if (payload.gender) payload.gender = normalizeGenderForStorage(payload.gender);
+      // add uav_type as joined string
+      payload.uav_type = form.uav_types.join(', ');
+      delete payload.uav_types;
 
       await saveUser({
         url: url,
@@ -294,6 +440,31 @@ export default function UserManager() {
       refreshUsers();
     } catch (error) {
       notifyError("Lỗi khi xóa");
+    }
+  };
+
+  const handleApprove = async (userId, isApproved) => {
+    // Only allow approving; do nothing if already approved
+    if (isApproved) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch(`${API_ENDPOINTS.USERS}/${userId}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ is_approved: true })
+      });
+      
+      if (response.ok) {
+        notifySuccess('Phê duyệt thành công!');
+        refreshUsers();
+      } else {
+        notifyError('Lỗi phê duyệt người dùng');
+      }
+    } catch (error) {
+      notifyError('Lỗi khi phê duyệt: ' + error.message);
     }
   };
 
@@ -340,12 +511,21 @@ export default function UserManager() {
           <form onSubmit={handleSave}>
             <div className="form-group"><label className="form-label">Họ và tên</label><input className="form-control" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required /></div>
             <div className="form-group"><label className="form-label">Email</label><input type="email" className="form-control" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div className="form-group"><label className="form-label">SĐT (Tài khoản)</label><input type="tel" className="form-control" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required /></div>
+            <div className="form-group"><label className="form-label">SĐT (Tài khoản)</label><input type="tel" className="form-control" value={form.phone} onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '');
+              setForm({ ...form, phone: value });
+              if (value.length !== 10) {
+                setErrors(prev => ({ ...prev, phone: 'Số điện thoại phải có đúng 10 số' }));
+              } else {
+                setErrors(prev => ({ ...prev, phone: '' }));
+              }
+            }} required />
+            {errors.phone && <small style={{ color: 'red', fontSize: '12px' }}>{errors.phone}</small>}</div>
             {!isEditing && <div className="form-group"><label className="form-label">Mật khẩu</label><input className="form-control" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mặc định: 123456" /></div>}
 
             <div style={{ display: "flex", gap: "10px" }}>
               <div className="form-group" style={{ flex: 1 }}><label className="form-label">Vai trò</label><select className="form-control" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}><option value="student">Học viên</option><option value="admin">Admin</option><option value="instructor">Giảng viên</option></select></div>
-              <div className="form-group" style={{ flex: 1 }}><label className="form-label">Trạng thái</label><select className="form-control" value={form.is_active ? "true" : "false"} onChange={(e) => setForm({ ...form, is_active: e.target.value === "true" })}><option value="true">Hoạt động</option><option value="false">Khóa</option></select></div>
+              <div className="form-group" style={{ flex: 1 }}><label className="form-label">Trạng thái</label><select className="form-control" value={form.is_active ? "active" : "locked"} onChange={(e) => setForm({ ...form, is_active: e.target.value === "active" })}><option value="active">Hoạt động</option><option value="locked">Khóa</option></select></div>
             </div>
 
             <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -358,7 +538,16 @@ export default function UserManager() {
             {showDetails && (
               <div style={{ marginTop: 12, padding: 12, background: '#fbfbfc', border: '1px solid #eee', borderRadius: 6 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div className="form-group"><label className="form-label">CCCD</label><input className="form-control" value={form.identity_number || ''} onChange={(e) => setForm({ ...form, identity_number: e.target.value })} placeholder="Số định danh" /></div>
+                  <div className="form-group"><label className="form-label">CCCD</label><input className="form-control" value={form.identity_number || ''} onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setForm({ ...form, identity_number: value });
+                    if (value.length !== 12) {
+                      setErrors(prev => ({ ...prev, identity_number: 'CCCD phải có đúng 12 số' }));
+                    } else {
+                      setErrors(prev => ({ ...prev, identity_number: '' }));
+                    }
+                  }} placeholder="Số định danh (12 số)" />
+                  {errors.identity_number && <small style={{ color: 'red', fontSize: '12px' }}>{errors.identity_number}</small>}</div>
                   <div className="form-group"><label className="form-label">Ngày sinh</label><input type="date" className="form-control" value={form.birth_date || ''} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} /></div>
 
                   <div className="form-group"><label className="form-label">Giới tính</label>
@@ -377,34 +566,153 @@ export default function UserManager() {
                     </select>
                   </div>
 
-                  <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                    <label className="form-label">Địa chỉ</label>
-                    {addressMode === 'select' ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'center' }}>
-                        <div>
-                          <label className="form-label">Tỉnh/TP</label>
-                          <select className="form-control" value={selectedProvince || ''} onChange={(e) => { setSelectedProvince(e.target.value); }}>
-                            <option value="">Chọn tỉnh</option>
-                            {provinces.map(p => (<option key={p.id} value={p.id}>{p.name}</option>))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="form-label">Xã/Phường</label>
-                          <select className="form-control" value={selectedWard || ''} onChange={(e) => { setSelectedWard(e.target.value); applySelectedAddress(undefined, e.target.value); }} disabled={!selectedProvince}>
-                            <option value="">Chọn xã/phường</option>
-                            {wards.map(w => (<option key={w.id} value={w.id}>{w.name}</option>))}
-                          </select>
-                        </div>
+                  <div className="form-group"><label className="form-label">Nghề nghiệp</label><input className="form-control" value={form.job_title || ''} onChange={(e) => setForm({ ...form, job_title: e.target.value })} placeholder="Nhập nghề nghiệp" /></div>
+                  <div className="form-group"><label className="form-label">Nơi làm việc</label><input className="form-control" value={form.work_place || ''} onChange={(e) => setForm({ ...form, work_place: e.target.value })} placeholder="Nhập nơi làm việc" /></div>
 
-                        <div style={{ gridColumn: '1 / -1' }}>
-                          <label className="form-label">Đường / Số nhà (tuỳ chọn)</label>
-                          <input className="form-control" value={street} onChange={(e) => { setStreet(e.target.value); }} placeholder="Ví dụ: 123 Đường ABC" />
-                        </div>
+                  <div className="form-group"><label className="form-label">Tên liên hệ khẩn</label><input className="form-control" value={form.emergency_contact_name || ''} onChange={(e) => setForm({ ...form, emergency_contact_name: e.target.value })} placeholder="Tên" /></div>
+                  <div className="form-group"><label className="form-label">SĐT liên hệ khẩn</label><input className="form-control" value={form.emergency_contact_phone || ''} onChange={(e) => setForm({ ...form, emergency_contact_phone: e.target.value })} placeholder="SĐT" /></div>
+                  <div className="form-group"><label className="form-label">Mối quan hệ</label><input className="form-control" value={form.emergency_contact_relation || ''} onChange={(e) => setForm({ ...form, emergency_contact_relation: e.target.value })} placeholder="Quan hệ" /></div>
 
+                  <div className="form-group"><label className="form-label">Mục đích sử dụng</label><input className="form-control" value={form.usage_purpose || ''} onChange={(e) => setForm({ ...form, usage_purpose: e.target.value })} placeholder="Mục đích" /></div>
+                  <div className="form-group"><label className="form-label">Khu vực hoạt động</label><input className="form-control" value={form.operation_area || ''} onChange={(e) => setForm({ ...form, operation_area: e.target.value })} placeholder="Khu vực" /></div>
+                  <div className="form-group"><label className="form-label">Kinh nghiệm</label><input className="form-control" value={form.uav_experience || ''} onChange={(e) => setForm({ ...form, uav_experience: e.target.value })} placeholder="Mô tả kinh nghiệm" /></div>
+                  <div className="form-group"><label className="form-label">Thiết bị UAV</label>
+                    <div className="checkbox-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
+                      {["DJI Mini", "DJI Mavic", "DJI Phantom", "DJI Inspire", "Autel", "FPV", "Cánh bằng", "Khác"].map(t => (
+                        <label key={t} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                          <input
+                            type="checkbox"
+                            value={t}
+                            checked={form.uav_types.includes(t)}
+                            onChange={(e) => {
+                              const { checked, value } = e.target;
+                              setForm(prev => ({
+                                ...prev,
+                                uav_types: checked
+                                  ? [...prev.uav_types, value]
+                                  : prev.uav_types.filter(item => item !== value)
+                              }));
+                            }}
+                          />
+                          <span>{t}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {(form.identity_image_front || form.identity_image_back) && (
+                    <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      {form.identity_image_front && (
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label className="form-label">CCCD Mặt Trước</label>
+                          <img 
+                            src={form.identity_image_front} 
+                            alt="CCCD Front" 
+                            style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '4px', border: '1px solid #e5e7eb', cursor: 'pointer' }} 
+                            onClick={() => { setSelectedImage(form.identity_image_front); setSelectedImageAlt('CCCD Mặt Trước'); setShowImageModal(true); }}
+                          />
+                        </div>
+                      )}
+                      {form.identity_image_back && (
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label className="form-label">CCCD Mặt Sau</label>
+                          <img 
+                            src={form.identity_image_back} 
+                            alt="CCCD Back" 
+                            style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '4px', border: '1px solid #e5e7eb', cursor: 'pointer' }} 
+                            onClick={() => { setSelectedImage(form.identity_image_back); setSelectedImageAlt('CCCD Mặt Sau'); setShowImageModal(true); }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Địa chỉ hộ khẩu section */}
+                  <div style={{ gridColumn: '1 / -1', marginTop: 12, padding: 12, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6 }}>
+                    <h4 style={{ margin: '0 0 12px 0', fontSize: 14, fontWeight: 600, color: '#1f2937' }}>Địa chỉ hộ khẩu</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div className="form-group">
+                        <label className="form-label">Tỉnh/Thành phố</label>
+                        <select 
+                          className="form-control" 
+                          value={selectedPermanentCity} 
+                          onChange={handlePermanentCityChange}
+                        >
+                          <option value="">-- Chọn Tỉnh/Thành --</option>
+                          {provinces.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
                       </div>
-                    ) : (
-                      <textarea className="form-control" rows={2} value={form.address || ''} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Địa chỉ liên hệ" />
-                    )}
+                      <div className="form-group">
+                        <label className="form-label">Phường/Xã</label>
+                        <select 
+                          className="form-control" 
+                          value={selectedPermanentWard} 
+                          onChange={handlePermanentWardChange}
+                          disabled={!selectedPermanentCity}
+                        >
+                          <option value="">-- Chọn Phường/Xã --</option>
+                          {permanentWards.map(w => (
+                            <option key={w.id} value={w.id}>{w.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-group" style={{ marginTop: 12 }}>
+                      <label className="form-label">Địa chỉ cụ thể</label>
+                      <textarea 
+                        className="form-control" 
+                        rows={2} 
+                        value={form.permanent_address || ''} 
+                        onChange={(e) => setForm({ ...form, permanent_address: e.target.value })} 
+                        placeholder="Số nhà, đường..." 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Địa chỉ hiện tại section */}
+                  <div style={{ gridColumn: '1 / -1', marginTop: 12, padding: 12, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6 }}>
+                    <h4 style={{ margin: '0 0 12px 0', fontSize: 14, fontWeight: 600, color: '#1f2937' }}>Địa chỉ hiện tại</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div className="form-group">
+                        <label className="form-label">Tỉnh/Thành phố</label>
+                        <select 
+                          className="form-control" 
+                          value={selectedCurrentCity} 
+                          onChange={handleCurrentCityChange}
+                        >
+                          <option value="">-- Chọn Tỉnh/Thành --</option>
+                          {provinces.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Phường/Xã</label>
+                        <select 
+                          className="form-control" 
+                          value={selectedCurrentWard} 
+                          onChange={handleCurrentWardChange}
+                          disabled={!selectedCurrentCity}
+                        >
+                          <option value="">-- Chọn Phường/Xã --</option>
+                          {currentWards.map(w => (
+                            <option key={w.id} value={w.id}>{w.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-group" style={{ marginTop: 12 }}>
+                      <label className="form-label">Địa chỉ cụ thể</label>
+                      <textarea 
+                        className="form-control" 
+                        rows={2} 
+                        value={form.current_address || ''} 
+                        onChange={(e) => setForm({ ...form, current_address: e.target.value })} 
+                        placeholder="Số nhà, đường..." 
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -442,6 +750,16 @@ export default function UserManager() {
             onFocus={(e) => e.target.style.borderColor = "#0066cc"}
             onBlur={(e) => e.target.style.borderColor = "#ddd"}
           />
+
+          <select
+            value={approvalFilter}
+            onChange={(e) => setApprovalFilter(e.target.value)}
+            style={{ marginLeft: 12, padding: '8px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}
+          >
+            <option value="all">Tất cả</option>
+            <option value="approved">Đã duyệt</option>
+            <option value="pending">Chờ duyệt</option>
+          </select>
         </div>
 
         <div className="list-group">
@@ -453,9 +771,17 @@ export default function UserManager() {
                 {/* Header của User Card */}
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
                   <div style={{ minWidth: "50px", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                    <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "#0066cc", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "18px", flexShrink: 0, border: "2px solid #cce3ff" }}>
-                      {initials}
-                    </div>
+                    {user.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={user.full_name} 
+                        style={{ width: "50px", height: "50px", borderRadius: "50%", objectFit: "cover", border: "2px solid #cce3ff", flexShrink: 0 }} 
+                      />
+                    ) : (
+                      <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "#0066cc", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "18px", flexShrink: 0, border: "2px solid #cce3ff" }}>
+                        {initials}
+                      </div>
+                    )}
                     <span style={{ fontSize: "10px", color: "#999", fontWeight: "600", background: "#f0f0f0", padding: "2px 6px", borderRadius: "4px", whiteSpace: "nowrap" }}>ID: {user.id}</span>
                   </div>
 
@@ -463,12 +789,21 @@ export default function UserManager() {
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                       <div className="item-title" style={{ fontSize: "15px", fontWeight: "bold" }}>{user.full_name}</div>
                       <div style={{ display: 'flex', gap: '5px' }}>
-                        <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "10px", color: "#fff", backgroundColor: getRoleBadgeColor(user.role), fontWeight: "600", textTransform: "capitalize" }}>
+                        <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "10px", color: getRoleBadgeColor(user.role), border: `1px solid ${getRoleBadgeColor(user.role)}`, backgroundColor: "transparent", fontWeight: "600", textTransform: "capitalize" }}>
                           {user.role}
                         </span>
                         {user.target_tier && (
-                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "10px", color: "#fff", backgroundColor: "#f59e0b", fontWeight: "600" }}>
+                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "10px", color: "#f59e0b", border: "1px solid #f59e0b", backgroundColor: "transparent", fontWeight: "600" }}>
                             Hạng {user.target_tier}
+                          </span>
+                        )}
+                        {String(user.is_approved) === '1' ? (
+                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "10px", color: "#10b981", border: "1px solid #10b981", backgroundColor: "transparent", fontWeight: "600" }}>
+                            Đã duyệt
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "10px", color: "#f97316", border: "1px solid #f97316", backgroundColor: "transparent", fontWeight: "600" }}>
+                            Chờ duyệt
                           </span>
                         )}
                       </div>
@@ -487,7 +822,12 @@ export default function UserManager() {
                     {expandedUserId === user.id ? "Thu gọn ▲" : "Xem chi tiết ▼"}
                   </button>
 
-                  <div className="item-actions" style={{ display: "flex", gap: "8px" }}>
+                  <div className="item-actions" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {!(String(user.is_approved) === '1' || user.is_approved === true) && (
+                      <button onClick={() => handleApprove(user.id, user.is_approved)} className="btn btn-sm" style={{ padding: '4px 8px', fontSize: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                        <CheckCircle2 size={12} /> Duyệt
+                      </button>
+                    )}
                     <button onClick={() => handleEditClick(user)} className="btn btn-primary btn-sm" style={{ padding: '4px 8px', fontSize: '12px' }}><Edit size={12} /> Sửa</button>
                     <button onClick={() => handleDelete(user.id)} className="btn btn-danger btn-sm" style={{ padding: '4px 8px', fontSize: '12px' }}><Trash2 size={12} /> Xóa</button>
                   </div>
@@ -504,14 +844,118 @@ export default function UserManager() {
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}><Award size={14} color="#666" /> <strong>Hạng thi:</strong> {user.target_tier || "Chưa đăng ký"}</div>
                     </div>
                     <div style={{ marginTop: '8px', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                      <MapPin size={14} color="#666" style={{ marginTop: '2px' }} />
-                      <span><strong>Địa chỉ:</strong> {user.address || "Chưa cập nhật"}</span>
+                      
+                      
                     </div>
+
+                    {/* Nghề nghiệp và nơi làm việc */}
+                    <div style={{ marginTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}><span style={{ color: '#6b7280' }}><strong>Nghề:</strong> {user.job_title || "---"}</span></div>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}><span style={{ color: '#6b7280' }}><strong>Nơi làm:</strong> {user.work_place || "---"}</span></div>
+                    </div>
+
+                    {/* Địa chỉ hộ khẩu */}
+                    {user.permanent_address && (
+                      <div style={{ marginTop: '12px', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                        <strong style={{ fontSize: '13px', color: '#1f2937', display: 'block', marginBottom: '6px' }}>Địa chỉ hộ khẩu</strong>
+                        <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                          <div>{user.permanent_address}</div>
+                          {user.permanent_ward_name && <div style={{ marginTop: '4px', fontSize: '11px', color: '#999' }}>{user.permanent_ward_name}</div>}
+                          {user.permanent_city_name && <div style={{ fontSize: '11px', color: '#999' }}>{user.permanent_city_name}</div>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Địa chỉ hiện tại */}
+                    {user.current_address && (
+                      <div style={{ marginTop: '12px', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                        <strong style={{ fontSize: '13px', color: '#1f2937', display: 'block', marginBottom: '6px' }}>Địa chỉ hiện tại</strong>
+                        <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                          <div>{user.current_address}</div>
+                          {user.current_ward_name && <div style={{ marginTop: '4px', fontSize: '11px', color: '#999' }}>{user.current_ward_name}</div>}
+                          {user.current_city_name && <div style={{ fontSize: '11px', color: '#999' }}>{user.current_city_name}</div>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Liên hệ khẩn cấp */}
+                    {(user.emergency_contact_name || user.emergency_contact_phone) && (
+                      <div style={{ marginTop: '12px', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                        <strong style={{ fontSize: '13px', color: '#1f2937' }}>Liên hệ khẩn cấp</strong>
+                        <div style={{ marginTop: '6px', fontSize: '12px', color: '#6b7280' }}>
+                          <div>Tên: {user.emergency_contact_name || "---"}</div>
+                          <div>SĐT: {user.emergency_contact_phone || "---"}</div>
+                          <div>Quan hệ: {user.emergency_contact_relation || "---"}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Thông tin UAV */}
+                    {(user.uav_type || user.usage_purpose || user.operation_area || user.uav_experience) && (
+                      <div style={{ marginTop: '12px', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                        <strong style={{ fontSize: '13px', color: '#1f2937', display: 'block', marginBottom: '6px' }}>Thông tin UAV</strong>
+                        <div style={{ marginTop: '6px', fontSize: '12px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {user.uav_type && <div>Thiết bị: {user.uav_type}</div>}
+                          {user.usage_purpose && <div>Mục đích: {user.usage_purpose}</div>}
+                          {user.operation_area && <div>Khu vực: {user.operation_area}</div>}
+                          {user.uav_experience && <div>Kinh nghiệm: {user.uav_experience}</div>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Thông tin bảo mật */}
+                    <div style={{ marginTop: '12px', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                      <strong style={{ fontSize: '13px', color: '#1f2937', display: 'block', marginBottom: '6px' }}>Thông tin bảo mật</strong>
+                      <div style={{ marginTop: '6px', fontSize: '12px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span><strong>Trạng thái:</strong> {(user.is_active !== 0 && user.is_active !== '0' && user.is_active !== false) ? <span style={{ color: '#10b981' }}>✓ Hoạt động</span> : <span style={{ color: '#ef4444' }}>✗ Khóa</span>}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span><strong>Phê duyệt:</strong> {String(user.is_approved) === '1' ? <span style={{ color: '#10b981' }}>Đã duyệt</span> : <span style={{ color: '#f97316' }}>Chờ duyệt</span>}</span>
+                        </div>
+                        {user.failed_login_attempts !== undefined && user.failed_login_attempts > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px', background: user.failed_login_attempts >= 5 ? '#fee2e2' : '#fef3c7', borderRadius: '4px' }}>
+                            <span><strong>Lần nhập sai:</strong> <span style={{ color: user.failed_login_attempts >= 5 ? '#dc2626' : '#d97706' }}>{user.failed_login_attempts}/5</span></span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* CCCD Images */}
+                    {(user.identity_image_front || user.identity_image_back) && (
+                      <div style={{ marginTop: '12px', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                        <strong style={{ fontSize: '13px', color: '#1f2937', display: 'block', marginBottom: '8px' }}>Ảnh CCCD</strong>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          {user.identity_image_front && (
+                            <div>
+                              <img 
+                                src={user.identity_image_front} 
+                                alt="CCCD Front" 
+                                style={{ maxWidth: '100%', maxHeight: '100px', borderRadius: '4px', border: '1px solid #e5e7eb', cursor: 'pointer' }} 
+                                onClick={() => { setSelectedImage(user.identity_image_front); setSelectedImageAlt('CCCD Mặt Trước'); setShowImageModal(true); }}
+                              />
+                              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>Mặt trước</div>
+                            </div>
+                          )}
+                          {user.identity_image_back && (
+                            <div>
+                              <img 
+                                src={user.identity_image_back} 
+                                alt="CCCD Back" 
+                                style={{ maxWidth: '100%', maxHeight: '100px', borderRadius: '4px', border: '1px solid #e5e7eb', cursor: 'pointer' }} 
+                                onClick={() => { setSelectedImage(user.identity_image_back); setSelectedImageAlt('CCCD Mặt Sau'); setShowImageModal(true); }}
+                              />
+                              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>Mặt sau</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Phần điểm số khóa học */}
                     <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
                       <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        📊 Điểm số khóa học
+                        Điểm số khóa học
                       </h4>
 
                       {loadingScores[user.id] ? (
@@ -565,7 +1009,7 @@ export default function UserManager() {
                       {userScores[user.id]?.quizResults?.length > 0 && (
                         <div style={{ marginTop: '12px' }}>
                           <h5 style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>
-                            📝 Quiz gần đây
+                            Quiz gần đây
                           </h5>
                           <div style={{ fontSize: '12px' }}>
                             {userScores[user.id].quizResults.slice(0, 5).map((quiz, idx) => (
@@ -598,6 +1042,55 @@ export default function UserManager() {
           })}
         </div>
       </div>
+
+      {/* Image Modal */}
+      {showImageModal && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            width: '100%', 
+            height: '100%', 
+            background: 'rgba(0,0,0,0.8)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 1000 
+          }} 
+          onClick={() => setShowImageModal(false)}
+        >
+          <div style={{ position: 'relative', maxWidth: '90%', maxHeight: '90%' }} onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={selectedImage} 
+              alt={selectedImageAlt} 
+              style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: '8px' }} 
+            />
+            <button 
+              onClick={() => setShowImageModal(false)} 
+              style={{ 
+                position: 'absolute', 
+                top: 10, 
+                right: 10, 
+                background: 'rgba(0,0,0,0.5)', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '50%', 
+                width: 30, 
+                height: 30, 
+                cursor: 'pointer',
+                fontSize: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

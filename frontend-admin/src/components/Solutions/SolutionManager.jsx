@@ -324,7 +324,7 @@ export default function SolutionManager() {
                 >
                   <img
                     src={getImageUrl(form.image)}
-                    alt="Preview"
+                    alt="Xem trước hình ảnh giải pháp"
                     style={{
                       maxWidth: "100%",
                       maxHeight: "200px",
@@ -513,7 +513,7 @@ export default function SolutionManager() {
                         {img ? (
                           <img
                             src={getImageUrl(img)}
-                            alt={`Slide ${imgIdx}`}
+                            alt={`Slide ảnh giải pháp ${imgIdx + 1}`}
                             style={{
                               width: "100%",
                               height: "100%",
@@ -750,7 +750,7 @@ export default function SolutionManager() {
                           maxWidth: "100%",
                           objectFit: "contain",
                         }}
-                        alt=""
+                        alt={`Logo khách hàng ${idx + 1}`}
                       />
                     ) : (
                       <span style={{ fontSize: 10 }}>No Img</span>
@@ -856,7 +856,7 @@ export default function SolutionManager() {
               >
                 <img
                   src={getImageUrl(sol.image)}
-                  alt={sol.title}
+                  alt={`Hình ảnh giải pháp: ${sol.title}`}
                   style={{
                     width: "100%",
                     height: "100%",

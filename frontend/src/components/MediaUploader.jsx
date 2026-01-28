@@ -70,7 +70,7 @@ function MediaUploader({ onUploadSuccess, type = 'both' }) {
         {previewUrl && !uploading ? (
           <div className="preview">
             {type === 'both' || type === 'image' ? (
-              <img src={previewUrl} alt="preview" />
+              <img src={previewUrl} alt="Xem trước tệp đã tải lên" />
             ) : (
               <video src={previewUrl} controls />
             )}

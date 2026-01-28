@@ -29,7 +29,7 @@ export default function PointPreview({ formData }) {
         <div className="preview-header">
           {formData.logoSrc && (
             <div className="preview-logo-wrapper">
-              <img src={formData.logoSrc} alt="Logo" className="preview-logo" />
+              <img src={formData.logoSrc} alt="Logo của diểm" className="preview-logo" />
             </div>
           )}
           <div className="preview-header-text">
@@ -48,7 +48,7 @@ export default function PointPreview({ formData }) {
           <div className="preview-image-wrapper">
             <img
               src={formData.imageSrc}
-              alt="Main"
+              alt="Hình ảnh chính của điểm"
               className="preview-main-image"
               onError={(e) => {
                 e.target.style.display = 'none';

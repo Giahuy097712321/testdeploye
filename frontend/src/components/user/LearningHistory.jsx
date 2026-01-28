@@ -89,13 +89,13 @@ function LearningHistory() {
                     <div className="stat-value" style={{ color: getScoreColor(data.stats.avg_overall_score) }}>
                         {parseFloat(data.stats.avg_overall_score).toFixed(1)}
                     </div>
-                    <div className="stat-label">Điểm trung bình</div>
+                    <div className="stat-label">Điểm tốt nhất</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-value" style={{ color: getScoreColor(data.stats.avg_quiz_score) }}>
                         {parseFloat(data.stats.avg_quiz_score).toFixed(1)}
                     </div>
-                    <div className="stat-label">Điểm Quiz TB</div>
+                    <div className="stat-label">Điểm Quiz cao nhất</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-value">{parseFloat(data.stats.avg_progress).toFixed(0)}%</div>
@@ -135,7 +135,7 @@ function LearningHistory() {
                                     <div key={course.course_id} className="course-card">
                                         <div className="course-image">
                                             {course.course_image ? (
-                                                <img src={course.course_image} alt={course.course_title} />
+                                                <img src={course.course_image} alt={`Khóa học: ${course.course_title}`} />
                                             ) : (
                                                 <div className="placeholder-image">📚</div>
                                             )}

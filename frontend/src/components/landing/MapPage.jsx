@@ -85,7 +85,7 @@ export default function MapPage() {
                 {/* Logo Admin */}
                 <Link to="/admin" style={styles.adminButton}>
                     {/* [THEME] Đổi icon sang màu vàng bằng filter CSS */}
-                    <img src="/images/icn-settings.svg" alt="Admin Settings" style={styles.adminIcon} />
+                    <img src="/images/icn-settings.svg" alt="Biểu tượng cài đặt quản trị" style={styles.adminIcon} />
                     ADMIN
                 </Link>
 

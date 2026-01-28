@@ -25,6 +25,7 @@ export const MEDIA_BASE_URL = getMediaBaseUrl();
 
 // Specific API endpoints
 export const API_ENDPOINTS = {
+    BASE_URL: API_BASE_URL,
     COURSES: `${API_BASE_URL}/courses`,
     COMMENTS: `${API_BASE_URL}/comments`,
     USERS: `${API_BASE_URL}/users`,
@@ -36,6 +37,7 @@ export const API_ENDPOINTS = {
     SOLUTIONS: `${API_BASE_URL}/solutions`,
     STUDY_MATERIALS: `${API_BASE_URL}/study-materials`,
     POINTS: `${API_BASE_URL}/points`,
+    CLOUDINARY: `${API_BASE_URL}/cloudinary`,
 };
 
 console.log('API Config initialized:', {

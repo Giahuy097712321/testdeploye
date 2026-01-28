@@ -123,7 +123,7 @@ const MediaItem = memo(({ item, isSelected, onItemClick, onNavigate, onOpenMenu,
                             </div>
                         ) : (
                             (!imgError && item.thumbUrl) ? (
-                                <img src={item.thumbUrl} alt={item.filename} loading="lazy" onError={() => setImgError(true)} />
+                                <img src={item.thumbUrl} alt={`Xem trước: ${item.filename}`} loading="lazy" onError={() => setImgError(true)} />
                             ) : (
                                 <div style={{ textAlign: 'center', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <Icons.Image />

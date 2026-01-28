@@ -559,7 +559,7 @@ export default function LookupManager() {
                                     <div>
                                         <img
                                             src={form.licenseImage}
-                                            alt="License"
+                                            alt="Giấy phép điều khiển"
                                             style={{
                                                 maxWidth: "100%",
                                                 maxHeight: "250px",

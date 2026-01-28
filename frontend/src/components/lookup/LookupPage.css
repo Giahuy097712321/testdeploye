@@ -205,6 +205,25 @@
     color: var(--text-white);
 }
 
+/* Required Field Styles */
+.form-group.required label::after {
+    content: ' *';
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.form-group.required .form-input,
+.form-group.required .form-select {
+    background-color: #fffafa;
+    border-color: #fecaca;
+}
+
+.form-group.required .form-input:focus,
+.form-group.required .form-select:focus {
+    background-color: #fff5f5;
+    border-color: var(--primary-yellow);
+}
+
 /* =========================================
    QR SCANNER
    ========================================= */

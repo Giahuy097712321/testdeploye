@@ -249,6 +249,44 @@ const startServer = async () => {
       console.error("⚠️  Error creating privacy_policy:", err.message);
     }
 
+    // === ADD MISSING COLUMNS TO user_profiles ===
+    try {
+      console.log("🔧 Checking and adding missing columns to user_profiles...");
+      
+      // Danh sách các cột cần thêm
+      const columnsToAdd = [
+        { name: 'job_title', type: 'VARCHAR(255)' },
+        { name: 'work_place', type: 'VARCHAR(255)' },
+        { name: 'current_address', type: 'TEXT' },
+        { name: 'permanent_city_id', type: 'INT' },
+        { name: 'permanent_ward_id', type: 'INT' },
+        { name: 'current_city_id', type: 'INT' },
+        { name: 'current_ward_id', type: 'INT' },
+        { name: 'identity_image_front', type: 'LONGTEXT' },
+        { name: 'identity_image_back', type: 'LONGTEXT' }
+      ];
+
+      for (const col of columnsToAdd) {
+        try {
+          await db.execute(`
+            ALTER TABLE user_profiles 
+            ADD COLUMN ${col.name} ${col.type}
+          `);
+          console.log(`✅ Added column: ${col.name}`);
+        } catch (e) {
+          if (e.message.includes('Duplicate')) {
+            console.log(`ℹ️  Column ${col.name} already exists`);
+          } else {
+            throw e;
+          }
+        }
+      }
+      
+      console.log("✅ user_profiles migration completed");
+    } catch (err) {
+      console.error("⚠️  Error migrating user_profiles:", err.message);
+    }
+
     // Create terms_of_service table if not exists
     try {
       console.log("🔧 Creating terms_of_service table if not exists...");
