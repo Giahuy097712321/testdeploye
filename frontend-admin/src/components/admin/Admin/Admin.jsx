@@ -13,9 +13,95 @@ import LookupManager from "../../lookup/LookupManager";
 
 import "./Admin.css";
 
+// =====================================================================
+// LOADING SCREEN COMPONENT
+// =====================================================================
+const LoadingScreen = () => (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+    backdropFilter: 'blur(10px)'
+  }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '30px'
+    }}>
+      {/* Animated spinner */}
+      <div style={{
+        width: '60px',
+        height: '60px',
+        border: '4px solid rgba(0, 80, 184, 0.2)',
+        borderTop: '4px solid #0050b8',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite'
+      }}></div>
+      
+      <div style={{
+        textAlign: 'center',
+        color: '#ffffff'
+      }}>
+        <h2 style={{
+          margin: '0 0 10px 0',
+          fontSize: '24px',
+          fontWeight: '600',
+          letterSpacing: '0.5px'
+        }}>Đang tải dữ liệu</h2>
+        <p style={{
+          margin: 0,
+          opacity: 0.7,
+          fontSize: '14px'
+        }}>Vui lòng chờ...</p>
+      </div>
+
+      {/* Dot animation */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        justifyContent: 'center'
+      }}>
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#0050b8',
+              animation: `bounce 1.4s infinite`,
+              animationDelay: `${i * 0.2}s`
+            }}
+          />
+        ))}
+      </div>
+    </div>
+
+    <style>{`
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      @keyframes bounce {
+        0%, 80%, 100% { opacity: 0.5; transform: scale(0.8); }
+        40% { opacity: 1; transform: scale(1.2); }
+      }
+    `}</style>
+  </div>
+);
+
 export default function Admin() {
   const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Đổi tab mặc định hoặc giữ nguyên tùy bạn
   const [activeTab, setActiveTab] = useState("model3d");
@@ -24,6 +110,13 @@ export default function Admin() {
     const token = localStorage.getItem("admin_token");
     if (!token) {
       navigate("/login", { replace: true });
+    } else {
+      // Simulate loading delay for initial load (optional)
+      const timer = setTimeout(() => {
+        setIsInitialLoading(false);
+      }, 800); // Show loading screen for 800ms
+
+      return () => clearTimeout(timer);
     }
   }, [navigate]);
 
@@ -35,6 +128,9 @@ export default function Admin() {
 
   return (
     <div className="admin-container">
+      {/* Show loading screen during initial load */}
+      {isInitialLoading && <LoadingScreen />}
+
       {/* 1. HEADER & NAVIGATION */}
       <header className="admin-header">
         <div className="header-brand" style={{ position: "relative" }}>
