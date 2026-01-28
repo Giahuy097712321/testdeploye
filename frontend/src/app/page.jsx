@@ -9,6 +9,91 @@ import { apiClient } from "../lib/apiInterceptor";
 import "./UAVLandingPage.css";
 
 // =====================================================================
+// LOADING SCREEN COMPONENT
+// =====================================================================
+const LoadingScreen = () => (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+    backdropFilter: 'blur(10px)'
+  }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '30px'
+    }}>
+      {/* Animated spinner */}
+      <div style={{
+        width: '60px',
+        height: '60px',
+        border: '4px solid rgba(0, 80, 184, 0.2)',
+        borderTop: '4px solid #0050b8',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite'
+      }}></div>
+      
+      <div style={{
+        textAlign: 'center',
+        color: '#ffffff'
+      }}>
+        <h2 style={{
+          margin: '0 0 10px 0',
+          fontSize: '24px',
+          fontWeight: '600',
+          letterSpacing: '0.5px'
+        }}>Đang tải dữ liệu</h2>
+        <p style={{
+          margin: 0,
+          opacity: 0.7,
+          fontSize: '14px'
+        }}>Vui lòng chờ...</p>
+      </div>
+
+      {/* Dot animation */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        justifyContent: 'center'
+      }}>
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#0050b8',
+              animation: `bounce 1.4s infinite`,
+              animationDelay: `${i * 0.2}s`
+            }}
+          />
+        ))}
+      </div>
+    </div>
+
+    <style>{`
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      @keyframes bounce {
+        0%, 80%, 100% { opacity: 0.5; transform: scale(0.8); }
+        40% { opacity: 1; transform: scale(1.2); }
+      }
+    `}</style>
+  </div>
+);
+
+// =====================================================================
 // 0. WEBGL SUPPORT CHECK
 // =====================================================================
 const checkWebGLSupport = () => {
@@ -190,6 +275,7 @@ function UAVLandingPage() {
   const [activeCertTab, setActiveCertTab] = useState("map");
   const [webglSupported, setWebglSupported] = useState(true); // WebGL support state
   const [monthlyExams, setMonthlyExams] = useState([]);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [user, setUser] = useState(() => {
     // Initialize user from localStorage on mount
     const savedUser = localStorage.getItem("user");
@@ -213,44 +299,82 @@ function UAVLandingPage() {
   };
 
   useEffect(() => {
-    apiClient.get("/points")
-      .then((res) => setPoints(res.data))
-      .catch((err) => console.error(err));
-    apiClient.get("/solutions")
-      .then((res) => setSolutions(res.data))
-      .catch((err) => console.error(err));
-    apiClient.get("/display/notifications")
-      .then((res) => setNotifications(Array.isArray(res.data) ? res.data : res.data.data || []))
-      .catch((err) => console.error(err));
+    const fetchAllData = async () => {
+      try {
+        setIsDataLoading(true);
+        
+        // Fetch all data in parallel
+        const [pointsRes, solutionsRes, notificationsRes, coursesRes, modelRes, cameraRes] = await Promise.allSettled([
+          apiClient.get("/points"),
+          apiClient.get("/solutions"),
+          apiClient.get("/display/notifications"),
+          apiClient.get("/courses"),
+          apiClient.get("/settings/current_model_url"),
+          apiClient.get("/settings/default_camera_view")
+        ]);
 
-    // Fetch courses và ratings
-    apiClient.get("/courses")
-      .then((res) => {
-        setCourses(res.data);
+        // Handle points
+        if (pointsRes.status === 'fulfilled') {
+          setPoints(pointsRes.value.data);
+        }
 
-        // Fetch ratings cho từng course
-        const ratings = {};
-        res.data.forEach((course) => {
-          apiClient.get(`/comments/course/${course.id}`)
-            .then((commentsRes) => {
-              const ratedComments = (commentsRes.data.comments || []).filter(c => c.rating);
-              if (ratedComments.length > 0) {
-                const avg = (ratedComments.reduce((sum, c) => sum + c.rating, 0) / ratedComments.length).toFixed(1);
-                ratings[course.id] = { average: avg, count: ratedComments.length };
-                setCourseRatings(prev => ({ ...prev, [course.id]: { average: avg, count: ratedComments.length } }));
-              }
-            })
-            .catch((err) => console.error(`Lỗi fetch comments cho course ${course.id}:`, err));
-        });
-      })
-      .catch((err) => console.error(err));
+        // Handle solutions
+        if (solutionsRes.status === 'fulfilled') {
+          setSolutions(solutionsRes.value.data);
+        }
 
-    apiClient.get("/settings/current_model_url")
-      .then((res) => setModelUrl(res.data.value || "/models/scene.glb"))
-      .catch(() => setModelUrl("/models/scene.glb"));
-    apiClient.get("/settings/default_camera_view")
-      .then((res) => { if (res.data.value) try { setCameraSettings(JSON.parse(res.data.value)); } catch (e) { } })
-      .catch(() => { });
+        // Handle notifications
+        if (notificationsRes.status === 'fulfilled') {
+          setNotifications(Array.isArray(notificationsRes.value.data) ? notificationsRes.value.data : notificationsRes.value.data.data || []);
+        }
+
+        // Handle courses and ratings
+        if (coursesRes.status === 'fulfilled') {
+          const courses = coursesRes.value.data;
+          setCourses(courses);
+
+          // Fetch ratings cho từng course
+          const ratings = {};
+          courses.forEach((course) => {
+            apiClient.get(`/comments/course/${course.id}`)
+              .then((commentsRes) => {
+                const ratedComments = (commentsRes.data.comments || []).filter(c => c.rating);
+                if (ratedComments.length > 0) {
+                  const avg = (ratedComments.reduce((sum, c) => sum + c.rating, 0) / ratedComments.length).toFixed(1);
+                  ratings[course.id] = { average: avg, count: ratedComments.length };
+                  setCourseRatings(prev => ({ ...prev, [course.id]: { average: avg, count: ratedComments.length } }));
+                }
+              })
+              .catch((err) => console.error(`Lỗi fetch comments cho course ${course.id}:`, err));
+          });
+        }
+
+        // Handle model URL
+        if (modelRes.status === 'fulfilled') {
+          setModelUrl(modelRes.value.data.value || "/models/scene.glb");
+        } else {
+          setModelUrl("/models/scene.glb");
+        }
+
+        // Handle camera settings
+        if (cameraRes.status === 'fulfilled') {
+          if (cameraRes.value.data.value) {
+            try {
+              setCameraSettings(JSON.parse(cameraRes.value.data.value));
+            } catch (e) {
+              console.error("Lỗi parse camera settings:", e);
+            }
+          }
+        }
+
+        setIsDataLoading(false);
+      } catch (error) {
+        console.error("Lỗi khi fetch dữ liệu:", error);
+        setIsDataLoading(false);
+      }
+    };
+
+    fetchAllData();
   }, []);
 
   // Fetch all upcoming exams for banner
@@ -410,6 +534,9 @@ function UAVLandingPage() {
 
   return (
     <>
+      {/* Show loading screen while fetching data */}
+      {isDataLoading && <LoadingScreen />}
+
       {/* 1. Hero Section */}
       <section className="hero">
         <div className="container">
