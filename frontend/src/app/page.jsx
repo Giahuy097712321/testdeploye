@@ -494,29 +494,138 @@ function UAVLandingPage() {
       <section className="section section-white steps-section" style={{ paddingTop: 0 }}>
         <div className="container">
           <h2 className="section-title" style={{ fontWeight: "800", marginBottom: "50px" }}>Các bước thực hiện</h2>
-          <div className="steps-container">
-            <div className="step-item">
-              <div className="step-icon"><img src="/images/icons/register.svg" alt="Đăng ký" onError={(e) => (e.target.src = "https://img.icons8.com/ios-filled/50/ffffff/open-book.png")} /></div>
+          
+          {/* Row 1: Steps 1-4 (left to right) */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0', marginBottom: '0', position: 'relative', flexWrap: 'wrap' }}>
+            {/* Step 1 */}
+            <div className="step-item" style={{ textAlign: 'center', flex: '0 0 auto', width: '180px' }}>
+              <div className="step-icon" style={{ width: '80px', height: '80px', margin: '0 auto 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                <img src="/images/1.png" alt="Step 1" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => (e.target.src = "https://via.placeholder.com/80")} />
+              </div>
               <div className="step-title">Đăng ký tài khoản</div>
-              <div className="step-desc">Tạo tài khoản với thông tin cá nhân <br />và xác thực qua CCCD/CMND</div>
+              <div className="step-desc" style={{ fontSize: '13px' }}>Tạo tài khoản với thông tin cá nhân và xác thực qua CCCD/CMND</div>
             </div>
-            <img className="step-arrow-img" src="/images/icons/arrow.svg" alt="arrow" />
-            <div className="step-item">
-              <div className="step-icon"><img src="/images/icons/course.svg" alt="Học" onError={(e) => (e.target.src = "https://img.icons8.com/ios-filled/50/ffffff/learning.png")} /></div>
-              <div className="step-title">Hoàn thành khóa học</div>
-              <div className="step-desc">Học các bài giảng trực tuyến <br /> và hoàn thành bài tập</div>
+            
+            {/* Arrow 1→2 */}
+            <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '45px', marginTop: '-25px' }}>
+              <svg width="70" height="16" viewBox="0 0 200 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0050b8' }}>
+                <rect x="0" y="9" width="150" height="6" fill="currentColor"></rect>
+                <polygon points="150,4 150,20 165,12" fill="currentColor"></polygon>
+              </svg>
             </div>
-            <img className="step-arrow-img" src="/images/icons/arrow.svg" alt="arrow" />
-            <div className="step-item">
-              <div className="step-icon"><img src="/images/icons/test.svg" alt="Sát hạch" onError={(e) => (e.target.src = "https://img.icons8.com/ios-filled/50/ffffff/todo-list.png")} /></div>
-              <div className="step-title">Đăng ký lịch thi sát hạch</div>
-              <div className="step-desc">Tham gia kỳ thi trắc nghiệm trực tuyến E-learning</div>
+
+            {/* Step 2 */}
+            <div className="step-item" style={{ textAlign: 'center', flex: '0 0 auto', width: '180px' }}>
+              <div className="step-icon" style={{ width: '80px', height: '80px', margin: '0 auto 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                <img src="/images/2.png" alt="Step 2" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => (e.target.src = "https://via.placeholder.com/80")} />
+              </div>
+              <div className="step-title">Đăng nhập hệ thống</div>
+              <div className="step-desc" style={{ fontSize: '13px' }}>Đăng nhập tài khoản và xác nhận thông tin cá nhân</div>
             </div>
-            <img className="step-arrow-img" src="/images/icons/arrow.svg" alt="arrow" />
-            <div className="step-item">
-              <div className="step-icon"><img src="/images/icons/license.svg" alt="Giấy phép" onError={(e) => (e.target.src = "https://img.icons8.com/ios-filled/50/ffffff/medal.png")} /></div>
-              <div className="step-title">Giấy phép điều khiển</div>
-              <div className="step-desc">Nhận chứng chỉ số sau 10 ngày <br />từ lúc xác nhận kết quả</div>
+
+            {/* Arrow 2→3 */}
+            <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '45px', marginTop: '-25px' }}>
+              <svg width="70" height="16" viewBox="0 0 200 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0050b8' }}>
+                <rect x="0" y="9" width="150" height="6" fill="currentColor"></rect>
+                <polygon points="150,4 150,20 165,12" fill="currentColor"></polygon>
+              </svg>
+            </div>
+
+            {/* Step 3 */}
+            <div className="step-item" style={{ textAlign: 'center', flex: '0 0 auto', width: '180px' }}>
+              <div className="step-icon" style={{ width: '80px', height: '80px', margin: '0 auto 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                <img src="/images/3.png" alt="Step 3" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => (e.target.src = "https://via.placeholder.com/80")} />
+              </div>
+              <div className="step-title">Đăng ký khóa học</div>
+              <div className="step-desc" style={{ fontSize: '13px' }}>Chọn khóa học phù hợp (Hạng A hoặc Hạng B)</div>
+            </div>
+
+            {/* Arrow 3→4 */}
+            <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '45px', marginTop: '-25px' }}>
+              <svg width="70" height="16" viewBox="0 0 200 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0050b8' }}>
+                <rect x="0" y="9" width="150" height="6" fill="currentColor"></rect>
+                <polygon points="150,4 150,20 165,12" fill="currentColor"></polygon>
+              </svg>
+            </div>
+
+            {/* Step 4 */}
+            <div className="step-item" style={{ textAlign: 'center', flex: '0 0 auto', width: '180px' }}>
+              <div className="step-icon" style={{ width: '80px', height: '80px', margin: '0 auto 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                <img src="/images/4.png" alt="Step 4" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => (e.target.src = "https://via.placeholder.com/80")} />
+              </div>
+              <div className="step-title">Thanh toán học phí</div>
+              <div className="step-desc" style={{ fontSize: '13px' }}>Hoàn tất thanh toán học phí khóa học</div>
+            </div>
+          </div>
+
+          {/* Arrow Down from Step 4 to Step 5 */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingRight: '90px', marginBottom: '0', marginTop: '-10px', minHeight: '60px' }}>
+            <svg height="80" viewBox="0 0 24 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0050b8' }}>
+              <rect x="9" y="0" width="6" height="150" fill="currentColor"></rect>
+              <polygon points="12,150 3,150 12,165" fill="currentColor"></polygon>
+            </svg>
+          </div>
+
+          {/* Row 2: Steps 8-5 (left to right) */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0', position: 'relative', flexWrap: 'wrap', marginTop: '-5px' }}>
+            {/* Step 8 */}
+            <div className="step-item" style={{ textAlign: 'center', flex: '0 0 auto', width: '180px' }}>
+              <div className="step-icon" style={{ width: '80px', height: '80px', margin: '0 auto 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                <img src="/images/8.png" alt="Step 8" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => (e.target.src = "https://via.placeholder.com/80")} />
+              </div>
+              <div className="step-title">Nhận chứng chỉ</div>
+              <div className="step-desc" style={{ fontSize: '13px' }}>Cấp chứng chỉ điều khiển UAV hợp lệ</div>
+            </div>
+
+            {/* Arrow 8←7 */}
+            <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '45px', marginTop: '-25px' }}>
+              <svg width="70" height="16" viewBox="0 0 200 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0050b8', transform: 'scaleX(-1)' }}>
+                <rect x="0" y="9" width="150" height="6" fill="currentColor"></rect>
+                <polygon points="150,4 150,20 165,12" fill="currentColor"></polygon>
+              </svg>
+            </div>
+
+            {/* Step 7 */}
+            <div className="step-item" style={{ textAlign: 'center', flex: '0 0 auto', width: '180px' }}>
+              <div className="step-icon" style={{ width: '80px', height: '80px', margin: '0 auto 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                <img src="/images/7.png" alt="Step 7" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => (e.target.src = "https://via.placeholder.com/80")} />
+              </div>
+              <div className="step-title">Thi lý thuyết & Bay thực hành</div>
+              <div className="step-desc" style={{ fontSize: '13px' }}>Hoàn thành kỳ thi trắc nghiệm và bay thực hành</div>
+            </div>
+
+            {/* Arrow 7←6 */}
+            <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '45px', marginTop: '-25px' }}>
+              <svg width="70" height="16" viewBox="0 0 200 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0050b8', transform: 'scaleX(-1)' }}>
+                <rect x="0" y="9" width="150" height="6" fill="currentColor"></rect>
+                <polygon points="150,4 150,20 165,12" fill="currentColor"></polygon>
+              </svg>
+            </div>
+
+            {/* Step 6 */}
+            <div className="step-item" style={{ textAlign: 'center', flex: '0 0 auto', width: '180px' }}>
+              <div className="step-icon" style={{ width: '80px', height: '80px', margin: '0 auto 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                <img src="/images/6.png" alt="Step 6" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => (e.target.src = "https://via.placeholder.com/80")} />
+              </div>
+              <div className="step-title">Đào tạo thực hành tại chỗ</div>
+              <div className="step-desc" style={{ fontSize: '13px' }}>Học bay và điều khiển UAV tại trung tâm</div>
+            </div>
+
+            {/* Arrow 6←5 */}
+            <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '45px', marginTop: '-25px' }}>
+              <svg width="70" height="16" viewBox="0 0 200 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0050b8', transform: 'scaleX(-1)' }}>
+                <rect x="0" y="9" width="150" height="6" fill="currentColor"></rect>
+                <polygon points="150,4 150,20 165,12" fill="currentColor"></polygon>
+              </svg>
+            </div>
+
+            {/* Step 5 */}
+            <div className="step-item" style={{ textAlign: 'center', flex: '0 0 auto', width: '180px' }}>
+              <div className="step-icon" style={{ width: '80px', height: '80px', margin: '0 auto 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                <img src="/images/5.png" alt="Step 5" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => (e.target.src = "https://via.placeholder.com/80")} />
+              </div>
+              <div className="step-title">Hoàn thành khóa học online</div>
+              <div className="step-desc" style={{ fontSize: '13px' }}>Hoàn tất tất cả bài học và bài tập online</div>
             </div>
           </div>
         </div>
