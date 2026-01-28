@@ -23,6 +23,7 @@ export default function UserManager() {
   const [form, setForm] = useState(initialUserState);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [approvalFilter, setApprovalFilter] = useState('all'); // 'all' | 'approved' | 'pending'
 
   // State để mở rộng xem chi tiết
   const [expandedUserId, setExpandedUserId] = useState(null);
@@ -54,14 +55,20 @@ export default function UserManager() {
   const users = useMemo(() => {
     return allUsers.filter(user => {
       const search = searchTerm.toLowerCase();
-      return (
+      const matchesSearch = (
         user.full_name?.toLowerCase().includes(search) ||
         user.email?.toLowerCase().includes(search) ||
         user.phone?.toLowerCase().includes(search) ||
         String(user.id).includes(search)
       );
+
+      const isApproved = (String(user.is_approved) === '1' || user.is_approved === true);
+      if (approvalFilter === 'approved' && !isApproved) return false;
+      if (approvalFilter === 'pending' && isApproved) return false;
+
+      return matchesSearch;
     });
-  }, [allUsers, searchTerm]);
+  }, [allUsers, searchTerm, approvalFilter]);
 
   const { mutate: saveUser } = useApiMutation();
 
@@ -437,6 +444,8 @@ export default function UserManager() {
   };
 
   const handleApprove = async (userId, isApproved) => {
+    // Only allow approving; do nothing if already approved
+    if (isApproved) return;
     try {
       const token = localStorage.getItem('admin_token');
       const response = await fetch(`${API_ENDPOINTS.USERS}/${userId}/approve`, {
@@ -445,12 +454,11 @@ export default function UserManager() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ is_approved: !isApproved })
+        body: JSON.stringify({ is_approved: true })
       });
       
       if (response.ok) {
-        const message = !isApproved ? 'Phê duyệt thành công!' : 'Hủy phê duyệt thành công!';
-        notifySuccess(message);
+        notifySuccess('Phê duyệt thành công!');
         refreshUsers();
       } else {
         notifyError('Lỗi phê duyệt người dùng');
@@ -742,6 +750,16 @@ export default function UserManager() {
             onFocus={(e) => e.target.style.borderColor = "#0066cc"}
             onBlur={(e) => e.target.style.borderColor = "#ddd"}
           />
+
+          <select
+            value={approvalFilter}
+            onChange={(e) => setApprovalFilter(e.target.value)}
+            style={{ marginLeft: 12, padding: '8px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}
+          >
+            <option value="all">Tất cả</option>
+            <option value="approved">Đã duyệt</option>
+            <option value="pending">Chờ duyệt</option>
+          </select>
         </div>
 
         <div className="list-group">
@@ -805,11 +823,7 @@ export default function UserManager() {
                   </button>
 
                   <div className="item-actions" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    {(String(user.is_approved) === '1' || user.is_approved === true) ? (
-                      <button onClick={() => handleApprove(user.id, user.is_approved)} className="btn btn-sm" style={{ padding: '4px 8px', fontSize: '12px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                        <AlertCircle size={12} /> Hủy duyệt
-                      </button>
-                    ) : (
+                    {!(String(user.is_approved) === '1' || user.is_approved === true) && (
                       <button onClick={() => handleApprove(user.id, user.is_approved)} className="btn btn-sm" style={{ padding: '4px 8px', fontSize: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                         <CheckCircle2 size={12} /> Duyệt
                       </button>
