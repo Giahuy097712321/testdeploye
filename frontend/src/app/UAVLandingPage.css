@@ -421,7 +421,7 @@ h3.section-title {
   font-weight: 800;
   color: #ffffff !important;
   padding: 50px 10px;
-  margin-bottom: 80px;
+  margin-bottom: 10px !important; /* Giảm xuống 10px */
 }
 
 .steps-section .section-title,
@@ -431,11 +431,14 @@ h3.section-title {
   font-weight: 600;
 }
 
-.steps-container {
+.steps-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-top: 50px;
+  justify-content: center;
+  align-items: center;
+  gap: 5px; /* Giảm từ 10px xuống 5px */
+  position: relative;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .step-item {
@@ -443,8 +446,8 @@ h3.section-title {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  width: 100%;
-  max-width: 260px;
+  width: 180px;
+  min-height: 200px;
   position: relative;
   z-index: 2;
 }
@@ -453,13 +456,12 @@ h3.section-title {
   width: 80px;
   height: 80px;
   background-color: var(--secondary-blue);
-  /* ✅ nền xanh dương */
   border: 2px solid var(--secondary-blue);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px; /* Giảm từ 20px xuống 15px */
   transition: all 0.3s ease;
   flex-shrink: 0;
 }
@@ -467,7 +469,6 @@ h3.section-title {
 .step-item:hover .step-icon {
   transform: scale(1.05);
   background-color: transparent;
-  /* ❗ KHÔNG đổ nền */
 }
 
 .step-icon img {
@@ -483,33 +484,131 @@ h3.section-title {
 
 .step-title {
   font-size: 0.9rem;
-  /* ✅ nhỏ lại */
   font-weight: 600;
-  /* nhẹ hơn */
   color: var(--secondary-blue) !important;
   margin-bottom: 10px;
   line-height: 1.3;
   min-height: 36px;
-  /* ✅ giảm chiều cao */
 }
 
 .step-desc {
   font-size: 0.9rem;
   color: var(--text-gray);
   line-height: 1.5;
-  margin-top: -30px;
+  margin-top: -20px; /* Giảm từ -30px lên -20px để gần hơn */
 }
 
-.step-arrow-img {
-  width: 50px;
-  height: 20px;
-  object-fit: contain;
-  transform: scale(4.0) translateX(3px);
-  transform-origin: center center;
-  margin-top: 35px;
-  filter: invert(15%) sepia(95%) saturate(3474%) hue-rotate(211deg) brightness(93%) contrast(104%);
-  z-index: 1;
-  position: relative;
+.step-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 45px;
+  margin-top: -90px;
+}
+
+.step-arrow-vertical {
+  display: none;
+  font-size: 24px;
+  color: #0050b8;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.step-arrow-down {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  min-height: 40px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .steps-row {
+    gap: 5px;
+  }
+  .step-item {
+    width: 160px;
+    min-height: 180px;
+  }
+  .step-arrow {
+    min-width: 35px;
+  }
+  .step-arrow svg {
+    width: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .steps-row {
+    flex-direction: column;
+    gap: 10px; /* Giảm từ 20px xuống 10px */
+    align-items: center;
+  }
+  .step-item {
+    width: 100%;
+    max-width: 400px; /* Tăng từ 350px lên 400px */
+    min-height: auto;
+    margin-bottom: 10px;
+    padding-bottom: 0px; /* Giảm padding để sát */
+    padding: 0; /* Loại bỏ padding */
+  }
+  .step-arrow {
+    display: none;
+  }
+  .step-arrow-down {
+    display: none;
+  }
+  .step-arrow-vertical {
+    display: block;
+  }
+  .step-icon {
+    margin-bottom: 0px !important; /* Gần nhất */
+  }
+  .step-title {
+    margin-bottom: 0px !important; /* Gần nhất */
+    min-height: auto !important; /* Loại bỏ min-height để sát */
+    line-height: 1.1 !important; /* Giảm line-height */
+    font-size: 1.4rem !important; /* Tăng từ 1.2rem lên 1.4rem */
+  }
+  .step-desc {
+    margin-top: 0px !important; /* Gần nhất */
+    font-size: 1.2rem !important; /* Tăng từ 1.1rem lên 1.2rem */
+    display: block !important; /* Đảm bảo hiện */
+    visibility: visible !important; /* Đảm bảo hiện */
+    line-height: 1.2 !important; /* Giảm line-height để sát */
+  }
+}
+
+@media (max-width: 480px) {
+  .step-item {
+    width: 100%;
+    max-width: 400px; /* Tăng width */
+  }
+  .step-icon {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 0px !important; /* Gần nhất */
+  }
+  .step-icon img {
+    width: 35px;
+    height: 35px;
+  }
+  .step-arrow-vertical {
+    font-size: 20px;
+  }
+  .step-title {
+    margin-bottom: 0px !important;
+    min-height: auto !important; /* Loại bỏ min-height */
+    line-height: 1.1 !important; /* Giảm line-height */
+    font-size: 1.4rem !important; /* Tăng font-size */
+  }
+  .step-desc {
+    display: block !important; /* Override để hiện nội dung */
+    visibility: visible !important;
+    font-size: 1.2rem !important; /* Tăng font-size */
+    margin-top: 0px !important; /* Gần nhất */
+    line-height: 1.2 !important; /* Giảm line-height */
+  }
 }
 
 /* === CERTIFICATES SECTION === */
@@ -1278,9 +1377,9 @@ h3.section-title {
     margin-bottom: 2px;
   }
 
-  /* Ẩn mô tả dài để giữ bố cục ngang đẹp */
+  /* Hiện mô tả để người dùng thấy nội dung */
   .step-desc {
-    display: none;
+    display: block;
   }
 
   .step-arrow-img {
