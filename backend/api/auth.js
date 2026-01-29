@@ -165,7 +165,7 @@ router.post("/register", registerLimiter, async (req, res) => {
       currentCityId, currentWardId,
       emergencyName, emergencyPhone, emergencyRelation,
       uavTypes, uavPurpose, activityArea, experience, certificateType,
-      cccdFront, cccdBack
+      cccdFront, cccdBack, tierBServices
     } = req.body;
 
     // === VALIDATION: TẤT CẢ CÁC TRƯỜNG BẮT BUỘC ===
@@ -234,9 +234,13 @@ router.post("/register", registerLimiter, async (req, res) => {
         permanent_city_id, permanent_ward_id, current_city_id, current_ward_id,
         emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
         uav_type, usage_purpose, operation_area, uav_experience, target_tier,
-        identity_image_front, identity_image_back)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        identity_image_front, identity_image_back, tier_b_services)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
+
+    const tierBServicesJson = tierBServices && tierBServices.length > 0 
+      ? JSON.stringify(tierBServices) 
+      : null;
 
     await connection.query(insertProfileSql, [
       newUserId, 
@@ -261,8 +265,8 @@ router.post("/register", registerLimiter, async (req, res) => {
       experience,
       certificateType || null,
       cccdFront || null,
-      cccdBack || null
-
+      cccdBack || null,
+      tierBServicesJson
     ]);
 
     await connection.commit();
@@ -378,21 +382,7 @@ router.post("/login", loginLimiter, async (req, res) => {
       connection.release();
     }
 
-    // Fetch user profile to get certificate_type (target_tier)
-    const [profileRows] = await db.query(
-      "SELECT target_tier FROM user_profiles WHERE user_id = ? LIMIT 1",
-      [user.id]
-    );
-
-    let responseData = { 
-      id: user.id, 
-      full_name: user.full_name, 
-      email: user.email, 
-      phone: user.phone, 
-      role: user.role, 
-      avatar: user.avatar,
-      certificate_type: profileRows.length > 0 ? profileRows[0].target_tier : null
-    };
+    let responseData = { id: user.id, full_name: user.full_name, email: user.email, phone: user.phone, role: user.role, avatar: user.avatar };
     if (user.role === 'admin') responseData.permissions = ['manage_users', 'manage_courses', 'manage_exams', 'manage_settings'];
 
     res.json({ 
