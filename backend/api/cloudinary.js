@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cloudinary = require('cloudinary').v2;
-const { verifyToken, verifyAdmin } = require('../middleware/verifyToken');
+const { verifyToken, verifyAdmin, verifyTokenOptional } = require('../middleware/verifyToken');
 const multer = require('multer');
 const fs = require('fs');
 const fsExtra = require('fs-extra');
@@ -90,7 +90,7 @@ router.post('/upload-cccd', upload.single('file'), async (req, res) => {
  * POST /api/cloudinary/upload
  * Upload file lên Cloudinary qua backend
  */
-router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
+router.post('/upload', upload.single('file'), verifyTokenOptional, async (req, res) => {
   try {
     console.log("Upload request received");
     console.log("File object:", req.file);
