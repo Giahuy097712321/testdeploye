@@ -58,9 +58,9 @@ media-server/uploads/
 frontend/public/course-video/
 frontend/public/models/
 frontend/public/document/
-backend/uploads/*
+backend/uploads/* - Cho phép upload folder lên Git
 !backend/uploads/.gitkeep
-frontend/uploads/*
+frontend/uploads/* - Cho phép upload folder lên Git
 !frontend/uploads/.gitkeep
 
 # Duplicated in all places

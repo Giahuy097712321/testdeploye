@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cloudinary = require('cloudinary').v2;
-const { verifyToken, verifyAdmin } = require('../middleware/verifyToken');
+const { verifyToken, verifyAdmin, verifyTokenOptional } = require('../middleware/verifyToken');
 const multer = require('multer');
 const fs = require('fs');
 const fsExtra = require('fs-extra');
@@ -25,10 +25,72 @@ const upload = multer({
 });
 
 /**
+ * POST /api/cloudinary/upload-cccd
+ * Upload CCCD lên Cloudinary (không cần token - cho form đăng ký)
+ */
+router.post('/upload-cccd', upload.single('file'), async (req, res) => {
+  try {
+    console.log("CCCD upload request received");
+    console.log("File:", req.file?.originalname, "Size:", req.file?.size);
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file provided'
+      });
+    }
+
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'File buffer is empty'
+      });
+    }
+
+    const resourceType = 'image';
+    const folder = 'uav-training/cccd';
+
+    // Upload to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: folder,
+          resource_type: resourceType,
+          timeout: 60000
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.on('error', (error) => {
+        reject(error);
+      });
+      stream.end(req.file.buffer);
+    });
+
+    console.log("✅ CCCD uploaded:", uploadResult.secure_url);
+
+    res.json({
+      success: true,
+      secure_url: uploadResult.secure_url,
+      public_id: uploadResult.public_id,
+      url: uploadResult.secure_url
+    });
+  } catch (error) {
+    console.error('CCCD upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Upload failed'
+    });
+  }
+});
+
+/**
  * POST /api/cloudinary/upload
  * Upload file lên Cloudinary qua backend
  */
-router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
+router.post('/upload', upload.single('file'), verifyTokenOptional, async (req, res) => {
   try {
     console.log("Upload request received");
     console.log("File object:", req.file);
@@ -167,11 +229,22 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
         uploadStream.end(req.file.buffer);
       });
     } catch (err) {
-      console.warn("Cloudinary failed, falling back to local storage:", err.message);
+      console.warn("❌ Cloudinary upload failed:", err.message);
       uploadError = err;
 
-      // Fallback: Save to local storage
+      // IMPORTANT: Chỉ allow fallback to local storage trên development environment
+      // Production (Render, Vercel, etc.) KHÔNG được dùng local storage vì ephemeral filesystem
+      const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL || process.env.RENDER;
+
+      if (isProduction && !process.env.ALLOW_LOCAL_UPLOAD) {
+        console.error("❌ PRODUCTION MODE: Cloudinary is required but failed. Refusing to use local storage (ephemeral filesystem)");
+        throw new Error(`Cloudinary upload failed and local storage is disabled in production: ${uploadError.message}`);
+      }
+
+      // Fallback: Save to local storage (DEV ONLY or if explicitly enabled)
       try {
+        console.warn("⚠️ FALLBACK: Saving to local storage (DEV mode or ALLOW_LOCAL_UPLOAD=true)");
+
         const uploadFolder = 'course-uploads'; // Local folder
         const { fullPath } = resolvePath(uploadFolder);
         const filename = `${Date.now()}-${sanitized}${fileExt}`;
@@ -183,19 +256,33 @@ router.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
         // Write file
         await fsExtra.writeFile(filePath, req.file.buffer);
 
-        const port = req.socket.localPort || process.env.PORT || 5000;
         const relPath = `${uploadFolder}/${filename}`;
 
-        console.log("Saved to local storage:", relPath);
+        console.log("✅ Saved to local storage:", relPath);
+
+        // Xác định URL dựa vào environment
+        // Trên production (Render, Vercel): dùng BACKEND_URL env var
+        // Trên local: dùng http://localhost:port
+        let baseUrl;
+        if (process.env.BACKEND_URL) {
+          // Production: sử dụng BACKEND_URL từ environment variable
+          baseUrl = process.env.BACKEND_URL.replace(/\/$/, ''); // Remove trailing slash
+          console.log("Using production BACKEND_URL:", baseUrl);
+        } else {
+          // Local development
+          const port = req.socket.localPort || process.env.PORT || 5000;
+          baseUrl = `http://localhost:${port}`;
+          console.log("Using local baseUrl:", baseUrl);
+        }
 
         uploadResult = {
-          secure_url: `http://localhost:${port}/uploads/${relPath}`,
+          secure_url: `${baseUrl}/uploads/${relPath}`,
           public_id: `local-${sanitized}`,
           resource_type: resourceType,
           display_name: displayName
         };
       } catch (localErr) {
-        console.error("Local fallback also failed:", localErr);
+        console.error("❌ Local fallback also failed:", localErr);
         throw new Error(`Both Cloudinary and local upload failed: ${uploadError.message}`);
       }
     }

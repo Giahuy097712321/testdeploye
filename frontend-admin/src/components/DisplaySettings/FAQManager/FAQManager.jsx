@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { Plus, Edit, X, Trash2, Save, AlertCircle, RefreshCw } from "lucide-react";
 
 import "../../admin/Admin/Admin.css";
 import { API_BASE_URL } from '../../../config/apiConfig';
+import { apiClient } from '../../../lib/apiInterceptor';
+import { notifySuccess, notifyError, notifyWarning } from '../../../lib/notifications';
 
 const API_FAQ_URL = `${API_BASE_URL}/faqs`;
 
@@ -36,13 +39,13 @@ export default function FAQManager() {
                 category: selectedCategory,
                 ...(searchQuery && { search: searchQuery })
             });
-            const response = await fetch(API_FAQ_URL + "?" + params);
-            if (!response.ok) throw new Error("Không thể kết nối Server");
-            const data = await response.json();
+            // Dùng apiClient để tự động handle token và refresh
+            const response = await apiClient.get(`${API_FAQ_URL}?${params}`);
+            const data = response.data;
             setFaqs(data.data || []);
         } catch (error) {
             console.error("Lỗi fetch:", error);
-            toast.error("Lỗi kết nối Server");
+            notifyError("Lỗi kết nối Server");
         }
     };
 
@@ -98,28 +101,25 @@ export default function FAQManager() {
             };
 
             if (!payload.question || !payload.answer) {
-                toast.error("Câu hỏi và trả lời không được để trống");
+                notifyError("Câu hỏi và trả lời không được để trống");
                 setLoading(false);
                 return;
             }
 
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(payload),
-            });
+            // Dùng apiClient thay vì fetch
+            let response;
+            if (method === "POST") {
+                response = await apiClient.post(url, payload);
+            } else {
+                response = await apiClient.put(url, payload);
+            }
 
-            if (!response.ok) throw new Error("Lỗi khi lưu dữ liệu");
-
-            toast.success(`${isEditing ? "Cập nhật" : "Tạo"} FAQ thành công!`);
+            notifySuccess(`${isEditing ? "Cập nhật" : "Tạo"} FAQ thành công!`);
 
             if (!isEditing) handleAddNew();
             fetchFAQs();
         } catch (error) {
-            toast.error(error.message);
+            notifyError(error.message);
         } finally {
             setLoading(false);
         }
@@ -128,25 +128,20 @@ export default function FAQManager() {
     const handleDelete = async (id) => {
         if (!window.confirm("Bạn có chắc muốn xóa FAQ này?")) return;
         try {
-            const response = await fetch(`${API_FAQ_URL}/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            });
-            if (!response.ok) throw new Error("Lỗi xóa");
+            // Dùng apiClient thay vì fetch
+            await apiClient.delete(`${API_FAQ_URL}/${id}`);
 
-            toast.success("Xóa FAQ thành công!");
+            notifySuccess("Xóa FAQ thành công!");
             fetchFAQs();
             if (form.id === id) handleAddNew();
         } catch (error) {
-            toast.error("Lỗi khi xóa");
+            notifyError("Lỗi khi xóa");
         }
     };
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) {
-            toast.warning("Vui lòng chọn ít nhất một FAQ");
+            notifyWarning("Vui lòng chọn ít nhất một FAQ");
             return;
         }
         if (!window.confirm(`Xóa ${selectedIds.length} FAQ?`)) return;
@@ -162,11 +157,11 @@ export default function FAQManager() {
             });
             if (!response.ok) throw new Error("Lỗi xóa");
 
-            toast.success(`Xóa ${selectedIds.length} FAQ thành công!`);
+            notifySuccess(`Xóa ${selectedIds.length} FAQ thành công!`);
             setSelectedIds([]);
             fetchFAQs();
         } catch (error) {
-            toast.error("Lỗi khi xóa");
+            notifyError("Lỗi khi xóa");
         }
     };
 

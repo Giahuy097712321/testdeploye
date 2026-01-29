@@ -9,6 +9,52 @@ function PersonalInfo() {
   const params = useParams();
   const fileInputRef = useRef(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [approvalStatus, setApprovalStatus] = useState(profile?.is_approved);
+
+  // Kiểm tra status phê duyệt từ localStorage hoặc fetch lại từ server
+  useEffect(() => {
+    const checkApprovalStatus = async () => {
+      try {
+        // Kiểm tra trước từ localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          if (userData.is_approved) {
+            setApprovalStatus(true);
+            if (setProfile) {
+              setProfile(prev => ({ ...prev, is_approved: true }));
+            }
+            return;
+          }
+        }
+
+        // Nếu chưa approved, fetch từ server để kiểm tra có được phê duyệt chưa
+        const res = await apiClient.get(`/users/${params.id}/profile`);
+        if (res.data?.is_approved) {
+          setApprovalStatus(true);
+          if (setProfile) {
+            setProfile(prev => ({ ...prev, is_approved: true }));
+          }
+          // Cập nhật localStorage nếu đã được phê duyệt
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            userData.is_approved = true;
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        }
+      } catch (err) {
+        // Ignore errors, use cached approval status
+      }
+    };
+
+    // Kiểm tra lần đầu khi component mount
+    if (!profile?.is_approved) {
+      checkApprovalStatus();
+    } else {
+      setApprovalStatus(true);
+    }
+  }, [params.id, profile?.is_approved, setProfile]);
 
   // Hàm helper để format ngày thành YYYY-MM-DD theo local timezone
   const formatDateToInput = (dateStr) => {
@@ -70,6 +116,17 @@ function PersonalInfo() {
     wardName: initialParsedAddress.wardName || ''
   });
 
+  const normalizeGenderForStorage = (g) => {
+    if (!g) return null;
+    const s = String(g).trim();
+    if (!s) return null;
+    const lowered = s.toLowerCase();
+    const stripped = lowered.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (['nam', 'n', 'male', 'm'].includes(stripped)) return 'Nam';
+    if (['nu', 'nu', 'female', 'f'].includes(stripped) || stripped === 'nu') return 'Nữ';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+
   // Fetch provinces khi component mount
   useEffect(() => {
     apiClient.get('/location/provinces')
@@ -122,14 +179,56 @@ function PersonalInfo() {
     setWards([]);
   };
 
+  // Hàm riêng để kiểm tra trạng thái phê duyệt từ server
+  const refreshApprovalStatus = async () => {
+    try {
+      const res = await apiClient.get(`/users/${params.id}/profile`);
+      // Check nếu is_approved = 1 (number) hoặc true (boolean)
+      const isApproved = res.data?.is_approved == 1;
+      
+      if (isApproved) {
+        setApprovalStatus(true);
+        if (setProfile) {
+          setProfile(prev => ({ ...prev, is_approved: true }));
+        }
+        // Cập nhật localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          userData.is_approved = true;
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
+      }
+      return isApproved;
+    } catch (err) {
+      console.error('Error checking approval status:', err);
+      return approvalStatus || profile?.is_approved;
+    }
+  };
+
   // Handle avatar upload
-  const handleAvatarClick = () => {
+  const handleAvatarClick = async () => {
+    // Kiểm tra lại từ server trước
+    const isApproved = await refreshApprovalStatus();
+    
+    if (!isApproved) {
+      notifyWarning('Tài khoản của bạn chưa được phê duyệt. Vui lòng chờ admin phê duyệt để sử dụng tính năng này.');
+      return;
+    }
     fileInputRef.current?.click();
   };
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Kiểm tra lại từ server trước khi upload
+    const isApproved = await refreshApprovalStatus();
+    
+    if (!isApproved) {
+      notifyWarning('Tài khoản của bạn chưa được phê duyệt. Vui lòng chờ admin phê duyệt để sử dụng tính năng này.');
+      return;
+    }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -198,7 +297,7 @@ function PersonalInfo() {
         email: form.email,
         phone: form.phone,
         birth_date: birthDateFormatted || null,
-        gender: form.gender,
+        gender: normalizeGenderForStorage(form.gender),
         address: fullAddress
       });
 
@@ -273,10 +372,7 @@ function PersonalInfo() {
                   <span className="info-value">{profile.target_tier || '--'}</span>
                 </div>
 
-                <div className="info-row">
-                  <span className="info-label">Loại UAV</span>
-                  <span className="info-value">{profile.uav_type || '--'}</span>
-                </div>
+                
 
                 <div className="info-row">
                   <span className="info-label">Ngày kích hoạt</span>
@@ -284,127 +380,6 @@ function PersonalInfo() {
                     {profile.created_at ? formatDate(profile.created_at) : '--'}
                   </span>
                 </div>
-
-
-                {/* <>
-                    <div className="info-row">
-                      <span className="info-label">Họ tên</span>
-                      <span className="info-value">{profile.full_name}</span>
-                    </div>
-
-                    <div className="info-row">
-                      <span className="info-label">Email</span>
-                      <input
-                        type="email"
-                        name="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        className="form-input"
-                        style={{ flex: 1 }}
-                      />
-                    </div>
-
-                    <div className="info-row">
-                      <span className="info-label">Số điện thoại</span>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={form.phone}
-                        onChange={handleChange}
-                        className="form-input"
-                        style={{ flex: 1 }}
-                      />
-                    </div>
-                    <div className="info-row">
-                      <span className="info-label">Mã định danh</span>
-                      <span className="info-value">{profile.identity_number || '--'}</span>
-                    </div>
-
-                    <div className="info-row">
-                      <span className="info-label">Giới tính</span>
-                      <span className="info-value">{profile.gender || '--'}</span>
-                    </div>
-
-                    <div className="info-row">
-                      <span className="info-label">Ngày sinh</span>
-                      <span className="info-value">
-                        {profile.birth_date ? formatDate(profile.birth_date) : '--'}
-                      </span>
-                    </div>
-
-
-                    <div className="info-row">
-                      <span className="info-label">Địa chỉ</span>
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <input
-                          type="text"
-                          name="address"
-                          value={form.address}
-                          onChange={handleChange}
-                          className="form-input"
-                          placeholder="Số nhà, đường..."
-                        />
-                        <select
-                          value={form.cityId}
-                          onChange={handleProvinceChange}
-                          className="form-input"
-                        >
-                          <option value="">
-                            {form.cityName && !form.cityId
-                              ? `${form.cityName}`
-                              : 'Chọn tỉnh/thành '}
-                          </option>
-                          {provinces.map(p => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={form.wardId}
-                          onChange={(e) => {
-                            const ward = wards.find(w => w.id == e.target.value);
-                            setForm(prev => ({
-                              ...prev,
-                              wardId: ward?.id || '',
-                              wardName: ward?.name || '',
-                            }));
-                          }}
-                          className="form-input"
-                          disabled={!wards.length && !form.wardName}
-                        >
-                          <option value="">
-                            {form.wardName && !form.wardId
-                              ? `${form.wardName}`
-                              : 'Chọn xã/phường'}
-                          </option>
-                          {wards.map(w => (
-                            <option key={w.id} value={w.id}>
-                              {w.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="info-row">
-                      <span className="info-label">Hạng</span>
-                      <span className="info-value">{profile.target_tier || '--'}</span>
-                    </div>
-
-                    <div className="info-row">
-                      <span className="info-label">Loại UAV</span>
-                      <span className="info-value">{profile.uav_type || '--'}</span>
-                    </div>
-
-                    <div className="info-row">
-                      <span className="info-label">Ngày kích hoạt</span>
-                      <span className="info-value">
-                        {profile.created_at ? formatDate(profile.created_at) : '--'}
-                      </span>
-                    </div>
-                  </>
-                )} */}
               </div>
 
             </div>
@@ -470,51 +445,7 @@ function PersonalInfo() {
           </div>
         </div>
       </div>
-      {/* <div>
-        {!isEditing ? (
-          <button
-            className="btn-edit-profile"
-            onClick={() => {
-              const parsed = parseAddress(profile.address);
-              setForm({
-                full_name: profile.full_name || '',
-                email: profile.email || '',
-                phone: profile.phone || '',
-                birth_date: formatDateToInput(profile.birth_date) || '',
-                gender: profile.gender || '',
-                address: parsed.street || '',
-                cityId: '',
-                cityName: parsed.cityName || '',
-                wardId: '',
-                wardName: parsed.wardName || ''
-              });
-              setIsEditing(true);
-            }}
-          >
-            Chỉnh Sửa Thông Tin Cá Nhân
-          </button>
-        ) : (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              className="btn-cancel btn-large"
-              style={{ flex: 2 }}
-              onClick={handleCancel}
-            >
-              Hủy
-            </button>
-
-            <button
-              className="btn btn-primary btn-large"
-              style={{ flex: 8 }}
-              onClick={handleSave}
-            >
-              Lưu
-            </button>
-          </div>
-
-        )}
-      </div> */}
-    </>
+</>
   );
 }
 

@@ -4,6 +4,56 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const { generateToken, verifyTokenData } = require('../middleware/verifyToken');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
+
+// ===== RATE LIMITING CONFIGURATION =====
+// Rate limiter cho login endpoint
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 5, // Tối đa 5 lần thử/15 phút
+  message: 'Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau 15 phút.',
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+  skip: (req) => {
+    // Skip rate limit cho admin nếu cần (tùy chọn)
+    return false;
+  }
+  // Không custom keyGenerator - để mặc định sử dụng IP helper từ express-rate-limit
+});
+
+// Rate limiter cho register endpoint
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 giờ
+  max: 5, // Tối đa 5 lần đăng ký/giờ từ cùng 1 IP
+  message: 'Quá nhiều lần đăng ký từ địa chỉ này. Vui lòng thử lại sau 1 giờ.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Rate limiter cho refresh token endpoint
+const refreshTokenLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 phút
+  max: 10, // Tối đa 10 requests/phút
+  message: 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Normalize gender for storage: map common variants to 'Nam' or 'Nữ', else capitalize
+function normalizeGenderForStorage(g) {
+  if (!g) return null;
+  try {
+    const s = String(g).trim();
+    if (s === '') return null;
+    const lowered = s.toLowerCase();
+    const stripped = lowered.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (['nam', 'n', 'male', 'm'].includes(stripped)) return 'Nam';
+    if (['nu', 'nu', 'female', 'f'].includes(stripped) || stripped === 'nu') return 'Nữ';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  } catch (e) {
+    return g;
+  }
+}
 
 // === AUTO MIGRATION: Tạo bảng user_sessions nếu chưa có ===
 (async () => {
@@ -77,15 +127,22 @@ const getDeviceName = (userAgent) => {
 router.post("/check-existence", async (req, res) => {
   try {
     const { type, value } = req.body;
+    console.log(`[Check Existence] Received - type="${type}", value="${value}"`);
     if (!value) return res.json({ exists: false });
 
     let query = "";
     if (type === 'email') query = "SELECT id FROM users WHERE email = ?";
     else if (type === 'phone') query = "SELECT id FROM users WHERE phone = ?";
-    else return res.status(400).json({ error: "Invalid type" });
+    else if (type === 'cccd') query = "SELECT user_id FROM user_profiles WHERE identity_number = ?";
+    else {
+      console.log(`[Check Existence] Invalid type: ${type}`);
+      return res.status(400).json({ error: "Invalid type" });
+    }
 
     const [rows] = await db.query(query, [value]);
-    res.json({ exists: rows.length > 0 });
+    const exists = rows.length > 0;
+    console.log(`[Check Existence] Query result - exists: ${exists}`);
+    res.json({ exists });
   } catch (error) {
     console.error("Check existence error:", error);
     res.status(500).json({ error: "Server error" });
@@ -93,20 +150,58 @@ router.post("/check-existence", async (req, res) => {
 });
 
 // --- 2. API ĐĂNG KÝ (Đã sửa lỗi target_tier) ---
-router.post("/register", async (req, res) => {
+router.post("/register", registerLimiter, async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
     const {
       phone, email, password, fullName,
-      birthDate, cccd, gender,
+      birthDate, cccd, gender, jobTitle, workPlace,
       finalPermanentAddress, finalCurrentAddress,
-      address, ward, district, city,
       permanentAddress, permanentWard, permanentDistrict, permanentCity,
+      permanentCityId, permanentWardId,
+      currentAddress, currentWard, currentDistrict, currentCity,
+      currentCityId, currentWardId,
       emergencyName, emergencyPhone, emergencyRelation,
-      uavTypes, uavPurpose, activityArea, experience, certificateType
+      uavTypes, uavPurpose, activityArea, experience, certificateType,
+      cccdFront, cccdBack
     } = req.body;
+
+    // === VALIDATION: TẤT CẢ CÁC TRƯỜNG BẮT BUỘC ===
+    const requiredFields = {
+      phone: 'Số điện thoại',
+      email: 'Email',
+      password: 'Mật khẩu',
+      fullName: 'Họ và tên',
+      birthDate: 'Ngày sinh',
+      cccd: 'Số CCCD/CMND',
+      gender: 'Giới tính',
+      jobTitle: 'Nghề nghiệp',
+      workPlace: 'Nơi làm việc',
+      permanentAddress: 'Địa chỉ hộ khẩu',
+      permanentCityId: 'Tỉnh/Thành phố hộ khẩu',
+      permanentWardId: 'Xã/Phường hộ khẩu',
+      currentAddress: 'Địa chỉ hiện tại',
+      currentCityId: 'Tỉnh/Thành phố hiện tại',
+      currentWardId: 'Xã/Phường hiện tại',
+      emergencyName: 'Tên người liên hệ khẩn cấp',
+      emergencyPhone: 'SĐT người liên hệ khẩn cấp',
+      emergencyRelation: 'Mối quan hệ',
+      uavPurpose: 'Mục đích sử dụng',
+      activityArea: 'Khu vực hoạt động',
+      experience: 'Kinh nghiệm',
+      certificateType: 'Loại chứng chỉ',
+      cccdFront: 'Ảnh CCCD mặt trước',
+      cccdBack: 'Ảnh CCCD mặt sau'
+    };
+
+    for (const [field, label] of Object.entries(requiredFields)) {
+      if (!req.body[field]) {
+        connection.release();
+        return res.status(400).json({ error: `${label} không được bỏ trống` });
+      }
+    }
 
     // Check trùng lần cuối
     const [existing] = await connection.query("SELECT id FROM users WHERE phone = ? OR email = ?", [phone, email]);
@@ -119,34 +214,55 @@ router.post("/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    // Insert Users
+    // Insert Users (new registrations are not approved by default)
     const [userResult] = await connection.query(
-      `INSERT INTO users (phone, email, password_hash, full_name, role) VALUES (?, ?, ?, ?, 'student')`,
+      `INSERT INTO users (phone, email, password_hash, full_name, role, is_approved) VALUES (?, ?, ?, ?, 'student', 0)`,
       [phone, email, password_hash, fullName]
     );
     const newUserId = userResult.insertId;
 
     // Chuẩn bị data Profile
-    const uavTypeString = Array.isArray(uavTypes) ? uavTypes.join(', ') : uavTypes;
-    const dbCurrentAddress = finalCurrentAddress || [address, ward, district, city].filter(Boolean).join(', ');
-    const dbPermanentAddress = finalPermanentAddress || [permanentAddress, permanentWard, permanentDistrict, permanentCity].filter(Boolean).join(', ');
+    const uavTypeString = uavTypes ? (Array.isArray(uavTypes) ? uavTypes.join(', ') : uavTypes) : null;
+    const dbCurrentAddress = currentAddress || [currentCity, currentWard, currentDistrict].filter(Boolean).join(', ');
+    const dbPermanentAddress = permanentAddress || [permanentCity, permanentWard, permanentDistrict].filter(Boolean).join(', ');
 
-    // Insert Profile
+    // Insert Profile với tất cả các trường
     const insertProfileSql = `
       INSERT INTO user_profiles 
       (user_id, address, permanent_address, identity_number, birth_date, gender,
+        job_title, work_place, current_address,
+        permanent_city_id, permanent_ward_id, current_city_id, current_ward_id,
         emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
         uav_type, usage_purpose, operation_area, uav_experience, target_tier,
         identity_image_front, identity_image_back)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await connection.query(insertProfileSql, [
-      newUserId, dbCurrentAddress, dbPermanentAddress, cccd, birthDate || null, gender || null,
-      emergencyName, emergencyPhone, emergencyRelation,
-      uavTypeString, uavPurpose, activityArea, experience,
-      certificateType || null, // Fix lỗi data truncated
-      null, null
+      newUserId, 
+      dbCurrentAddress, 
+      dbPermanentAddress, 
+      cccd, 
+      birthDate || null, 
+      normalizeGenderForStorage(gender),
+      jobTitle,
+      workPlace,
+      dbCurrentAddress,
+      permanentCityId || null,
+      permanentWardId || null,
+      currentCityId || null,
+      currentWardId || null,
+      emergencyName, 
+      emergencyPhone, 
+      emergencyRelation,
+      uavTypeString || null, 
+      uavPurpose, 
+      activityArea, 
+      experience,
+      certificateType || null,
+      cccdFront || null,
+      cccdBack || null
+
     ]);
 
     await connection.commit();
@@ -162,7 +278,7 @@ router.post("/register", async (req, res) => {
 });
 
 // --- 3. API ĐĂNG NHẬP (User thường) ---
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const { identifier, password } = req.body;
   const userAgent = req.get('user-agent') || '';
   const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
@@ -172,9 +288,50 @@ router.post("/login", async (req, res) => {
     if (rows.length === 0) return res.status(400).json({ error: "Tài khoản không tồn tại" });
 
     const user = rows[0];
+    
+    // Check if account is locked due to failed login attempts
+    if (user.is_active === 0) {
+      return res.status(403).json({ error: "Tài khoản bị khóa. Vui lòng liên hệ admin." });
+    }
+    
     const validPass = await bcrypt.compare(password, user.password_hash);
-    if (!validPass) return res.status(400).json({ error: "Mật khẩu không đúng" });
-    if (!user.is_active) return res.status(403).json({ error: "Tài khoản bị khóa" });
+    
+    // Handle failed login attempt
+    if (!validPass) {
+      const failedAttempts = (user.failed_login_attempts || 0) + 1;
+      
+      // Lock account if failed attempts reach 5
+      if (failedAttempts >= 5) {
+        await db.query(
+          "UPDATE users SET is_active = 0, failed_login_attempts = ?, last_failed_login = NOW() WHERE id = ?",
+          [failedAttempts, user.id]
+        );
+        return res.status(403).json({ 
+          error: "Tài khoản của bạn đã bị khóa do nhập sai mật khẩu quá nhiều lần. Vui lòng liên hệ admin để mở khóa." 
+        });
+      } else {
+        // Just increment failed attempts
+        await db.query(
+          "UPDATE users SET failed_login_attempts = ?, last_failed_login = NOW() WHERE id = ?",
+          [failedAttempts, user.id]
+        );
+        const attemptsLeft = 5 - failedAttempts;
+        return res.status(400).json({ 
+          error: `Mật khẩu không đúng. Bạn còn ${attemptsLeft} lần thử.` 
+        });
+      }
+    }
+    
+    // Check if student account is approved by admin
+    if (user.role === 'student' && !user.is_approved) {
+      return res.status(403).json({ error: "Tài khoản của bạn đang chờ admin phê duyệt. Vui lòng quay lại sau." });
+    }
+
+    // Reset failed login attempts on successful login
+    await db.query(
+      "UPDATE users SET failed_login_attempts = 0, last_failed_login = NULL WHERE id = ?",
+      [user.id]
+    );
 
     const token = generateToken({ id: user.id, role: user.role, fullName: user.full_name, email: user.email }, 'access');
     const refreshToken = generateToken({ id: user.id, role: user.role }, 'refresh');
@@ -240,7 +397,7 @@ router.post("/login", async (req, res) => {
 });
 
 // --- 4. API ĐĂNG NHẬP ADMIN (ĐÂY LÀ PHẦN BỊ THIẾU TRƯỚC ĐÓ) ---
-router.post("/login-admin", async (req, res) => {
+router.post("/login-admin", loginLimiter, async (req, res) => {
   const { identifier, password } = req.body;
   const userAgent = req.get('user-agent') || '';
   const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
@@ -331,7 +488,7 @@ router.post("/login-admin", async (req, res) => {
 });
 
 // --- 5. REFRESH TOKEN ---
-router.post("/refresh-token", async (req, res) => {
+router.post("/refresh-token", refreshTokenLimiter, async (req, res) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(400).json({ success: false, error: "Thiếu token", code: 'NO_REFRESH_TOKEN' });
