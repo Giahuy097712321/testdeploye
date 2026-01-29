@@ -834,7 +834,6 @@ function UAVLandingPage() {
                 <br />
               </div>
               <div className="uav-duration-box">Thời gian đào tạo: xx Tuần</div>
-              <button className="uav-cert-btn">Xem chi tiết</button>
             </div>
             <div className="uav-cert-card">
               <div>
@@ -925,7 +924,7 @@ function UAVLandingPage() {
                 </div>
               </div>
 
-              <button className="uav-cert-btn-detail" onClick={() => { setModalGroup(hangBGroups[activeCertTab]); setShowCertModal(true); }}>Xem chi tiết</button>
+              {/* detail button removed */}
             </div>
           </div>
         </div>
