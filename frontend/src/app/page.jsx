@@ -691,9 +691,9 @@ function UAVLandingPage() {
 
           {/* Arrow Down from Step 4 to Step 5 */}
           <div className="step-arrow-down" style={{paddingLeft: "780px"}}>
-            <svg width="20" height="70" viewBox="0 0 24 200"  fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="9" y="0" width="6" height="150" fill="#0050b8"></rect>
-              <polygon points="12,150 3,150 12,165" fill="#0050b8"></polygon>
+            <svg width="16" height="80" viewBox="0 0 24 100" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+              <rect x="11" y="0" width="2" height="50" rx="1" fill="currentColor"></rect>
+              <polygon points="8,52 16,52 12,60" fill="currentColor"></polygon>
             </svg>
           </div>
 
