@@ -12,84 +12,27 @@ import "./UAVLandingPage.css";
 // LOADING SCREEN COMPONENT
 // =====================================================================
 const LoadingScreen = () => (
-  <div style={{
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-    backdropFilter: 'blur(10px)'
-  }}>
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '30px'
-    }}>
+  <div className="loading-screen-overlay">
+    <div className="loading-screen-content">
       {/* Animated spinner */}
-      <div style={{
-        width: '60px',
-        height: '60px',
-        border: '4px solid rgba(0, 80, 184, 0.2)',
-        borderTop: '4px solid #0050b8',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite'
-      }}></div>
+      <div className="loading-spinner"></div>
       
-      <div style={{
-        textAlign: 'center',
-        color: '#ffffff'
-      }}>
-        <h2 style={{
-          margin: '0 0 10px 0',
-          fontSize: '24px',
-          fontWeight: '600',
-          letterSpacing: '0.5px'
-        }}>Đang tải dữ liệu</h2>
-        <p style={{
-          margin: 0,
-          opacity: 0.7,
-          fontSize: '14px'
-        }}>Vui lòng chờ...</p>
+      <div className="loading-text-container">
+        <h2 className="loading-title">Đang tải dữ liệu</h2>
+        <p className="loading-subtitle">Vui lòng chờ...</p>
       </div>
 
       {/* Dot animation */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        justifyContent: 'center'
-      }}>
+      <div className="loading-dots">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: '#0050b8',
-              animation: `bounce 1.4s infinite`,
-              animationDelay: `${i * 0.2}s`
-            }}
+            className="loading-dot"
+            style={{ animationDelay: `${i * 0.2}s` }}
           />
         ))}
       </div>
     </div>
-
-    <style>{`
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-      @keyframes bounce {
-        0%, 80%, 100% { opacity: 0.5; transform: scale(0.8); }
-        40% { opacity: 1; transform: scale(1.2); }
-      }
-    `}</style>
   </div>
 );
 
@@ -108,23 +51,10 @@ const checkWebGLSupport = () => {
 
 // Fallback component khi WebGL không khả dụng
 const WebGLFallback = () => (
-  <div style={{
-    width: '100%',
-    height: '100%',
-    minHeight: '400px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-    borderRadius: '12px',
-    color: '#fff',
-    textAlign: 'center',
-    padding: '40px'
-  }}>
-    <div style={{ fontSize: '48px', marginBottom: '20px' }}>🏢</div>
-    <h3 style={{ margin: '0 0 10px', fontSize: '20px' }}>Mô hình 3D không khả dụng</h3>
-    <p style={{ margin: 0, opacity: 0.7, fontSize: '14px', maxWidth: '300px' }}>
+  <div className="webgl-fallback-container">
+    <div className="webgl-fallback-icon">🏢</div>
+    <h3 className="webgl-fallback-title">Mô hình 3D không khả dụng</h3>
+    <p className="webgl-fallback-desc">
       Trình duyệt của bạn không hỗ trợ WebGL hoặc GPU đang bận.
       Vui lòng thử refresh trang hoặc sử dụng trình duyệt khác (Chrome, Firefox, Edge).
     </p>
@@ -211,17 +141,7 @@ const PanoramaViewer = ({ panoramaUrl }) => {
   return (
     <div
       ref={viewerContainerRef}
-      className="panorama-container"
-      style={{
-        width: "100%",
-        height: "350px",
-        borderRadius: "8px",
-        overflow: "hidden",
-        backgroundColor: "#222",
-        boxShadow: "inset 0 0 20px rgba(0,0,0,0.5)",
-        position: "relative",
-        border: "1px solid #444",
-      }}
+      className="panorama-viewer-container"
     >
       {/* Chỉ hiển thị Loading khi state isLoading = true */}
       {isLoading && (
@@ -241,9 +161,8 @@ const PanoramaViewer = ({ panoramaUrl }) => {
 // =====================================================================
 const StarIcon = () => (
   <svg
-    className="star-icon"
+    className="star-icon-svg"
     viewBox="0 0 24 24"
-    style={{ width: "16px", height: "16px", fill: "#0050b8" }}
   >
     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
   </svg>
@@ -287,6 +206,44 @@ function UAVLandingPage() {
     setWebglSupported(checkWebGLSupport());
   }, []);
 
+  // Lắng nghe sự kiện userLoggedIn để cập nhật user state
+  useEffect(() => {
+    const handleUserLoggedIn = () => {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    };
+
+    window.addEventListener('userLoggedIn', handleUserLoggedIn);
+    return () => window.removeEventListener('userLoggedIn', handleUserLoggedIn);
+  }, []);
+
+  // Polling để cập nhật certificate_type khi admin thay đổi
+  useEffect(() => {
+    if (!user || !user.id) return; // Chỉ poll khi user đã login
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await apiClient.get(`/users/${user.id}/profile`);
+        const profileData = response.data;
+        
+        // Cập nhật certificate_type nếu khác
+        if (profileData.target_tier && profileData.target_tier !== user.certificate_type) {
+          const updatedUser = { ...user, certificate_type: profileData.target_tier };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          console.log('✅ Certificate type updated:', profileData.target_tier);
+        }
+      } catch (error) {
+        // Lỗi polling không cần báo, tiếp tục
+        console.debug('Polling update error:', error.message);
+      }
+    }, 5000); // Poll mỗi 5 giây
+
+    return () => clearInterval(pollInterval);
+  }, [user]);
+
   useActivate(() => {
     window.dispatchEvent(new Event("resize"));
   });
@@ -297,6 +254,48 @@ function UAVLandingPage() {
     agro: ["Nghiệp vụ Khảo Sát Nông - Lâm - Ngư Nghiệp", "Dịch Vụ Nông Nghiệp Công Nghệ Cao"],
     art: ["Trình diễn nghệ thuật UAV", "Biểu Diễn Mô Hình R/C", "Tổ hợp sáng tạo nội dung số UAV"],
   };
+
+  // Dynamic Hạng B groups (fetched from backend). Each group: { label, items }
+  const [hangBGroups, setHangBGroups] = useState({});
+  const [expandedItemId, setExpandedItemId] = useState(null);
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [modalGroup, setModalGroup] = useState(null);
+
+  // tab keys come from API-driven groups (no static fallback)
+  const tabKeys = Object.keys(hangBGroups);
+
+  useEffect(() => {
+    let mounted = true;
+    apiClient.get('/nghiep-vu-hang-b')
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data : (res.data.data || []);
+        const grouped = {};
+
+        const defaultLabelFor = (key) => {
+          if (key === 'map') return 'Khảo sát bản đồ';
+          if (key === 'check') return 'Kiểm tra công nghiệp';
+          if (key === 'agro') return 'Nông Lâm Vận Tải';
+          if (key === 'art') return 'Trình diễn nghệ thuật';
+          return key;
+        };
+
+        data.forEach((item) => {
+          const rawCat = (item.category || '').toLowerCase();
+          let key = 'other';
+          if (rawCat.includes('map') || rawCat.includes('khảo')) key = 'map';
+          else if (rawCat.includes('check') || rawCat.includes('kiểm')) key = 'check';
+          else if (rawCat.includes('agro') || rawCat.includes('nông') || rawCat.includes('lâm')) key = 'agro';
+          else if (rawCat.includes('art') || rawCat.includes('trình') || rawCat.includes('biểu')) key = 'art';
+
+          if (!grouped[key]) grouped[key] = { label: item.category || defaultLabelFor(key), items: [] };
+          grouped[key].items.push(item);
+        });
+
+        if (mounted) setHangBGroups(grouped);
+      })
+      .catch((err) => console.error('Lỗi fetch nghiep vu hang B:', err));
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -494,7 +493,7 @@ function UAVLandingPage() {
           <div className="course-rating">
             <div className="stars" style={{ display: "flex" }}>
               {[...Array(5)].map((_, i) => (
-                <svg key={i} className="star-icon" viewBox="0 0 24 24" style={{ width: "16px", height: "16px" }}>
+                <svg key={i} className="star-icon-svg" viewBox="0 0 24 24">
                   <path
                     d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
                     fill={i < Math.round(rating) ? '#FFC107' : '#ddd'}
@@ -571,29 +570,31 @@ function UAVLandingPage() {
             };
 
             return (
-              <div className="exam-banner" style={{ marginBottom: '20px' }}>
-                <h3 className="exam-banner-title" style={{ color: '#0050B8', margin: '0 0 12px 0' }}>Kỳ Thi Tháng {bannerMonth} Năm {bannerYear}</h3>
+              <div className="exam-banner">
+                <h3 className="exam-banner-title">Kỳ Thi Tháng {bannerMonth} Năm {bannerYear}</h3>
 
-                <div style={{ overflow: 'hidden' }}>
-                  <marquee behavior="scroll" direction="left" scrollamount="10" style={{ display: 'block', padding: '6px 0' }}>
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div className="exam-marquee-wrapper">
+                  <marquee behavior="scroll" direction="left" scrollamount="10" className="exam-marquee-content">
+                    <div className="exam-list-flex">
                       {monthlyExams.map((ex) => {
                         const { day, month } = renderDayMonth(ex.exam_date || ex.date || null);
                         const timeText = ex.exam_time || (ex.exam_date && new Date(ex.exam_date).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit' })) || '';
                         return (
-                          <div key={ex.id} className="exam-card" style={{ display: 'flex', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', padding: '12px 14px', alignItems: 'center', minWidth: '380px' }}>
-                            <div className="exam-date-box" style={{ width: '62px', textAlign: 'center', marginRight: '12px' }}>
-                              <div style={{ background: '#f0f8ff', borderRadius: '6px', padding: '6px' }}>
-                                <div style={{ fontSize: '20px', fontWeight: 800, color: '#0050b8' }}>{day || '-'}</div>
-                                <div style={{ fontSize: '11px', color: '#666' }}>THÁNG {month || '-'}</div>
+                          <div key={ex.id} className="exam-card">
+                            <div className="exam-date-box">
+                              <div className="exam-date-inner">
+                                <div className="exam-day">{day || '-'}</div>
+                                <div className="exam-month">THÁNG {month || '-'}</div>
                               </div>
                             </div>
 
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0b3d91' }}>{ex.title || ex.type || 'Kỳ Thi'}</div>
-                              <div style={{ fontSize: '12px', color: '#666', marginTop: '6px' }}>{ex.location || ex.address || ''}</div>
-                              <div style={{ fontSize: '11px', color: '#0050b8', marginTop: '4px', fontWeight: 600 }}>Giờ: {timeText}</div>
-                              <div style={{ marginTop: '6px', fontSize: '13px', color: ex.spots_left > 0 ? '#28a745' : '#d9534f', fontWeight: 700 }}>{ex.spots_left > 0 ? `Còn ${ex.spots_left} chỗ` : 'Hết chỗ'}</div>
+                            <div className="exam-info">
+                              <div className="exam-title">{ex.title || ex.type || 'Kỳ Thi'}</div>
+                              <div className="exam-location">{ex.location || ex.address || ''}</div>
+                              <div className="exam-time">Giờ: {timeText}</div>
+                              <div className={`exam-spots ${ex.spots_left > 0 ? 'exam-spots-available' : 'exam-spots-full'}`}>
+                                {ex.spots_left > 0 ? `Còn ${ex.spots_left} chỗ` : 'Hết chỗ'}
+                              </div>
                             </div>
                           </div>
                         );
@@ -690,10 +691,10 @@ function UAVLandingPage() {
           </div>
 
           {/* Arrow Down from Step 4 to Step 5 */}
-          <div className="step-arrow-down" style={{paddingLeft: "780px"}}>
-            <svg width="20" height="70" viewBox="0 0 24 200"  fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="9" y="0" width="6" height="150" fill="#0050b8"></rect>
-              <polygon points="12,150 3,150 12,165" fill="#0050b8"></polygon>
+          <div className="step-arrow-down step-arrow-down-container">
+            <svg width="16" height="80" viewBox="0 0 24 100" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+              <rect x="11" y="0" width="2" height="50" rx="1" fill="currentColor"></rect>
+              <polygon points="8,52 16,52 12,60" fill="currentColor"></polygon>
             </svg>
           </div>
 
@@ -792,7 +793,6 @@ function UAVLandingPage() {
                 <br />
               </div>
               <div className="uav-duration-box">Thời gian đào tạo: xx Tuần</div>
-              <button className="uav-cert-btn">Xem chi tiết</button>
             </div>
             <div className="uav-cert-card">
               <div>
@@ -830,37 +830,61 @@ function UAVLandingPage() {
                   </ul>
                 </div>
               </div> */}
-              <div className="cert-tabs-container">
-                <span className="cert-tabs-label">Các nghiệp vụ bao gồm:</span>
+              {user && user.certificate_type === 'B' && (
+                <div className="cert-tabs-container">
+                  <span className="cert-tabs-label">Các nghiệp vụ bao gồm:</span>
 
-                <div className="cert-tabs-header scroll-x">
-                  {Object.keys(certTabsData).map((key) => (
-                    <button
-                      key={key}
-                      className={`cert-tab-btn ${activeCertTab === key ? "active" : ""}`}
-                      onClick={() => setActiveCertTab(key)}
-                    >
-                      {key === 'map'
-                        ? 'Khảo sát bản đồ'
-                        : key === 'check'
-                          ? 'Kiểm tra công nghiệp'
-                          : key === 'agro'
-                            ? 'Nông Lâm Vận Tải'
-                            : 'Trình diễn nghệ thuật'}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="cert-tab-content">
-                  <ul className="sub-list-arrow">
-                    {certTabsData[activeCertTab].map((item, i) => (
-                      <li key={i}>{item}</li>
+                  <div className="cert-tabs-header scroll-x">
+                    {tabKeys.map((key) => (
+                      <button
+                        key={key}
+                        className={`cert-tab-btn ${activeCertTab === key ? "active" : ""}`}
+                        onClick={() => setActiveCertTab(key)}
+                      >
+                        {hangBGroups[key] && hangBGroups[key].label ? hangBGroups[key].label : key}
+                      </button>
                     ))}
-                  </ul>
-                </div>
-              </div>
+                  </div>
 
-              <button className="uav-cert-btn-detail">Xem chi tiết</button>
+                  <div className="cert-tab-content">
+                    <ul className="sub-list-arrow">
+                      {(hangBGroups[activeCertTab] && hangBGroups[activeCertTab].items && hangBGroups[activeCertTab].items.length > 0)
+                        ? hangBGroups[activeCertTab].items.map((item) => (
+                            <li
+                              key={item.id || item.code || item.title}
+                              className="hangb-item"
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => {
+                                const key = item.id ?? item.code ?? item.title;
+                                setExpandedItemId(expandedItemId === key ? null : key);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  const key = item.id ?? item.code ?? item.title;
+                                  setExpandedItemId(expandedItemId === key ? null : key);
+                                }
+                              }}
+                            >
+                              <div className="hangb-item-row">
+                                <span className="hangb-item-title">{item.title || item.code || 'Nghiệp vụ'}</span>
+                              </div>
+                              {expandedItemId === (item.id ?? item.code ?? item.title) && (
+                                <div className="hangb-item-desc">
+                                  {item.description || 'Không có mô tả.'}
+                                </div>
+                              )}
+                            </li>
+                          ))
+                        : null
+                      }
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {/* detail button removed */}
             </div>
           </div>
         </div>
@@ -880,7 +904,7 @@ function UAVLandingPage() {
       <section className="map-3d-section">
         <div className="map-3d-header">
           <h2 className="section-title">Cơ sở vật chất</h2>
-          <p style={{ color: "#000000", maxWidth: "800px", margin: "0 auto" }}>Khám phá cơ sở vật chất hiện đại qua mô hình 3D tương tác.</p>
+          <p className="map-header-desc">Khám phá cơ sở vật chất hiện đại qua mô hình 3D tương tác.</p>
         </div>
         <div className={`map-3d-container ${isFullscreen ? "fullscreen" : ""}`} id="map3d">
           <button className="fullscreen-btn" onClick={toggleFullscreen}>{isFullscreen ? "✕" : "⛶"}</button>
@@ -899,14 +923,14 @@ function UAVLandingPage() {
             <div className="map-info-header"><button className="close-btn" onClick={handleClosePanel}>✕</button></div>
             {selectedPointData && (
               <div className="map-info-body">
-                <div style={{ marginBottom: "20px", width: "100%" }}>
+                <div className="map-info-image-container">
                   {selectedPointData.panoramaUrl ? (
                     <div style={{ position: "relative" }}>
                       <PanoramaViewer key={selectedPointData.id} panoramaUrl={selectedPointData.panoramaUrl} />
-                      <div style={{ position: "absolute", bottom: "10px", left: "10px", background: "rgba(0,0,0,0.6)", color: "white", padding: "5px", borderRadius: "4px", fontSize: "11px", pointerEvents: "none" }}>Kéo để xoay 360°</div>
+                      <div className="panorama-overlay-hint">Kéo để xoay 360°</div>
                     </div>
                   ) : (
-                    <img className="map-info-image" src={selectedPointData.imageSrc || "/images/img-default.jpg"} alt={selectedPointData.title} style={{ width: "100%", height: "auto", borderRadius: "8px" }} />
+                    <img className="map-info-image" src={selectedPointData.imageSrc || "/images/img-default.jpg"} alt={selectedPointData.title} />
                   )}
                 </div>
                 <div className="map-info-content">
@@ -915,7 +939,6 @@ function UAVLandingPage() {
                     className="map-info-logo"
                     src={selectedPointData.logoSrc}
                     alt="logo"
-                    style={{ maxWidth: "150px", height: "auto", display: "block", marginBottom: "15px" }}
                     onError={(e) => (e.target.style.display = "none")}
                   />
                   <h3 className="map-info-title-new">{selectedPointData.title}</h3>
@@ -923,8 +946,8 @@ function UAVLandingPage() {
                     <div className="map-info-description-new html-content" dangerouslySetInnerHTML={{ __html: selectedPointData.description }} />
                   )}
                   {selectedPointData.website && (
-                    <div style={{ marginTop: "20px" }}>
-                      <a href={selectedPointData.website} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ display: "inline-block", fontSize: "14px" }}>Truy cập Website</a>
+                    <div className="map-website-btn-container">
+                      <a href={selectedPointData.website} target="_blank" rel="noopener noreferrer" className="btn btn-primary map-website-btn">Truy cập Website</a>
                     </div>
                   )}
                 </div>
@@ -939,7 +962,7 @@ function UAVLandingPage() {
         <div className="container">
           <h2 className="section-title solutions-section-title">Giải pháp cho các ngành nghề khác nhau</h2>
           {solutions.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#ffffff" }}><p>Đang tải dữ liệu giải pháp...</p></div>
+            <div className="solutions-loading"><p>Đang tải dữ liệu giải pháp...</p></div>
           ) : (
             <div className="solutions-grid">
               {solutions.map((item) => (
@@ -949,7 +972,7 @@ function UAVLandingPage() {
                   </div>
                   <h3 className="service-title">{item.title}</h3>
                   <p className="service-desc">{item.description}</p>
-                  <Link to={item.link || "#"} className="service-btn" onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px)")} onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0)")}>
+                  <Link to={item.link || "#"} className="service-btn">
                     Xem chi tiết
                   </Link>
                 </div>
@@ -964,7 +987,7 @@ function UAVLandingPage() {
         <div className="container">
           <h2 className="section-title">Thông báo chính thức</h2>
           {notifications.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "20px", color: "#b0b0b0" }}>Chưa có thông báo nào.</div>
+            <div className="notifications-empty">Chưa có thông báo nào.</div>
           ) : (
             <div className="news-grid">
               {notifications.map((news) => (
@@ -982,6 +1005,28 @@ function UAVLandingPage() {
           )}
         </div>
       </section>
+      {/* Certificate Details Modal */}
+      {showCertModal && modalGroup && (
+        <div className="cert-modal-overlay">
+          <div className="cert-modal-content">
+            <div className="cert-modal-header">
+              <h3 className="cert-modal-title">{modalGroup.label || 'Chi tiết nghiệp vụ'}</h3>
+              <button onClick={() => setShowCertModal(false)} className="cert-modal-close">✕</button>
+            </div>
+            <div className="cert-modal-body">
+              {modalGroup.items.map((it) => (
+                <div key={it.id || it.code} className="cert-modal-item">
+                  <h4 className="cert-modal-item-title">{it.title}</h4>
+                  <div className="cert-modal-item-desc">{it.description || 'Không có mô tả.'}</div>
+                </div>
+              ))}
+            </div>
+            <div className="cert-modal-footer">
+              <button className="btn cert-modal-close-btn" onClick={() => setShowCertModal(false)}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

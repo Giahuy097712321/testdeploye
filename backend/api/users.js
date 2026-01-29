@@ -6,7 +6,7 @@ const { verifyToken, verifyAdmin, verifyStudent } = require('../middleware/verif
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 
-// Normalize gender for storage: map common variants to 'Nam' or 'Nữ', else capitalize
+// Normalize gender for storage: accept only 'Nam' or 'Nữ' (case/diacritics-insensitive)
 function normalizeGenderForStorage(g) {
   if (!g) return null;
   try {
@@ -14,11 +14,11 @@ function normalizeGenderForStorage(g) {
     if (s === '') return null;
     const lowered = s.toLowerCase();
     const stripped = lowered.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    if (['nam', 'n', 'male', 'm'].includes(stripped)) return 'Nam';
-    if (['nu', 'nu', 'female', 'f'].includes(stripped) || stripped === 'nu') return 'Nữ';
-    return s.charAt(0).toUpperCase() + s.slice(1);
+    if (stripped === 'nam') return 'Nam';
+    if (stripped === 'nu') return 'Nữ';
+    return null;
   } catch (e) {
-    return g;
+    return null;
   }
 }
 
@@ -212,6 +212,19 @@ router.put("/:id", verifyAdmin, async (req, res) => {
   } = req.body;
 
   try {
+    // Validate unique fields before attempting update
+    if (email) {
+      const [existing] = await db.query(`SELECT id FROM users WHERE email = ? AND id != ? LIMIT 1`, [email, id]);
+      if (existing.length > 0) {
+        return res.status(409).json({ error: 'Email này đã được sử dụng bởi người dùng khác' });
+      }
+    }
+    if (phone) {
+      const [existingPhone] = await db.query(`SELECT id FROM users WHERE phone = ? AND id != ? LIMIT 1`, [phone, id]);
+      if (existingPhone.length > 0) {
+        return res.status(409).json({ error: 'Số điện thoại này đã được sử dụng bởi người dùng khác' });
+      }
+    }
     // Cập nhật các trường trong bảng users (cho phép admin chỉnh)
     const isActiveParam = typeof is_active !== 'undefined' ? (is_active ? 1 : 0) : null;
     await db.query(
@@ -321,6 +334,10 @@ router.put("/:id", verifyAdmin, async (req, res) => {
     res.json({ message: "Cập nhật thành công" });
   } catch (error) {
     console.error(error);
+    if (error && error.code === 'ER_DUP_ENTRY') {
+      // MySQL duplicate key - return conflict with helpful message
+      return res.status(409).json({ error: 'Dữ liệu trùng lặp (email hoặc phone đã tồn tại)' });
+    }
     res.status(500).json({ error: "Lỗi cập nhật người dùng" });
   }
 });

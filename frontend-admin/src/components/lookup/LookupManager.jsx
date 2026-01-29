@@ -17,6 +17,7 @@ import {
 import { useApi, useApiMutation } from "../../hooks/useApi";
 import { API_ENDPOINTS, MESSAGES, VALIDATION } from "../../constants/api";
 import { notifySuccess, notifyError } from "../../lib/notifications";
+import { uploadImage } from "../../lib/cloudinaryService";
 import "../admin/Admin/Admin.css";
 
 const initialLicenseState = {
@@ -36,6 +37,7 @@ const initialLicenseState = {
 export default function LookupManager() {
     const [form, setForm] = useState(initialLicenseState);
     const [isEditing, setIsEditing] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
     const [userSearchInput, setUserSearchInput] = useState("");
     const [showUserDropdown, setShowUserDropdown] = useState(false);
     const [message, setMessage] = useState(null);
@@ -127,6 +129,11 @@ export default function LookupManager() {
     const handleSave = async (e) => {
         e.preventDefault();
         try {
+            // Validate CCCD length (12 digits)
+            if (!/^[0-9]{12}$/.test(form.idNumber)) {
+                notifyError('Số CCCD phải gồm 12 chữ số');
+                return;
+            }
             // Kiểm tra nếu tạo mới (không phải edit)
             if (!isEditing) {
                 // Kiểm tra xem licenseNumber đã tồn tại chưa
@@ -152,7 +159,7 @@ export default function LookupManager() {
                 expireDate: form.expireDate,
                 status: form.status,
                 drones: form.drones || [],
-                licenseImage: form.licenseImage || null,
+                portraitImage: form.licenseImage || null, // backend expects portraitImage
             };
 
             await saveLicense({
@@ -209,17 +216,34 @@ export default function LookupManager() {
         });
     };
 
-    const handleImageUpload = (e) => {
+    const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setForm({
-                    ...form,
-                    licenseImage: event.target.result,
-                });
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        // Only images allowed
+        if (!file.type.startsWith('image/')) {
+            notifyError('Vui lòng chọn file hình ảnh (JPG/PNG/GIF)');
+            return;
+        }
+
+        try {
+            setUploadingImage(true);
+            const res = await uploadImage(file);
+            if (!res.success) {
+                notifyError(res.error || 'Upload ảnh thất bại');
+                return;
+            }
+
+            setForm({
+                ...form,
+                licenseImage: res.url || res.secure_url || res.publicId || ''
+            });
+            notifySuccess('Tải ảnh giấy phép lên Cloudinary thành công');
+        } catch (err) {
+            console.error('Image upload error:', err);
+            notifyError(err.message || 'Lỗi khi upload ảnh');
+        } finally {
+            setUploadingImage(false);
         }
     };
 
@@ -476,10 +500,11 @@ export default function LookupManager() {
                                 type="text"
                                 className="form-control"
                                 value={form.idNumber}
-                                onChange={(e) =>
-                                    setForm({ ...form, idNumber: e.target.value })
-                                }
-                                placeholder="Số CCCD/CMND"
+                                onChange={(e) => {
+                                    const digits = e.target.value.replace(/\D/g, '');
+                                    setForm({ ...form, idNumber: digits.slice(0, 12) });
+                                }}
+                                placeholder="Số CCCD/CMND (12 chữ số)"
                                 required
                             />
                         </div>
@@ -545,10 +570,16 @@ export default function LookupManager() {
                                 }}
                                 onClick={() => document.getElementById("licenseImageInput")?.click()}
                             >
-                                {!form.licenseImage ? (
+                                { uploadingImage ? (
                                     <div>
-                                        <div style={{ fontSize: "32px", marginBottom: "8px" }}>📷</div>
+                                        <div style={{ fontSize: "20px", marginBottom: "8px" }}>⏳</div>
                                         <div style={{ fontSize: "14px", fontWeight: "500", color: "#333", marginBottom: "4px" }}>
+                                            Đang tải ảnh lên...
+                                        </div>
+                                    </div>
+                                ) : !form.licenseImage ? (
+                                    <div>
+                                        <div style={{ fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "6px" }}>
                                             Nhấp để chọn hình ảnh
                                         </div>
                                         <div style={{ fontSize: "12px", color: "#999" }}>
@@ -762,29 +793,44 @@ export default function LookupManager() {
                                 className="list-item"
                                 style={{ alignItems: "flex-start", padding: "15px" }}
                             >
-                                <div
-                                    style={{
-                                        width: "60px",
-                                        height: "60px",
-                                        borderRadius: "8px",
-                                        background: "#f0f7ff",
-                                        border: "1px solid #cce3ff",
-                                        color: getCategoryColor(license.category),
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        marginRight: "15px",
-                                        flexShrink: 0,
-                                        fontSize: "11px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    <span style={{ fontSize: "14px" }}>
-                                        {license.category || "N/A"}
-                                    </span>
-                                    <span>Chứng chỉ</span>
-                                </div>
+                                {license.portraitImage ? (
+                                    <img
+                                        src={license.portraitImage}
+                                        alt={license.name || license.licenseNumber}
+                                        style={{
+                                            width: "60px",
+                                            height: "60px",
+                                            borderRadius: "8px",
+                                            objectFit: "cover",
+                                            marginRight: "15px",
+                                            flexShrink: 0,
+                                        }}
+                                    />
+                                ) : (
+                                    <div
+                                        style={{
+                                            width: "60px",
+                                            height: "60px",
+                                            borderRadius: "8px",
+                                            background: "#f0f7ff",
+                                            border: "1px solid #cce3ff",
+                                            color: getCategoryColor(license.category),
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            marginRight: "15px",
+                                            flexShrink: 0,
+                                            fontSize: "11px",
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        <span style={{ fontSize: "14px" }}>
+                                            {license.category || "N/A"}
+                                        </span>
+                                        <span>Chứng chỉ</span>
+                                    </div>
+                                )}
 
                                 <div style={{ flex: 1 }}>
                                     <div

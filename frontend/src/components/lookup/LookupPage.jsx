@@ -386,7 +386,7 @@ function LookupPage() {
                 issueDate: data.license?.issue_date ? new Date(data.license.issue_date).toLocaleDateString('vi-VN') : 'N/A',
                 expireDate: data.license?.expiry_date ? new Date(data.license.expiry_date).toLocaleDateString('vi-VN') : 'N/A',
                 status: data.license?.license_status || 'N/A',
-                licenseImage: data.license?.license_image || '/images/icons/license-default.jpg',
+                licenseImage: data.license?.portrait_image || '/images/icons/license-default.jpg',
                 drones: data.devices?.map(device => ({
                     model: device.model_name || 'N/A',
                     serial: device.serial_number || 'N/A',
@@ -468,7 +468,7 @@ function LookupPage() {
                     issueDate: data.license?.issue_date ? new Date(data.license.issue_date).toLocaleDateString('vi-VN') : 'N/A',
                     expireDate: data.license?.expiry_date ? new Date(data.license.expiry_date).toLocaleDateString('vi-VN') : 'N/A',
                     status: data.license?.license_status || 'N/A',
-                    licenseImage: data.license?.license_image || '/images/icons/license-default.jpg',
+                    licenseImage: data.license?.portrait_image || '/images/icons/license-default.jpg',
                     drones: data.devices?.map(device => ({
                         model: device.model_name || 'N/A',
                         serial: device.serial_number || 'N/A',

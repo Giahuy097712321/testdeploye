@@ -15,7 +15,7 @@ const initialUserState = {
   job_title: "", work_place: "", current_address: "", permanent_address: "",
   permanent_city_id: "", permanent_ward_id: "", current_city_id: "", current_ward_id: "",
   emergency_contact_name: "", emergency_contact_phone: "", emergency_contact_relation: "",
-  usage_purpose: "", operation_area: "", uav_experience: "", uav_types: [],
+  usage_purpose: "", operation_area: "", uav_experience: "",
   identity_image_front: "", identity_image_back: "",
 };
 
@@ -165,7 +165,6 @@ export default function UserManager() {
       usage_purpose: user.usage_purpose || '',
       operation_area: user.operation_area || '',
       uav_experience: user.uav_experience || '',
-      uav_types: user.uav_type ? user.uav_type.split(',').map(s => s.trim()) : [],
       identity_image_front: user.identity_image_front || '',
       identity_image_back: user.identity_image_back || '',
       avatar: user.avatar || ''
@@ -410,9 +409,8 @@ export default function UserManager() {
       
       // ensure gender is stored in canonical capitalized form
       if (payload.gender) payload.gender = normalizeGenderForStorage(payload.gender);
-      // add uav_type as joined string
-      payload.uav_type = form.uav_types.join(', ');
-      delete payload.uav_types;
+      // remove deprecated uav_types from payload
+      if (payload.uav_types) delete payload.uav_types;
 
       await saveUser({
         url: url,
@@ -574,31 +572,15 @@ export default function UserManager() {
                   <div className="form-group"><label className="form-label">Mối quan hệ</label><input className="form-control" value={form.emergency_contact_relation || ''} onChange={(e) => setForm({ ...form, emergency_contact_relation: e.target.value })} placeholder="Quan hệ" /></div>
 
                   <div className="form-group"><label className="form-label">Mục đích sử dụng</label><input className="form-control" value={form.usage_purpose || ''} onChange={(e) => setForm({ ...form, usage_purpose: e.target.value })} placeholder="Mục đích" /></div>
-                  <div className="form-group"><label className="form-label">Khu vực hoạt động</label><input className="form-control" value={form.operation_area || ''} onChange={(e) => setForm({ ...form, operation_area: e.target.value })} placeholder="Khu vực" /></div>
-                  <div className="form-group"><label className="form-label">Kinh nghiệm</label><input className="form-control" value={form.uav_experience || ''} onChange={(e) => setForm({ ...form, uav_experience: e.target.value })} placeholder="Mô tả kinh nghiệm" /></div>
-                  <div className="form-group"><label className="form-label">Thiết bị UAV</label>
-                    <div className="checkbox-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
-                      {["DJI Mini", "DJI Mavic", "DJI Phantom", "DJI Inspire", "Autel", "FPV", "Cánh bằng", "Khác"].map(t => (
-                        <label key={t} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
-                          <input
-                            type="checkbox"
-                            value={t}
-                            checked={form.uav_types.includes(t)}
-                            onChange={(e) => {
-                              const { checked, value } = e.target;
-                              setForm(prev => ({
-                                ...prev,
-                                uav_types: checked
-                                  ? [...prev.uav_types, value]
-                                  : prev.uav_types.filter(item => item !== value)
-                              }));
-                            }}
-                          />
-                          <span>{t}</span>
-                        </label>
-                      ))}
-                    </div>
+                  <div className="form-group"><label className="form-label">Khu vực hoạt động</label>
+                    <select className="form-control" value={form.operation_area || ''} onChange={(e) => setForm({ ...form, operation_area: e.target.value })}>
+                      <option value="">-- Chọn khu vực --</option>
+                      <option value="hanoi">Hà Nội & Miền Bắc</option>
+                      <option value="danang">Đà Nẵng & Miền Trung</option>
+                      <option value="hcm">TP.HCM & Miền Nam</option>
+                    </select>
                   </div>
+                  <div className="form-group"><label className="form-label">Kinh nghiệm</label><input className="form-control" value={form.uav_experience || ''} onChange={(e) => setForm({ ...form, uav_experience: e.target.value })} placeholder="Mô tả kinh nghiệm" /></div>
 
                   {(form.identity_image_front || form.identity_image_back) && (
                     <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -890,14 +872,22 @@ export default function UserManager() {
                       </div>
                     )}
 
-                    {/* Thông tin UAV */}
-                    {(user.uav_type || user.usage_purpose || user.operation_area || user.uav_experience) && (
+                    {/* Kinh nghiệm bay */}
+                    {(user.usage_purpose || user.operation_area || user.uav_experience) && (
                       <div style={{ marginTop: '12px', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
-                        <strong style={{ fontSize: '13px', color: '#1f2937', display: 'block', marginBottom: '6px' }}>Thông tin UAV</strong>
+                        <strong style={{ fontSize: '13px', color: '#1f2937', display: 'block', marginBottom: '6px' }}>Kinh nghiệm bay</strong>
                         <div style={{ marginTop: '6px', fontSize: '12px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          {user.uav_type && <div>Thiết bị: {user.uav_type}</div>}
+                          { /* removed device list display per request */ }
                           {user.usage_purpose && <div>Mục đích: {user.usage_purpose}</div>}
-                          {user.operation_area && <div>Khu vực: {user.operation_area}</div>}
+                          {user.operation_area && (
+                            <div>
+                              Khu vực: {({
+                                hanoi: 'Hà Nội & Miền Bắc',
+                                danang: 'Đà Nẵng & Miền Trung',
+                                hcm: 'TP.HCM & Miền Nam'
+                              }[user.operation_area] || user.operation_area)}
+                            </div>
+                          )}
                           {user.uav_experience && <div>Kinh nghiệm: {user.uav_experience}</div>}
                         </div>
                       </div>
