@@ -579,8 +579,7 @@ export default function LookupManager() {
                                     </div>
                                 ) : !form.licenseImage ? (
                                     <div>
-                                        <div style={{ fontSize: "32px", marginBottom: "8px" }}>📷</div>
-                                        <div style={{ fontSize: "14px", fontWeight: "500", color: "#333", marginBottom: "4px" }}>
+                                        <div style={{ fontSize: "14px", fontWeight: "600", color: "#333", marginBottom: "6px" }}>
                                             Nhấp để chọn hình ảnh
                                         </div>
                                         <div style={{ fontSize: "12px", color: "#999" }}>
@@ -794,29 +793,44 @@ export default function LookupManager() {
                                 className="list-item"
                                 style={{ alignItems: "flex-start", padding: "15px" }}
                             >
-                                <div
-                                    style={{
-                                        width: "60px",
-                                        height: "60px",
-                                        borderRadius: "8px",
-                                        background: "#f0f7ff",
-                                        border: "1px solid #cce3ff",
-                                        color: getCategoryColor(license.category),
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        marginRight: "15px",
-                                        flexShrink: 0,
-                                        fontSize: "11px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    <span style={{ fontSize: "14px" }}>
-                                        {license.category || "N/A"}
-                                    </span>
-                                    <span>Chứng chỉ</span>
-                                </div>
+                                {license.portraitImage ? (
+                                    <img
+                                        src={license.portraitImage}
+                                        alt={license.name || license.licenseNumber}
+                                        style={{
+                                            width: "60px",
+                                            height: "60px",
+                                            borderRadius: "8px",
+                                            objectFit: "cover",
+                                            marginRight: "15px",
+                                            flexShrink: 0,
+                                        }}
+                                    />
+                                ) : (
+                                    <div
+                                        style={{
+                                            width: "60px",
+                                            height: "60px",
+                                            borderRadius: "8px",
+                                            background: "#f0f7ff",
+                                            border: "1px solid #cce3ff",
+                                            color: getCategoryColor(license.category),
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            marginRight: "15px",
+                                            flexShrink: 0,
+                                            fontSize: "11px",
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        <span style={{ fontSize: "14px" }}>
+                                            {license.category || "N/A"}
+                                        </span>
+                                        <span>Chứng chỉ</span>
+                                    </div>
+                                )}
 
                                 <div style={{ flex: 1 }}>
                                     <div

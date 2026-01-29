@@ -188,7 +188,6 @@ router.post("/register", registerLimiter, async (req, res) => {
       emergencyName: 'Tên người liên hệ khẩn cấp',
       emergencyPhone: 'SĐT người liên hệ khẩn cấp',
       emergencyRelation: 'Mối quan hệ',
-      uavTypes: 'Loại UAV',
       uavPurpose: 'Mục đích sử dụng',
       activityArea: 'Khu vực hoạt động',
       experience: 'Kinh nghiệm',
@@ -223,7 +222,7 @@ router.post("/register", registerLimiter, async (req, res) => {
     const newUserId = userResult.insertId;
 
     // Chuẩn bị data Profile
-    const uavTypeString = Array.isArray(uavTypes) ? uavTypes.join(', ') : uavTypes;
+    const uavTypeString = uavTypes ? (Array.isArray(uavTypes) ? uavTypes.join(', ') : uavTypes) : null;
     const dbCurrentAddress = currentAddress || [currentCity, currentWard, currentDistrict].filter(Boolean).join(', ');
     const dbPermanentAddress = permanentAddress || [permanentCity, permanentWard, permanentDistrict].filter(Boolean).join(', ');
 
@@ -256,7 +255,7 @@ router.post("/register", registerLimiter, async (req, res) => {
       emergencyName, 
       emergencyPhone, 
       emergencyRelation,
-      uavTypeString, 
+      uavTypeString || null, 
       uavPurpose, 
       activityArea, 
       experience,
